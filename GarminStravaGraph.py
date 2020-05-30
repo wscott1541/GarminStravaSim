@@ -27,11 +27,21 @@ distances = df['Distance'].tolist()
 
 #make durations useable
 #duration_times = df['Time'].tolist()
-durations = df['Time'].tolist()
-#for i in range(0,len(duration_times)):
-#    dur = dt.datetime.strptime(duration_times[i],'%H:%M:%S')
-#    useful_dur = dt.timedelta(hours=dur.hour, minutes=dur.minute, seconds=dur.second)
-#    durations.append(useful_dur)
+duration_strings = df['Time'].tolist()
+
+def stringtime_to_floatminute(time_string):
+    hours = float(time_string[:2])
+    minutes = float(time_string[3:5])
+    seconds = float(time_string[6:8])
+    
+    time = hours * 60 + minutes + seconds/60
+    
+    return(time)
+    
+durations = []
+for i in range(0,len(duration_strings)):
+    dur = stringtime_to_floatminute(duration_strings[i])
+    durations.append(dur)
     
 #make times useable
 types = df['Activity Type'].tolist()
@@ -62,16 +72,45 @@ def distance_sum(m,yyyy):
     #error message?
     return(month_dates,sum_distances)
     
-def plot_month_and_previous_distances(m,yyyy):
-    curr_month_dates, curr_sum_distances = distance_sum(m,yyyy)
+def month_caller(m):
     if m == 1:
-        new_year = yyyy - 1 
-        prev_month_dates, prev_sum_distances = distance_sum(12,new_year)
-    else:
-        prev_month_dates, prev_sum_distances = distance_sum((m-1),yyyy)
-    
-    plt.plot(prev_month_dates, prev_sum_distances,color='blue')
-    plt.plot(curr_month_dates, curr_sum_distances,color='red')
+        string = 'Jan'
+    if m == 2:
+        string = 'Feb'
+    if m == 3:
+        string = 'Mar'
+    if m == 4:
+        string = 'Apr'
+    if m == 5:
+        string = 'May'
+    if m == 6:
+        string = 'Jun'
+    if m == 7:
+        string = 'Jul'
+    if m == 8:
+        string = 'Aug'
+    if m == 9:
+        string = 'Sep'
+    if m == 10:
+        string = 'Oct'
+    if m == 11:
+        string = 'Nov'
+    if m == 12:
+        string = 'Dec'
+    return(string)
+
+def month_length(m,yyyy):
+    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+        length = 31
+    if m == 4 or m == 6 or m == 9 or m == 11:
+        length = 30
+    if m == 2 and yyyy == 2016:
+        length = 29
+    elif m == 2 and yyyy == 2020:
+        length = 29
+    elif m == 2:
+        length = 28
+    return(length)
 
 def time_string(n):
     if n < 10:
@@ -79,63 +118,102 @@ def time_string(n):
     else:
         string = '{}'.format(round(n))
     return(string)
+    
+def floatminute_to_stringtime(time):
+    hours_calc = list(divmod(time,60))
+    hours = hours_calc[0]
+    remaining = hours_calc[1]
+    mins_calc = list(divmod(remaining,1))
+    minutes = mins_calc[0]
+    seconds = mins_calc[1]
+    
+    hour_string = time_string(hours)
+    mins_string = time_string(minutes)
+    secs_string = round(seconds * 60)
+    
+    string = '{}:{}:{}'.format(hour_string,mins_string,secs_string)
+    
+    return(string)
 
+"""
 def add_times(a,b):
-    #only works for times < 100 hours - error message?
-    hours_a = float(a[:2])
-    minutes_a = float(a[3:5])
-    seconds_a = float(a[6:8])
+    #requires times in minutes, or at least same units
+
+    time = a_mins + b_mins
     
-    hours_b = float(b[:2])
-    minutes_b = float(b[3:5])
-    seconds_b = float(b[6:8])
-    
-    sec_calc = list(divmod(seconds_a + seconds_b,60))
-    extra_minutes = sec_calc[0]
-    new_seconds = sec_calc[1]
-    
-    min_calc = list(divmod((minutes_a + minutes_b + extra_minutes),60))
-    extra_hours = min_calc[0]
-    new_minutes = min_calc[1]
-    
-    new_hours = hours_a + hours_b + extra_hours
-    
-    total_minutes = (new_hours*60) + new_minutes + (new_seconds/60)
-    
-    hour_string = time_string(new_hours)
-    minute_string = time_string(new_minutes)
-    second_string = time_string(new_seconds)
-    new_string = '{}:{}:{}'.format(hour_string,minute_string,second_string)
-    
-    return(total_minutes,new_string)
+    return(time)
+"""
         
 def duration_sum(m,yyyy):
     plot_mins = [0]
-    times = ['00:00:00']
     month_dates = [0]
     
     for i in range(0,len(dates)):
         if date_string(m,yyyy) in dates[i] and 'Running' in types[i]:
-            mins,times_string = add_times(times[-1],durations[i])
-            plot_mins.append(mins)
-            times.append(times_string)
+            times = plot_mins[-1] + durations[i]
+            plot_mins.append(times)
             month_dates.append(float(dates[i][-2:]))
-            
-    total_string = times[-1]
     
     #error message?
-    return(month_dates,plot_mins,total_string)
+    return(month_dates,plot_mins)
     
-def plot_month_and_previous_durations(m,yyyy):
-    curr_month_dates, curr_sum_durs,curr_total = duration_sum(m,yyyy)
+def populate_arrays(m,yyyy,month_dates,curr_vals):
+    for i in range(0,month_length(m,yyyy)):
+        if round(month_dates[-1]) == round(month_dates[i]):
+            month_dates.append(i+1)
+            curr_vals.append(curr_vals[-1])
+        elif round(month_dates[i + 1]) != i + 1:
+            month_dates.insert(i + 1,i + 1)
+            curr_vals.insert(i + 1,curr_vals[i])
+    
+"""
+Complete Functions
+"""
+    
+def plot_month_and_previous_distances(m,yyyy):
+    curr_month_dates, curr_sum_distances = distance_sum(m,yyyy)
+    populate_arrays(m,yyyy,curr_month_dates,curr_sum_distances)
+    
     if m == 1:
         new_year = yyyy - 1 
-        prev_month_dates, prev_sum_durs,prev_total = duration_sum(12,new_year)
+        prev_month_dates, prev_sum_distances = distance_sum(12,new_year)
+        populate_arrays(12,new_year,prev_month_dates,prev_sum_distances)
     else:
-        prev_month_dates, prev_sum_durs,prev_total = duration_sum((m-1),yyyy)
+        prev_month_dates, prev_sum_distances = distance_sum((m-1),yyyy)
+        populate_arrays((m-1),yyyy,prev_month_dates,prev_sum_distances)
+    
+    junk_month_dates,prev_mins = duration_sum(m-1,yyyy)
+    prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
+    
+    junk_month_dates,curr_mins = duration_sum(m,yyyy)
+    curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
+    
+    plt.plot(prev_month_dates, prev_sum_distances,color='blue')
+    plt.text(prev_month_dates[-2],prev_sum_distances[-1],prev_annot,horizontalalignment='right')
+    plt.plot(curr_month_dates, curr_sum_distances,color='red')
+    plt.text(curr_month_dates[-2],curr_sum_distances[-1],curr_annot,horizontalalignment='right')
+    
+def plot_month_and_previous_durations(m,yyyy):
+    curr_month_dates, curr_sum_durs = duration_sum(m,yyyy)
+    populate_arrays(m,yyyy,curr_month_dates,curr_sum_durs)
+    if m == 1:
+        new_year = yyyy - 1 
+        prev_month_dates, prev_sum_durs = duration_sum(12,new_year)
+        populate_arrays(m,new_year,prev_month_dates,prev_sum_durs)
+    else:
+        prev_month_dates, prev_sum_durs = duration_sum((m-1),yyyy)
+        populate_arrays((m-1),yyyy,prev_month_dates,prev_sum_durs)
+    
+    junk_month_dates,prev_dists = distance_sum(m-1,yyyy)
+    prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_dists[-1]),floatminute_to_stringtime(prev_sum_durs[-1]))
+    
+    junk_month_dates,curr_dists = distance_sum(m,yyyy)
+    curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_dists[-1]),floatminute_to_stringtime(curr_sum_durs[-1]))
     
     plt.plot(prev_month_dates, prev_sum_durs,color='blue')
+    plt.text(prev_month_dates[-2],prev_sum_durs[-1],prev_annot,horizontalalignment='right')
     plt.plot(curr_month_dates, curr_sum_durs,color='red')
+    plt.text(curr_month_dates[-2],curr_sum_durs[-1],curr_annot,horizontalalignment='right')
     
 #plot_month_and_previous_durations(4,2020)
 
