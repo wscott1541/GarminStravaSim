@@ -158,6 +158,21 @@ def duration_sum(m,yyyy):
     return(month_dates,plot_mins)
     
 def populate_arrays(m,yyyy,month_dates,curr_vals):
+    count = 0  
+    lim = month_length(m,yyyy)
+    i = 0      
+    while i < lim:
+        if month_dates[i] == month_dates[-1] and month_dates[i] != lim:
+            month_dates.append(i+1-count)
+            curr_vals.append(curr_vals[-1])
+        elif month_dates[i] == month_dates[i+1]:
+            count += 1
+            lim += 1
+        elif month_dates[i + 1] != i + 1 - count:
+            month_dates.insert(i + 1,i + 1 - count)
+            curr_vals.insert(i + 1,curr_vals[i])  
+        i += 1
+    """
     for i in range(0,month_length(m,yyyy)):
         if round(month_dates[-1]) == round(month_dates[i]):
             month_dates.append(i+1)
@@ -165,6 +180,7 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
         elif round(month_dates[i + 1]) != i + 1:
             month_dates.insert(i + 1,i + 1)
             curr_vals.insert(i + 1,curr_vals[i])
+    """
     
 """
 Complete Functions
