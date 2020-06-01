@@ -95,6 +95,9 @@ def floatmonth_to_datestring(floatmonth):
     
 def populate_arrays(m,yyyy,month_dates,curr_vals):
     lim = month_length(m,yyyy)
+    if month_dates[-1] < lim:
+        month_dates.append((month_dates[-1]) + 1)
+        curr_vals.append(curr_vals[-1])
     count = 0
     i = 0      
     while i < lim:
@@ -108,6 +111,25 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
             month_dates.insert(i + 1,i + 1 - count)
             curr_vals.insert(i + 1,curr_vals[i])  
         i += 1
+    """
+    lim = month_length(m,yyyy)
+    count = 0
+    i = 0  
+    if month_dates[-1] == month_dates[-2] and month_dates[-1] != lim:
+            month_dates.append(month_dates[-1]+1)
+            curr_vals.append(curr_vals[-1])
+    while i < lim:
+        if month_dates[i] == month_dates[-1] and month_dates[i] != lim:    
+            month_dates.insert(i + 1,i+1-count)
+            curr_vals.insert(i + 1,curr_vals[-1])
+        elif month_dates[i] == month_dates[i+1]:
+            count += 1
+            lim += 1
+        elif month_dates[i + 1] != i + 1 - count:
+            month_dates.insert(i + 1,i + 1 - count)
+            curr_vals.insert(i + 1,curr_vals[i])
+        i += 1
+    """
 
 def distance_sum(m,yyyy):
     sum_distances = [0]
@@ -280,7 +302,7 @@ def plot_durations_all_previous(m,yyyy):
     earl_month = datestring_to_floatmonth(earliest_date)
     
     fig,ax = plt.subplots()
-    for i in range(earl_month,pick_month):
+    for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
         temp_dates,temp_sum = duration_sum(m_val,yyyy_val)
@@ -299,15 +321,47 @@ def plot_distances_all_previous(m,yyyy):
     earl_month = datestring_to_floatmonth(earliest_date)
     
     fig,ax = plt.subplots()
-    for i in range(earl_month,pick_month):
+    for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
         temp_dates,temp_sum = distance_sum(m_val,yyyy_val)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
     ax.legend();
     
+def plot_cumulative_distance(m,yyyy):
+    run_vals = []    
+    for i in range(0,len(dates)):
+        if 'Running' in types[i]:
+            run_vals.append(i)
+    val = run_vals[0]
+    earliest_date = dates[val]
     
-#plot_month_and_previous_durations(4,2020)
+    pick_month = yyyy * 12 + m
+    earl_month = datestring_to_floatmonth(earliest_date)
+    
+    cum_dates = [0]
+    cum_dist = [0]
+    
+    fig,ax = plt.subplots()
+    for i in range(earl_month,pick_month+1):
+        temp_datestring = floatmonth_to_datestring(i)
+        m_val,yyyy_val = pull_month_and_year(temp_datestring)
+        temp_dates,temp_sum = distance_sum(m_val,yyyy_val)
+        prec_len = cum_dates[-1]+1
+        prec_dist = cum_dist[-1]
+        plot_dates = []
+        plot_dist = []
+        for val in range(0,len(temp_dates)):
+            cum_dates.append(temp_dates[val]+prec_len)
+            plot_dates.append(temp_dates[val]+prec_len)
+            cum_dist.append(temp_sum[val]+prec_dist)
+            plot_dist.append(temp_sum[val]+prec_dist)
+        plt.plot(plot_dates,plot_dist,label=temp_datestring)
+    ax.legend();
+    
+"""
+Plot graphs, starting from today
+"""
 
 plot_month_and_previous_distances(month,year)
 plt.show()
@@ -316,4 +370,6 @@ plt.show()
 plot_durations_all_previous(month,year)
 plt.show()
 plot_distances_all_previous(month,year)
+plt.show()
+plot_cumulative_distance(month,year)
 plt.show()
