@@ -9,6 +9,17 @@ Created on Fri May 29 09:39:30 2020
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from time import time, ctime, localtime
+
+t = time()
+print_time = ctime(t)
+print(print_time)
+
+now = list(localtime(t))
+year = now[0]
+month = now[1]
+day = now[2]
+
 """Garmin Connect -> Activities -> All Activities  
     -> (Scroll down to include all) -> Export -> (Move to correct location)"""
     
@@ -110,6 +121,10 @@ def month_length(m,yyyy):
         length = 29
     elif m == 2:
         length = 28
+        
+    if m == month and yyyy == year:
+        length = day
+    
     return(length)
 
 def time_string(n):
@@ -158,8 +173,8 @@ def duration_sum(m,yyyy):
     return(month_dates,plot_mins)
     
 def populate_arrays(m,yyyy,month_dates,curr_vals):
-    count = 0  
     lim = month_length(m,yyyy)
+    count = 0
     i = 0      
     while i < lim:
         if month_dates[i] == month_dates[-1] and month_dates[i] != lim:
@@ -172,15 +187,6 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
             month_dates.insert(i + 1,i + 1 - count)
             curr_vals.insert(i + 1,curr_vals[i])  
         i += 1
-    """
-    for i in range(0,month_length(m,yyyy)):
-        if round(month_dates[-1]) == round(month_dates[i]):
-            month_dates.append(i+1)
-            curr_vals.append(curr_vals[-1])
-        elif round(month_dates[i + 1]) != i + 1:
-            month_dates.insert(i + 1,i + 1)
-            curr_vals.insert(i + 1,curr_vals[i])
-    """
     
 """
 Complete Functions
@@ -232,16 +238,6 @@ def plot_month_and_previous_durations(m,yyyy):
     plt.text(curr_month_dates[-2],curr_sum_durs[-1],curr_annot,horizontalalignment='right')
     
 #plot_month_and_previous_durations(4,2020)
-
-from time import time, ctime, localtime
-
-t = time()
-print_time = ctime(t)
-print(print_time)
-
-now = list(localtime(t))
-year = now[0]
-month = now[1]
 
 plot_month_and_previous_distances(month,year)
 plt.show()
