@@ -9,11 +9,9 @@ Created on Fri May 29 09:39:30 2020
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from time import time, ctime, localtime
+from time import time, localtime
 
 t = time()
-print_time = ctime(t)
-print(print_time)
 
 now = list(localtime(t))
 year = now[0]
@@ -25,6 +23,9 @@ day = now[2]
     
 data = pd.read_csv (r'Activities.csv')   
 df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
+df = df.sort_values(by='Date')#sort_values is deprecated Python
+
+#print(df)
 
 #makes dates useable
 dates_times = df['Date'].tolist()
@@ -32,6 +33,19 @@ dates = []
 for i in range(0,len(dates_times)):
     useful_dates = dates_times[i][0:10]
     dates.append(useful_dates)#in format string 'yyyy-mm'
+
+"""    
+from datetime import datetime
+new_dates = []
+for i in range(0,len(dates)):
+    datetime_strp = datetime.strptime(dates_times[i],'%Y-%m-%d %H:%M:%S')
+    datetime_object = datetime.timestamp(datetime_strp)
+    new_dates.append(datetime_object)
+df['New_dates'] = new_dates
+
+df.sort_values(by='New_dates',ascending=True)
+"""
+
 
 #make distances useable
 distances = df['Distance'].tolist()
@@ -57,11 +71,14 @@ for i in range(0,len(duration_strings)):
 #make times useable
 types = df['Activity Type'].tolist()
 
+"""
 dates.reverse()
 distances.reverse()
 durations.reverse()
 types.reverse()
+"""
 #ensures chronological order, as cannot sort all activities - might want an if check here
+#Potentially try to sort by date before stripping out to list
 
 def date_string(m,yyyy):
     if m == 10 or m == 11 or m == 12:
@@ -359,17 +376,8 @@ def plot_cumulative_distance(m,yyyy):
         plt.plot(plot_dates,plot_dist,label=temp_datestring)
     ax.legend();
     
-"""
-Plot graphs, starting from today
-"""
 
-plot_month_and_previous_distances(month,year)
-plt.show()
-plot_month_and_previous_durations(month,year)
-plt.show()
-plot_durations_all_previous(month,year)
-plt.show()
-plot_distances_all_previous(month,year)
-plt.show()
-plot_cumulative_distance(month,year)
-plt.show()
+
+
+
+
