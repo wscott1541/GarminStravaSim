@@ -34,3 +34,6 @@ func.plot_distances_all_previous(month,year)
 plt.show()
 func.plot_cumulative_distance(month,year)
 plt.show()
+
+func.plot_week_and_previous_distances(func.today_string)
+plt.show()
