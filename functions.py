@@ -464,7 +464,6 @@ def distance_sum_prev_week(today_string):
         temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
         temp_date_dt = datetime.fromtimestamp(temp_date_object)
         temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
-        print(temp_date_string)
         
         for d in range (0,len(dates)):
             if temp_date_string in dates[d] and 'Running' in types[d]:
