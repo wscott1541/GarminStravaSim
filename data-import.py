@@ -79,8 +79,12 @@ import pandas as pd
 
 data = pd.read_csv (r'Activities.csv')   
 df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
-#add an archive function?
 df = df.sort_values(by='Date')
+
+#archive
+from functions import today_string
+archive_name = 'Activities{}'.format(today_string)
+df.to_csv(r'{}.csv'.format(archive_name), index = False)
 
 #check the most recent date
 dates_list = df['Date'].tolist()
@@ -121,4 +125,4 @@ while stop == 0:
 
 df.to_csv(r'Activities.csv', index = False)
 if stop == 1:
-    print('Import complete')
+    print('Update complete - {} activities added!'.format(i))
