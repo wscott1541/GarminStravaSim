@@ -493,9 +493,6 @@ def plot_week_and_previous_distances(today_string):
    plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
    
    ax.legend(); 
-    
-plot_week_and_previous_distances(today_string)
-plt.show()
 
 
 
