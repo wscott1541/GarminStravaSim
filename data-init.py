@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun  4 08:33:00 2020
+Created on Thu Jun  4 10:33:00 2020
 
 @author: WS
 """
@@ -104,7 +104,7 @@ while stop == 0:
     
     if len(pulled_activity) > 0:
         row = pull_from_activity(pulled_activity)# row = [type_string,date_string,dist_string,durs_string]
-        
+        print('Importing activity',i + 1)
         a_row = pd.Series(row,index=df.columns)
         mod_df = df.append(a_row,ignore_index = True)
         df = mod_df.sort_values(by='Date')
@@ -115,4 +115,4 @@ while stop == 0:
 
 df.to_csv(r'Activities.csv', index = False)
 if stop == 1 and import_error == 0:
-    print('Import complete')
+    print('Import complete - {} activities!'.format(i))
