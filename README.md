@@ -6,7 +6,7 @@ An attempt to recreate Strava's month-by-month progress graph that snowballed.
 Dependent on garmin-connect, https://pypi.org/project/garminconnect/.  
 Creates Activities.csv with information about activities that can be used in plots.  
 Run file, input username and password when prompted.  
-Tested up to 78 activities. 
+Tested up to 268 activities. 
 
 Manual alternative:  
 Download data manually from connect.garmin.com => Activities => All Activities => Export CSV.  
@@ -18,7 +18,7 @@ Move file to correct location.
 Dependent on garmin-connect, https://pypi.org/project/garminconnect/.  
 Updates an existing Activities.csv with any activities since creation or last update.  
 Run file, input username and password when prompted.  
-Requires existing Activities.csv.
+Requires existing Activities.csv, which will be archived with yyyy-mm-dd string.
 
 ## functions.py
 
@@ -35,3 +35,5 @@ Current graphs are:
 • All previous months, run distance and run duration
 
 • All time cumulative run distances 
+
+• Current week and previous, run distance
