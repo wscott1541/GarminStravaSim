@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from time import time, localtime
+from datetime import datetime
 
 t = time()
 
@@ -18,8 +19,15 @@ year = now[0]
 month = now[1]
 day = now[2]
 
-"""Garmin Connect -> Activities -> All Activities  
-    -> (Scroll down to include all) -> Export -> (Move to correct location)"""
+def add_zeros(number):
+    if float(number) >= 10:
+        string = number
+    else:
+        string = '0{}'.format(number)
+    return(string)
+    
+today_string = '{}-{}-{}'.format(year,add_zeros(month),add_zeros(day))
+
     
 data = pd.read_csv (r'Activities.csv')   
 df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
@@ -32,7 +40,7 @@ dates_times = df['Date'].tolist()
 dates = []
 for i in range(0,len(dates_times)):
     useful_dates = dates_times[i][0:10]
-    dates.append(useful_dates)#in format string 'yyyy-mm'
+    dates.append(useful_dates)#in format string 'yyyy-mm-dd'
 
 """    
 from datetime import datetime
@@ -105,7 +113,7 @@ def floatmonth_to_datestring(floatmonth):
     new_year = new[0]
     new_month = new[1]
     if new_month == 0:
-        new_year = new_month - 1
+        new_year = new_year - 1
         new_month = 12
     string = date_string(new_month,new_year)
     return(string)
@@ -128,25 +136,6 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
             month_dates.insert(i + 1,i + 1 - count)
             curr_vals.insert(i + 1,curr_vals[i])  
         i += 1
-    """
-    lim = month_length(m,yyyy)
-    count = 0
-    i = 0  
-    if month_dates[-1] == month_dates[-2] and month_dates[-1] != lim:
-            month_dates.append(month_dates[-1]+1)
-            curr_vals.append(curr_vals[-1])
-    while i < lim:
-        if month_dates[i] == month_dates[-1] and month_dates[i] != lim:    
-            month_dates.insert(i + 1,i+1-count)
-            curr_vals.insert(i + 1,curr_vals[-1])
-        elif month_dates[i] == month_dates[i+1]:
-            count += 1
-            lim += 1
-        elif month_dates[i + 1] != i + 1 - count:
-            month_dates.insert(i + 1,i + 1 - count)
-            curr_vals.insert(i + 1,curr_vals[i])
-        i += 1
-    """
 
 def distance_sum(m,yyyy):
     sum_distances = [0]
@@ -223,8 +212,8 @@ def floatminute_to_stringtime(time):
     seconds = mins_calc[1]
     
     hour_string = time_string(hours)
-    mins_string = time_string(minutes)
-    secs_string = round(seconds * 60)
+    mins_string = add_zeros(time_string(minutes))
+    secs_string = add_zeros(round(seconds * 60))
     
     string = '{}:{}:{}'.format(hour_string,mins_string,secs_string)
     
@@ -259,6 +248,48 @@ def month_diff(m1,yyyy1,m2,yyyy2):
     mon2 = yyyy2 * 12 + m2
     diff = mon1 - mon2
     return(diff)
+    
+def datestring_to_floatday(datestring):
+    d = round(float(datestring[8:]))
+    m = round(float(datestring[5:7]))
+    yyyy = round(float(datestring[:4]))
+    
+    floatday = yyyy * 364 + month_length(m,yyyy) + d
+    
+    return(floatday)
+    #I have four years to code for leap years
+
+def month_picker(days):
+    if days <= 31:
+        month = 1
+    if days <= 31 + 28:
+        month = 2
+    if days <= 31 + 28:
+        month = 3
+    if days <= 31 + 28:
+        month = 4
+    if days <= 31 + 28:
+        month = 5
+    if days <= 31 + 28:
+        month = 6
+    if days <= 31 + 28:
+        month = 7
+    if days <= 31 + 28:
+        month = 8 
+    
+def floatday_to_datestring(floatday):
+    years_calc = list(divmod(floatday,364))
+    hours = hours_calc[0]
+    remaining = hours_calc[1]
+    mins_calc = list(divmod(remaining,1))
+    minutes = mins_calc[0]
+    seconds = mins_calc[1]
+    
+    hour_string = time_string(hours)
+    mins_string = add_zeros(time_string(minutes))
+    secs_string = add_zeros(round(seconds * 60))
+    
+    string = '{}:{}:{}'.format(hour_string,mins_string,secs_string)
     
 """
 Complete Functions
@@ -375,7 +406,97 @@ def plot_cumulative_distance(m,yyyy):
             plot_dist.append(temp_sum[val]+prec_dist)
         plt.plot(plot_dates,plot_dist,label=temp_datestring)
     ax.legend();
+
+def populate_arrays_generic(lim,days,vals):
     
+    if days[-1] < lim:
+        days.append((days[-1]) + 1)
+        vals.append(vals[-1])
+    count = 0
+    i = 0      
+    while i < lim:
+        if days[i] == days[-1] and days[i] != lim:
+            days.append(i+1-count)
+            vals.append(vals[-1])
+        elif days[i] == days[i+1]:
+            count += 1
+            lim += 1
+        elif days[i + 1] != i + 1 - count:
+            days.insert(i + 1,i + 1 - count)
+            vals.insert(i + 1,vals[i])  
+        i += 1
+
+def distance_sum_curr_week(today_string):
+    date_strp = datetime.strptime(today_string,'%Y-%m-%d')
+    date_object = datetime.timestamp(date_strp)
+    
+    sum_distances = [0]
+    week_dates = [0]
+    
+    for i in range(0,7):
+        temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
+        temp_date_dt = datetime.fromtimestamp(temp_date_object)
+        temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
+        
+        for d in range (0,len(dates)):
+            if temp_date_string in dates[d] and 'Running' in types[d]:
+                dist = round(sum_distances[-1] + float(distances[d]),2)
+                sum_distances.append(dist)
+                week_dates.append(i)
+   
+    populate_arrays_generic(7,week_dates,sum_distances)
+    
+    if week_dates[1] == 0:
+        sum_distances.remove(sum_distances[0])
+        week_dates.remove(week_dates[0])
+    
+    #error message?
+    return(week_dates,sum_distances)
+
+def distance_sum_prev_week(today_string):
+    date_strp = datetime.strptime(today_string,'%Y-%m-%d')
+    date_object = datetime.timestamp(date_strp) - 24 * 60 * 60 * 7
+    
+    sum_distances = [0]
+    week_dates = [0]
+    
+    for i in range(0,7):
+        temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
+        temp_date_dt = datetime.fromtimestamp(temp_date_object)
+        temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
+        print(temp_date_string)
+        
+        for d in range (0,len(dates)):
+            if temp_date_string in dates[d] and 'Running' in types[d]:
+                dist = round(sum_distances[-1] + float(distances[d]),2)
+                sum_distances.append(dist)
+                week_dates.append(i)
+   
+    populate_arrays_generic(7,week_dates,sum_distances)
+    
+    if week_dates[1] == 0:
+        sum_distances.remove(sum_distances[0])
+        week_dates.remove(week_dates[0])
+    
+    #error message?
+    return(week_dates,sum_distances)
+  
+def plot_week_and_previous_distances(today_string):
+   tw_dates,tw_dist = distance_sum_curr_week(today_string)
+   this_annot = 'This week: {}km'.format(tw_dist[-1])
+   
+   pw_dates,pw_dist = distance_sum_prev_week(today_string)
+   prev_annot = 'Last week: {}km'.format(pw_dist[-1])
+   
+   fig,ax = plt.subplots()
+   plt.plot(pw_dates, pw_dist,color='blue',label=prev_annot)
+   
+   plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
+   
+   ax.legend(); 
+    
+plot_week_and_previous_distances(today_string)
+plt.show()
 
 
 
