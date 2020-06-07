@@ -29,7 +29,7 @@ def add_zeros(number):
 today_string = '{}-{}-{}'.format(year,add_zeros(month),add_zeros(day))
 
     
-data = pd.read_csv (r'Activities.csv')   
+data = pd.read_csv(r'Activities.csv')   
 df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
 df = df.sort_values(by='Date')#sort_values is deprecated Python
 
@@ -258,39 +258,6 @@ def datestring_to_floatday(datestring):
     
     return(floatday)
     #I have four years to code for leap years
-
-def month_picker(days):
-    if days <= 31:
-        month = 1
-    if days <= 31 + 28:
-        month = 2
-    if days <= 31 + 28:
-        month = 3
-    if days <= 31 + 28:
-        month = 4
-    if days <= 31 + 28:
-        month = 5
-    if days <= 31 + 28:
-        month = 6
-    if days <= 31 + 28:
-        month = 7
-    if days <= 31 + 28:
-        month = 8 
-    
-def floatday_to_datestring(floatday):
-    years_calc = list(divmod(floatday,364))
-    hours = hours_calc[0]
-    remaining = hours_calc[1]
-    mins_calc = list(divmod(remaining,1))
-    minutes = mins_calc[0]
-    seconds = mins_calc[1]
-    
-    hour_string = time_string(hours)
-    mins_string = add_zeros(time_string(minutes))
-    secs_string = add_zeros(round(seconds * 60))
-    
-    string = '{}:{}:{}'.format(hour_string,mins_string,secs_string)
-    
 """
 Complete Functions
 """
@@ -433,10 +400,11 @@ def distance_sum_curr_week(today_string):
     sum_distances = [0]
     week_dates = [0]
     
-    for i in range(0,7):
+    for i in range(1,8):
         temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
         temp_date_dt = datetime.fromtimestamp(temp_date_object)
         temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
+        print(temp_date_string)
         
         for d in range (0,len(dates)):
             if temp_date_string in dates[d] and 'Running' in types[d]:
@@ -460,7 +428,7 @@ def distance_sum_prev_week(today_string):
     sum_distances = [0]
     week_dates = [0]
     
-    for i in range(0,7):
+    for i in range(1,8):
         temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
         temp_date_dt = datetime.fromtimestamp(temp_date_object)
         temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
