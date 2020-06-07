@@ -77,14 +77,16 @@ except Exception:  # pylint: disable=broad-except
 
 import pandas as pd
 
-data = pd.read_csv (r'Activities.csv')   
-df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
-df = df.sort_values(by='Date')
+data = pd.read_csv (r'Activities.csv')  
 
 #archive
 from functions import today_string
 archive_name = 'Activities{}'.format(today_string)
-df.to_csv(r'{}.csv'.format(archive_name), index = False)
+archive = pd.DataFrame(data)
+archive.to_csv(r'{}.csv'.format(archive_name), index = False)
+ 
+df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
+df = df.sort_values(by='Date')
 
 #check the most recent date
 dates_list = df['Date'].tolist()
