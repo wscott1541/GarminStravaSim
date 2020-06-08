@@ -137,12 +137,15 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
             curr_vals.insert(i + 1,curr_vals[i])  
         i += 1
 
-def distance_sum(m,yyyy):
+def distance_sum(m,yyyy,activity):#can add 'All'
     sum_distances = [0]
     month_dates = [0]
     
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
-        if date_string(m,yyyy) in dates[i] and 'Running' in types[i]:
+        if date_string(m,yyyy) in dates[i] and activity in types[i]:
             dist = round(sum_distances[-1] + float(distances[i]),2)
             sum_distances.append(dist)
             month_dates.append(float(dates[i][-2:]))
@@ -228,12 +231,15 @@ def add_times(a,b):
     return(time)
 """
         
-def duration_sum(m,yyyy):
+def duration_sum(m,yyyy,activity):
     plot_mins = [0]
     month_dates = [0]
     
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
-        if date_string(m,yyyy) in dates[i] and 'Running' in types[i]:
+        if date_string(m,yyyy) in dates[i] and activity in types[i]:
             times = plot_mins[-1] + durations[i]
             plot_mins.append(times)
             month_dates.append(float(dates[i][-2:]))
@@ -262,19 +268,21 @@ def datestring_to_floatday(datestring):
 Complete Functions
 """
     
-def plot_month_and_previous_distances(m,yyyy):
-    curr_month_dates, curr_sum_distances = distance_sum(m,yyyy)
+def plot_month_and_previous_distances(m,yyyy,activity):
+    curr_month_dates, curr_sum_distances = distance_sum(m,yyyy,activity)
+    
+    title = '{} distances this month and previous'.format(activity)
     
     if m == 1:
         new_year = yyyy - 1 
-        prev_month_dates, prev_sum_distances = distance_sum(12,new_year)
+        prev_month_dates, prev_sum_distances = distance_sum(12,new_year,activity)
     else:
-        prev_month_dates, prev_sum_distances = distance_sum((m-1),yyyy)
+        prev_month_dates, prev_sum_distances = distance_sum((m-1),yyyy,activity)
     
-    junk_month_dates,prev_mins = duration_sum(m-1,yyyy)
+    junk_month_dates,prev_mins = duration_sum(m-1,yyyy,activity)
     prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
     
-    junk_month_dates,curr_mins = duration_sum(m,yyyy)
+    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
     
     fig,ax = plt.subplots()
@@ -283,19 +291,23 @@ def plot_month_and_previous_distances(m,yyyy):
     plt.plot(curr_month_dates, curr_sum_distances,color='red', label = curr_annot)
     #plt.text(curr_month_dates[-2],curr_sum_distances[-1],curr_annot,horizontalalignment='right')
     ax.legend();
+    plt.title(title)
     
-def plot_month_and_previous_durations(m,yyyy):
-    curr_month_dates, curr_sum_durs = duration_sum(m,yyyy)
+def plot_month_and_previous_durations(m,yyyy,activity):
+    
+    title = '{} durations this month and previous'.format(activity)
+    
+    curr_month_dates, curr_sum_durs = duration_sum(m,yyyy,activity)
     if m == 1:
         new_year = yyyy - 1 
-        prev_month_dates, prev_sum_durs = duration_sum(12,new_year)
+        prev_month_dates, prev_sum_durs = duration_sum(12,new_year,activity)
     else:
-        prev_month_dates, prev_sum_durs = duration_sum((m-1),yyyy)
+        prev_month_dates, prev_sum_durs = duration_sum((m-1),yyyy,activity)
     
-    junk_month_dates,prev_dists = distance_sum(m-1,yyyy)
+    junk_month_dates,prev_dists = distance_sum(m-1,yyyy,activity)
     prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_dists[-1]),floatminute_to_stringtime(prev_sum_durs[-1]))
     
-    junk_month_dates,curr_dists = distance_sum(m,yyyy)
+    junk_month_dates,curr_dists = distance_sum(m,yyyy,activity)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_dists[-1]),floatminute_to_stringtime(curr_sum_durs[-1]))
     
     fig,ax = plt.subplots()
@@ -304,11 +316,18 @@ def plot_month_and_previous_durations(m,yyyy):
     plt.plot(curr_month_dates, curr_sum_durs,color='red',label=curr_annot)
     #plt.text(curr_month_dates[-2],curr_sum_durs[-1],curr_annot,horizontalalignment='right')
     ax.legend();
+    plt.title(title)
     
-def plot_durations_all_previous(m,yyyy):
+def plot_durations_all_previous(m,yyyy,activity):
     run_vals = []    
+    
+    title = '{} durations each month'.format(activity)
+    
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
-        if 'Running' in types[i]:
+        if activity in types[i]:
             run_vals.append(i)
     val = run_vals[0]
     earliest_date = dates[val]
@@ -320,14 +339,21 @@ def plot_durations_all_previous(m,yyyy):
     for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
-        temp_dates,temp_sum = duration_sum(m_val,yyyy_val)
+        temp_dates,temp_sum = duration_sum(m_val,yyyy_val,activity)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
     ax.legend();
+    plt.title(title)
     
-def plot_distances_all_previous(m,yyyy):
+def plot_distances_all_previous(m,yyyy,activity):
     run_vals = []    
+    
+    title = '{} distances each month'.format(activity)
+    
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
-        if 'Running' in types[i]:
+        if activity in types[i]:
             run_vals.append(i)
     val = run_vals[0]
     earliest_date = dates[val]
@@ -339,14 +365,21 @@ def plot_distances_all_previous(m,yyyy):
     for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
-        temp_dates,temp_sum = distance_sum(m_val,yyyy_val)
+        temp_dates,temp_sum = distance_sum(m_val,yyyy_val,activity)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
     ax.legend();
+    plt.title(title)
     
-def plot_cumulative_distance(m,yyyy):
-    run_vals = []    
+def plot_cumulative_distance(m,yyyy,activity):
+    run_vals = []
+    
+    title = 'All-time cumulative {} distances'.format(activity)
+
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
-        if 'Running' in types[i]:
+        if activity in types[i]:
             run_vals.append(i)
     val = run_vals[0]
     earliest_date = dates[val]
@@ -361,7 +394,7 @@ def plot_cumulative_distance(m,yyyy):
     for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
-        temp_dates,temp_sum = distance_sum(m_val,yyyy_val)
+        temp_dates,temp_sum = distance_sum(m_val,yyyy_val,activity)
         prec_len = cum_dates[-1]+1
         prec_dist = cum_dist[-1]
         plot_dates = []
@@ -373,6 +406,7 @@ def plot_cumulative_distance(m,yyyy):
             plot_dist.append(temp_sum[val]+prec_dist)
         plt.plot(plot_dates,plot_dist,label=temp_datestring)
     ax.legend();
+    plt.title(title)
 
 def populate_arrays_generic(lim,days,vals):
     
@@ -393,21 +427,23 @@ def populate_arrays_generic(lim,days,vals):
             vals.insert(i + 1,vals[i])  
         i += 1
 
-def distance_sum_curr_week(today_string):
+def distance_sum_curr_week(today_string,activity):
     date_strp = datetime.strptime(today_string,'%Y-%m-%d')
     date_object = datetime.timestamp(date_strp)
     
     sum_distances = [0]
     week_dates = [0]
     
+    if activity == 'All':
+        activity = 'i'#i being, of course, included in the suffix -ing as well as in Cardio
+    
     for i in range(1,8):
         temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
         temp_date_dt = datetime.fromtimestamp(temp_date_object)
         temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
-        print(temp_date_string)
         
         for d in range (0,len(dates)):
-            if temp_date_string in dates[d] and 'Running' in types[d]:
+            if temp_date_string in dates[d] and activity in types[d]:
                 dist = round(sum_distances[-1] + float(distances[d]),2)
                 sum_distances.append(dist)
                 week_dates.append(i)
@@ -421,12 +457,15 @@ def distance_sum_curr_week(today_string):
     #error message?
     return(week_dates,sum_distances)
 
-def distance_sum_prev_week(today_string):
+def distance_sum_prev_week(today_string,activity):
     date_strp = datetime.strptime(today_string,'%Y-%m-%d')
     date_object = datetime.timestamp(date_strp) - 24 * 60 * 60 * 7
     
     sum_distances = [0]
     week_dates = [0]
+    
+    if activity == 'All':
+        activity = 'i'
     
     for i in range(1,8):
         temp_date_object = date_object - (24 * 60 * 60) * ((7-i))
@@ -434,7 +473,7 @@ def distance_sum_prev_week(today_string):
         temp_date_string = datetime.strftime(temp_date_dt,'%Y-%m-%d')
         
         for d in range (0,len(dates)):
-            if temp_date_string in dates[d] and 'Running' in types[d]:
+            if temp_date_string in dates[d] and activity in types[d]:
                 dist = round(sum_distances[-1] + float(distances[d]),2)
                 sum_distances.append(dist)
                 week_dates.append(i)
@@ -448,19 +487,23 @@ def distance_sum_prev_week(today_string):
     #error message?
     return(week_dates,sum_distances)
   
-def plot_week_and_previous_distances(today_string):
-   tw_dates,tw_dist = distance_sum_curr_week(today_string)
-   this_annot = 'This week: {}km'.format(tw_dist[-1])
+def plot_week_and_previous_distances(today_string,activity):
    
-   pw_dates,pw_dist = distance_sum_prev_week(today_string)
-   prev_annot = 'Last week: {}km'.format(pw_dist[-1])
+    title = '{} activities in the two previous weeks'.format(activity)
+    
+    tw_dates,tw_dist = distance_sum_curr_week(today_string,activity)
+    this_annot = 'This week: {}km'.format(tw_dist[-1])
    
-   fig,ax = plt.subplots()
-   plt.plot(pw_dates, pw_dist,color='blue',label=prev_annot)
-   
-   plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
-   
-   ax.legend(); 
+    pw_dates,pw_dist = distance_sum_prev_week(today_string,activity)
+    prev_annot = 'Last week: {}km'.format(pw_dist[-1])
+    
+    fig,ax = plt.subplots()
+    plt.plot(pw_dates, pw_dist,color='blue',label=prev_annot)
+    
+    plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
+    
+    ax.legend(); 
+    plt.title(title)
 
 
 
