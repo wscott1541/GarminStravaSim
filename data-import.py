@@ -78,12 +78,6 @@ except Exception:  # pylint: disable=broad-except
 import pandas as pd
 
 data = pd.read_csv (r'Activities.csv')  
-
-#archive
-from functions import today_string
-archive_name = 'Activities{}'.format(today_string)
-archive = pd.DataFrame(data)
-archive.to_csv(r'{}.csv'.format(archive_name), index = False)
  
 df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
 df = df.sort_values(by='Date')
@@ -118,6 +112,13 @@ while stop == 0:
     row_date_object = datetime.timestamp(row_date_strp)
     
     if row_date_object > latest_date_object:
+        if i == 0:
+            #archive only if update necessary
+            from functions import today_string
+            archive_name = 'Activities{}'.format(today_string)
+            archive = pd.DataFrame(data)
+            archive.to_csv(r'{}.csv'.format(archive_name), index = False)
+        
         a_row = pd.Series(row,index=df.columns)
         mod_df = df.append(a_row,ignore_index = True)
         df = mod_df.sort_values(by='Date')
