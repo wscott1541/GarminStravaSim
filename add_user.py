@@ -69,19 +69,19 @@ initials = '{}{}'.format(first_initial,last_initial)
 
 """Write details to csv file to store"""
 
-titles = pd.DataFrame(columns= ['First name','Last name','Initials','Username','Password'])
 
 users_init = pd.read_csv (r'users.csv')  
 
-data = pd.read_csv (r'Activities.csv')  
  
 users = pd.DataFrame(users_init, columns= ['First name','Last name','Initials','Username','Password'])
 
 user_details = [first_name,last_name,initials,username,password]
-user_row = pd.Series(user_details,index=titles.columns)
-users = titles.append(user_row,ignore_index = True)
+user_row = pd.Series(user_details,index=users.columns)
+mod_users = users.append(user_row,ignore_index = True)
 
-users.to_csv(r'users.csv',index = False)
+print('Imported details for {} {}!'.format(user_details[0],user_details[1]))
+
+mod_users.to_csv(r'users.csv',index = False)
 
 """Create file with actitivies, tied to user initials"""
 
