@@ -228,23 +228,46 @@ def datestring_to_floatday(datestring):
 """
 Complete Functions
 """
+
+def plot_month_distance(m,yyyy,activity):
+    curr_month_dates, curr_sum_distances = distance_sum(m,yyyy,activity)
+    
+    title = '{} distances in {} {}'.format(activity,month_caller(m),yyyy)
+    
+    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
+    curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
+    
+    fig,ax = plt.subplots()
+    
+    plt.plot(curr_month_dates, curr_sum_distances,color='red', label = curr_annot)
+    #plt.text(curr_month_dates[-2],curr_sum_distances[-1],curr_annot,horizontalalignment='right')
+    ax.legend();
+    plt.title(title)
     
 def plot_month_and_previous_distances(m,yyyy,activity):
     curr_month_dates, curr_sum_distances = distance_sum(m,yyyy,activity)
     
-    title = '{} distances this month and previous'.format(activity)
+    if activity == 'All':
+        activity = 'i'
+        title_activity = 'All'
+    else:
+        title_activity = activity
     
     if m == 1:
-        new_year = yyyy - 1 
-        prev_month_dates, prev_sum_distances = distance_sum(12,new_year,activity)
+        new_year = yyyy - 1
+        prev_month = 12
     else:
-        prev_month_dates, prev_sum_distances = distance_sum((m-1),yyyy,activity)
+        new_year = yyyy
+        prev_month = m - 1
+    prev_month_dates, prev_sum_distances = distance_sum(prev_month,new_year,activity)
     
     junk_month_dates,prev_mins = duration_sum(m-1,yyyy,activity)
     prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
     
     junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
+    
+    title = '{} distances in {} {} and {} {}'.format(title_activity, month_caller(prev_month),new_year,month_caller(m),yyyy)
     
     fig,ax = plt.subplots()
     plt.plot(prev_month_dates, prev_sum_distances,color='blue',label = prev_annot)
@@ -256,20 +279,28 @@ def plot_month_and_previous_distances(m,yyyy,activity):
     
 def plot_month_and_previous_durations(m,yyyy,activity):
     
-    title = '{} durations this month and previous'.format(activity)
+    if activity == 'All':
+        activity = 'i'
+        title_activity = 'All'
+    else:
+        title_activity = activity
     
     curr_month_dates, curr_sum_durs = duration_sum(m,yyyy,activity)
     if m == 1:
-        new_year = yyyy - 1 
-        prev_month_dates, prev_sum_durs = duration_sum(12,new_year,activity)
+        new_year = yyyy - 1
+        prev_month = 12
     else:
-        prev_month_dates, prev_sum_durs = duration_sum((m-1),yyyy,activity)
+        new_year = yyyy
+        prev_month = m - 1
+    prev_month_dates, prev_sum_durs = duration_sum(prev_month,new_year,activity)
     
     junk_month_dates,prev_dists = distance_sum(m-1,yyyy,activity)
     prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_dists[-1]),floatminute_to_stringtime(prev_sum_durs[-1]))
     
     junk_month_dates,curr_dists = distance_sum(m,yyyy,activity)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_dists[-1]),floatminute_to_stringtime(curr_sum_durs[-1]))
+    
+    title = '{} durations in {} {} and {} {}'.format(title_activity, month_caller(prev_month),new_year,month_caller(m),yyyy)
     
     fig,ax = plt.subplots()
     plt.plot(prev_month_dates, prev_sum_durs,color='blue',label=prev_annot)
