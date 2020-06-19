@@ -302,7 +302,12 @@ def plot_durations_all_previous(m,yyyy,activity):
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
         temp_dates,temp_sum = duration_sum(m_val,yyyy_val,activity)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
-    ax.legend();
+    if pick_month - earl_month > 6:    
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        ax.legend();
     plt.title(title)
     
 def plot_distances_all_previous(m,yyyy,activity):
@@ -328,7 +333,12 @@ def plot_distances_all_previous(m,yyyy,activity):
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
         temp_dates,temp_sum = distance_sum(m_val,yyyy_val,activity)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
-    ax.legend();
+    if pick_month - earl_month > 6:    
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        ax.legend();
     plt.title(title)
     
 def plot_cumulative_distance(m,yyyy,activity):
@@ -366,7 +376,12 @@ def plot_cumulative_distance(m,yyyy,activity):
             cum_dist.append(temp_sum[val]+prec_dist)
             plot_dist.append(temp_sum[val]+prec_dist)
         plt.plot(plot_dates,plot_dist,label=temp_datestring)
-    ax.legend();
+    if pick_month - earl_month > 6:    
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        ax.legend();
     plt.title(title)
 
 def populate_arrays_generic(lim,days,vals):
