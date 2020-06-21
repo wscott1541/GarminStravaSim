@@ -57,9 +57,9 @@ message.attach(MIMEText(body, "plain"))
 
 def attach_chart_as_html():
     plt.savefig('temp_image.jpg')
-    print('Temp_image created')
+    
     encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
-    print('Image encoded')
+    
     html = f"""\
 <html>
  <body>
@@ -67,12 +67,12 @@ def attach_chart_as_html():
  </body>
 </html>
 """
-    print('converted to html')
+    
     part = MIMEText(html, "html")
     message.attach(part)
-    print('attached')
+    
     os.remove('temp_image.jpg')
-    print('image removed')
+    
 
 """List functions to send"""
 puf.plot_month_distance(month,year,'Running')

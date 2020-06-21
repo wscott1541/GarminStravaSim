@@ -6,7 +6,7 @@ Created on Sun Jun 21 16:51:38 2020
 @author: WS
 """
 
-smtp_server = input('stmp server: ')
+smtp_server = input('SMTP server: ')
 port = input('Port: ')
 sender_email = input('Email: ')
 password = input('Password: ')
