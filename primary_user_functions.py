@@ -8,24 +8,9 @@ Created on Thu Jun 18 18:22:17 2020
 
 import matplotlib.pyplot as plt
 
-from time import time#, localtime
+from today_string import today_string, year, month, day
+
 from datetime import datetime
-
-today = time()
-
-today_dt = datetime.fromtimestamp(today)
-
-today_string = datetime.strftime(today_dt,'%Y-%m-%d')
-"""
-now = list(localtime(today))
-year = now[0]
-month = now[1]
-day = now[2]
-"""
-year = round(float(datetime.strftime(today_dt,'%Y')))
-month = round(float(datetime.strftime(today_dt,'%m')))
-day = round(float(datetime.strftime(today_dt,'%d')))
-###it'd be nice if I could get it all to work with datetime strings tbh
 
 import data_read as dr
 
