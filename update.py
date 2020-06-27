@@ -24,11 +24,9 @@ from garminconnect import (
     GarminConnectAuthenticationError,
 )
 
-
 from pull_activity import pull_from_activity
 
 #Pull user details
-
 user_data = pd.read_csv (r'users.csv')  
  
 users = pd.DataFrame(user_data, columns= ['First name','Last name','Initials','Username','Password'])

@@ -43,6 +43,7 @@ dates = []
 for i in range(0,len(dates_times)):
     useful_dates = dates_times[i][0:10]
     dates.append(useful_dates)#in format string 'yyyy-mm-dd'
+    #I don't know if this is even necessary, but I don't want to try to amend every this to working in datetime
 
 """    
 from datetime import datetime
