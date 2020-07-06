@@ -17,7 +17,6 @@ import multiple_user_functions as muf
 
 """List plots"""
 
-
 puf.plot_month_distance(month,year,'Running')
 
 puf.plot_month_and_previous_distances(month,year,'Running')
@@ -31,6 +30,8 @@ puf.plot_month_and_previous_distances(month,year,'Walking')
 puf.plot_durations_all_previous(month,year,'Running')
 
 puf.plot_distances_all_previous(month,year,'Running')
+
+puf.plot_distances_this_year(month,year,'Running')
 
 puf.plot_cumulative_distance(month,year,'Running')
 

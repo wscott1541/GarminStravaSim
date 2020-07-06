@@ -357,6 +357,33 @@ def plot_distances_all_previous(m,yyyy,activity):
         ax.legend();
     plt.title(title)
     
+def plot_distances_this_year(m,yyyy,activity):
+    #run_vals = []    
+    
+    title = '{} distances each month in {}'.format(activity,yyyy)
+    
+    if activity == 'All':
+        activity = 'i'
+    
+    #for i in range(0,len(dates)):
+    #    if activity in types[i]:
+    #        run_vals.append(i)
+    #val = run_vals[0]
+    
+    fig,ax = plt.subplots()
+    for i in range(1,m+1):
+        temp_dates,temp_sum = distance_sum(i,yyyy,activity)
+        temp_string = '{} {}: {}km'.format(month_caller(i),yyyy,temp_sum[-1])
+        plt.plot(temp_dates,temp_sum,label=temp_string)
+    
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    
+    plt.title(title)
+    
+
+    
 def plot_cumulative_distance(m,yyyy,activity):
     run_vals = []
     

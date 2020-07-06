@@ -85,6 +85,8 @@ puf.plot_month_and_previous_distances(month,year,'Cycling')
 attach_chart_as_html()
 puf.plot_month_and_previous_distances(month,year,'Walking')
 attach_chart_as_html()
+puf.plot_distances_this_year(month,year,'Running')
+attach_chart_as_html()
 puf.plot_durations_all_previous(month,year,'Running')
 attach_chart_as_html()
 puf.plot_distances_all_previous(month,year,'Running')
@@ -108,7 +110,7 @@ attach_chart_as_html()
 """Complete and send email"""
 
 text = message.as_string()
-print('converted to string')
+
 context = ssl.create_default_context()
 print('Sending...')
 with smtplib.SMTP(smtp_server, port) as server:
