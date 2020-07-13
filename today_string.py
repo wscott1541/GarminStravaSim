@@ -6,6 +6,10 @@ Created on Sun Jun 21 17:10:24 2020
 @author: WS
 """
 
+"""
+https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+"""
+
 from time import time#, localtime
 from datetime import datetime, timedelta
 
