@@ -6,6 +6,8 @@ Created on Thu Jun 18 17:27:31 2020
 @author: WS
 """
 
+print(bleh)
+
 import pandas as pd
 
 from time import time
@@ -29,13 +31,21 @@ from pull_activity import pull_from_activity
 #Pull user details
 user_data = pd.read_csv (r'users.csv')  
  
-users = pd.DataFrame(user_data, columns= ['First name','Last name','Initials','Username','Password'])
+users = pd.DataFrame(user_data, columns= ['First name','Last name','Initials','Username','Password','GPX'])
 
 firsts = users['First name'].tolist()
 lasts = users['Last name'].tolist()
 initials = users['Initials'].tolist()
 usernames = users['Username'].tolist()
 passwords = users['Password'].tolist()
+gpx_statii = users['GPX'].tolist()
+gpx_status = gpx_statii[0]
+
+if gpx_status == 'Y':
+    
+    exec(open('gpxupdate.py').read())#import does not work
+    
+import analyse
 
 #pull activities
 for user in range(0,len(initials)):
@@ -71,7 +81,10 @@ for user in range(0,len(initials)):
     
     data = pd.read_csv(r'{}'.format(file_name))
     
-    df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
+    if gpx_statii[user] == 'Y':
+        df = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k'])
+    else:
+        df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
     df = df.sort_values(by='Date')
 
     #check the most recent activity date
@@ -109,8 +122,38 @@ for user in range(0,len(initials)):
                 #archive only if update necessary
                 archive = pd.DataFrame(data)
                 archive.to_csv(r'{}{}'.format(today_string,file_name), index = False)
-        
-            a_row = pd.Series(row,index=df.columns)
+                
+            if gpx_statii[user] == 'Y':
+            
+                print('Reading activity GPX')
+                gpx_df = analyse.pull_gpx(row[0])
+            
+                r_times = analyse.best_times_running(gpx_df)
+                #[one_k, one_m, one_five, thr_m, fiv_k, ten_k, twe_k, half, full]
+                c_times = analyse.best_times_cycling(gpx_df)
+                #[ten_k, twe_k, fif_k, hun_k, t_h_k, t_f_k]
+            
+                if row[1] != 'Running' or row[1] != 'Cycling':
+                    new_row = [row[0],row[1],row[2],row[3],row[4],'N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A']
+                else:
+                    print('Reading activity GPX')
+                    gpx_df = analyse.pull_gpx(row[0])
+            
+                    if row[1] == 'Running':
+                        r_times = analyse.best_times_running(gpx_df)
+                    else:
+                        r_times = ['N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A']
+                        #[one_k, one_m, one_five, thr_m, fiv_k, ten_k, twe_k, half, full]
+                    if row[1] == 'Cycling':
+                        c_times = analyse.best_times_cycling(gpx_df)
+                    else:
+                        c_times = ['N/A','N/A','N/A','N/A','N/A','N/A']
+                        #[ten_k, twe_k, fif_k, hun_k, t_h_k, t_f_k]
+                    new_row = [row[0],row[1],row[2],row[3],row[4],r_times[0],r_times[1],r_times[2],r_times[3],r_times[4],r_times[5],r_times[6],r_times[7],r_times[8],c_times[0],c_times[1],c_times[2],c_times[3],c_times[4],c_times[5]]
+            else:
+                new_row = row 
+            
+            a_row = pd.Series(new_row,index=df.columns)
             mod_df = df.append(a_row,ignore_index = True)
             df = mod_df.sort_values(by='Date')
             i += 1

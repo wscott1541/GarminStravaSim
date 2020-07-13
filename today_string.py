@@ -19,6 +19,8 @@ today_dt = datetime.fromtimestamp(today)
 
 today_string = datetime.strftime(today_dt,'%Y-%m-%d')
 
+time_string = datetime.strftime(today_dt,'%H:%M:%S')
+
 y_day_dt = today_dt - timedelta(days=1)
 
 y_day_string = datetime.strftime(y_day_dt,'%Y-%m-%d')
