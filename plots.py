@@ -1,60 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun  4 09:11:00 2020
+Created on Thu Jun 18 18:52:03 2020
 
 @author: WS
 """
 
-from time import time, ctime, localtime
-
-t = time()
-print_time = ctime(t)
-print(print_time)
-
-now = list(localtime(t))
-year = now[0]
-month = now[1]
-day = now[2]
+from today_string import today_string, year, month
 
 """
 Plot graphs, starting from today
 """
+#import matplotlib.pyplot as plt
+import primary_user_functions as puf#includes importing the data, but not updating
+import multiple_user_functions as muf
 
-import matplotlib.pyplot as plt
-import functions as func#includes importing the data, but not updating
+"""List plots"""
 
-func.plot_month_and_previous_distances(month,year,'Running')
-plt.show()
-func.plot_month_and_previous_durations(month,year,'Running')
-plt.show()
-func.plot_month_and_previous_distances(month,year,'Cycling')
-plt.show()
-func.plot_month_and_previous_durations(month,year,'Cycling')
-plt.show()
-func.plot_month_and_previous_distances(month,year,'Walking')
-plt.show()
-func.plot_month_and_previous_durations(month,year,'Walking')
-plt.show()
-func.plot_durations_all_previous(month,year,'Running')
-plt.show()
-func.plot_distances_all_previous(month,year,'Running')
-plt.show()
-func.plot_cumulative_distance(month,year,'Running')
-plt.show()
+puf.plot_month_distance(month,year,'Running')
 
-func.plot_cumulative_distance(month,year,'All')
-plt.show()
+puf.plot_month_and_previous_distances(month,year,'Running')
 
-func.plot_month_and_previous_distances(4,2018,'Hiking')
-plt.show()
+puf.plot_month_and_previous_durations(month,year,'Running')
 
-func.plot_week_and_previous_distances(func.today_string,'Running')
-plt.show()
+puf.plot_month_and_previous_distances(month,year,'Cycling')
 
-func.plot_week_and_previous_distances(func.today_string,'Cycling')
-plt.show()
+puf.plot_month_and_previous_distances(month,year,'Walking')
 
-func.plot_week_and_previous_distances(func.today_string,'All')
-plt.show()
+puf.plot_durations_all_previous(month,year,'Running')
+
+puf.plot_distances_all_previous(month,year,'Running')
+
+puf.plot_distances_this_year(month,year,'Running')
+
+puf.plot_cumulative_distance(month,year,'Running')
+
+puf.plot_cumulative_distance(month,year,'All')
+
+puf.plot_week_and_previous_distances(today_string,'Running')
+
+puf.plot_week_and_previous_distances(today_string,'Cycling')
+
+puf.plot_week_and_previous_distances(today_string,'All')
+
+muf.plot_month_distances(month,year,'Running')
+
+muf.plot_distances_this_week(today_string,'Running')
 
