@@ -8,6 +8,8 @@ Created on Mon Jun 15 12:46:12 2020
 
 import pandas as pd
 
+import os
+
 username = input('Username: ')
 password = input('Password: ')
 
@@ -81,20 +83,15 @@ users.to_csv(r'users.csv',index = False)
 
 """Get GPX files"""
 
-#if gpx_status == 'Y':
+if gpx_status == 'Y':
     
-    #exec(open('gpxsetup.py').read())#import does not work
+    exec(open('gpxsetup.py').read())#import does not work
 
 """Create file with actitivies, tied to user initials"""
 
 from pull_activity import pull_from_activity
 
-if gpx_status == 'Y':
-    df = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k'])
-else:
-    df = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time'])
-
-import analyse
+df = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time'])
 
 import_error = 0
 stop = 0
@@ -118,37 +115,7 @@ while stop == 0:
     if len(pulled_activity) > 0:
         row = pull_from_activity(pulled_activity)
         print('Importing activity',i + 1)
-        """
-        if gpx_status == 'Y':
-            
-            print('Reading activity GPX')
-            gpx_df = analyse.pull_gpx(row[0])
-            
-            r_times = analyse.best_times_running(gpx_df)
-            #[one_k, one_m, one_five, thr_m, fiv_k, ten_k, twe_k, half, full]
-            c_times = analyse.best_times_cycling(gpx_df)
-            #[ten_k, twe_k, fif_k, hun_k, t_h_k, t_f_k]
-            
-            if row[1] != 'Running' or row[1] != 'Cycling':
-                new_row = [row[0],row[1],row[2],row[3],row[4],'N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A']
-            else:
-                print('Reading activity GPX')
-                gpx_df = analyse.pull_gpx(row[0])
-            
-                if row[1] == 'Running':
-                    r_times = analyse.best_times_running(gpx_df)
-                else:
-                    r_times = ['N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A','N/A']
-                    #[one_k, one_m, one_five, thr_m, fiv_k, ten_k, twe_k, half, full]
-                if row[1] == 'Cycling':
-                    c_times = analyse.best_times_cycling(gpx_df)
-                else:
-                    c_times = ['N/A','N/A','N/A','N/A','N/A','N/A']
-            #[ten_k, twe_k, fif_k, hun_k, t_h_k, t_f_k]
-                new_row = [row[0],row[1],row[2],row[3],row[4],r_times[0],r_times[1],r_times[2],r_times[3],r_times[4],r_times[5],r_times[6],r_times[7],r_times[8],c_times[0],c_times[1],c_times[2],c_times[3],c_times[4],c_times[5]]
-        else:
-            new_row = row  
-        """
+        
         a_row = pd.Series(row,index=df.columns)
         mod_df = df.append(a_row,ignore_index = True)
         df = mod_df.sort_values(by='Date')
@@ -159,9 +126,29 @@ while stop == 0:
     else:
         stop = 1
 
+import analyse
+
 file_name = "{}activities.csv".format(initials)
 
 df.to_csv(r'{}'.format(file_name),index=False)
+
+if gpx_status == 'Y':
+    proc = input('Would you like to assess your GPX files now? Note: may take time, but can be done separately.  (Y/N) ')
+else:
+    proc = 'N'
+
+if gpx_status == 'Y' and i != 0 and proc == 'Y':
+    
+    df.to_csv(r'temp-activities.csv',index=False)
+        
+    analyse.assess('temp-activities.csv',file_name)
+    
+    os.remove('temp-activities.csv')
+        
+else:
+    if gpx_status == 'Y':
+        print('Run separately, independent_gpx_processing.py will assess the GPX files gradually.')#or it will, at some point
+    df.to_csv(r'{}'.format(file_name),index=False)
 
 if stop == 1 and import_error == 0:
     print('Import complete - {} activities!'.format(i))

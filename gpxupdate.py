@@ -432,6 +432,16 @@ class CsvFilter(object):
         """Return True if the column is present in the header template"""
         return name in self.__csv_columns
 
+#WS
+
+import pandas as pd
+try:
+    val_data = pd.read_csv(r'temp-val.csv')
+    vals_df = pd.DataFrame(val_data,columns=['Val'])
+    val = vals_df['Val'].tolist()[0]
+    
+except:
+    val = 14
 
 def parse_arguments(argv):
     """
@@ -453,7 +463,7 @@ def parse_arguments(argv):
     parser.add_argument('--password',
         help='your Garmin Connect password (otherwise, you will be prompted)')
     #parser.add_argument('-c', '--count', default='1',
-    parser.add_argument('-c', '--count', default='20',#WS does not wish to go through and check every file every time
+    parser.add_argument('-c', '--count', default='{}'.format(val),#WS does not wish to go through and check every file every time
         help='number of recent activities to download, or \'all\' (default: 1)')
     parser.add_argument('-e', '--external',
         help='path to external program to pass CSV file too')
