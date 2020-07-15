@@ -15,11 +15,13 @@ dates_df = pd.DataFrame(email_data, columns= ['Email sent'])
 dates_list = dates_df['Email sent'].tolist()
 latest_date = dates_list[-1]
 
+import update
+
 from today_string import today_string
 
 if latest_date != today_string:
     
-    import email_gen#runs the email script
+    import email_gen
     
     today = [today_string]
     row = pd.Series(today,index=dates_df.columns)
