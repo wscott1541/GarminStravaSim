@@ -15,6 +15,9 @@ import os
 from time import time
 from datetime import datetime
 
+analyse.assess('WSactivities.csv','test_activities.csv')
+
+"""
 file_name = "WSactivities.csv"
     
 data = pd.read_csv(r'{}'.format(file_name))
@@ -110,4 +113,6 @@ for i in ran:
         mod_df = new.append(a_row,ignore_index = True)
         new = mod_df.sort_values(by='Date')
         new.to_csv(r'test_activities.csv',index=False)
+        
+"""
     

@@ -66,6 +66,7 @@ last_name = split_name[-1]
 first_initial = first_name[0]
 last_initial = last_name[0]
 initials = '{}{}'.format(first_initial,last_initial)
+gpx_status = 'N'
 
 """Write details to csv file to store"""
 
@@ -73,9 +74,9 @@ initials = '{}{}'.format(first_initial,last_initial)
 users_init = pd.read_csv (r'users.csv')  
 
  
-users = pd.DataFrame(users_init, columns= ['First name','Last name','Initials','Username','Password'])
+users = pd.DataFrame(users_init, columns= ['First name','Last name','Initials','Username','Password','GPX'])
 
-user_details = [first_name,last_name,initials,username,password]
+user_details = [first_name,last_name,initials,username,password,gpx_status]
 user_row = pd.Series(user_details,index=users.columns)
 mod_users = users.append(user_row,ignore_index = True)
 
@@ -87,7 +88,7 @@ mod_users.to_csv(r'users.csv',index = False)
 
 from pull_activity import pull_from_activity
 
-df = pd.DataFrame(columns= ['Activity Type','Date','Distance','Time'])
+df = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time'])
 
 import_error = 0
 stop = 0
