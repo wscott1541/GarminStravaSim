@@ -43,17 +43,20 @@ receiver_email = users_list[0]
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from today_string import day, month, year, today_string
+from today_string import day, month, year, today_string, y_day_string
 
-subject = "Snappily-named exercise update email (SNEUE), {} {} {}".format(day,month_caller(month),year)
-body = "Maybe one day this will also provide text insights. "
+subject = "SNEUE, {} {} {}".format(day,month_caller(month),year)
 
 message = MIMEMultipart()
 message["From"] = sender_email
 message["To"] = receiver_email
 message["Subject"] = subject
 
-message.attach(MIMEText(body, "plain"))
+#intro = "Maybe one day this will also provide text insights. "
+#message.attach(MIMEText(intro, "plain"))
+
+intro = puf.week_summary_html()
+message.attach(MIMEText(intro,'html'))
 
 def attach_chart_as_html():
     plt.savefig('temp_image.jpg')
@@ -95,17 +98,20 @@ puf.plot_cumulative_distance(month,year,'Running')
 attach_chart_as_html()
 puf.plot_cumulative_distance(month,year,'All')
 attach_chart_as_html()
-puf.plot_week_and_previous_distances(today_string,'Running')
+puf.plot_week_and_previous_distances(y_day_string,'Running')
 attach_chart_as_html()  
-puf.plot_week_and_previous_distances(today_string,'Cycling')
+puf.plot_week_and_previous_distances(y_day_string,'Cycling')
 attach_chart_as_html() 
-puf.plot_week_and_previous_distances(today_string,'All')
+puf.plot_week_and_previous_distances(y_day_string,'All')
 attach_chart_as_html()      
 
 muf.plot_month_distances(month,year,'Running')
 attach_chart_as_html()
-muf.plot_distances_this_week(today_string,'Running')
+muf.plot_distances_this_week(y_day_string,'Running')
 attach_chart_as_html()
+
+outtro = puf.all_personal_bests_html()
+message.attach(MIMEText(outtro, "html"))
 
 """Complete and send email"""
 

@@ -8,6 +8,9 @@ Created on Thu Jun 18 19:18:49 2020
 
 import pandas as pd
 
+from today_string import y_day_string
+from datetime import datetime, timedelta
+
 user_data = pd.read_csv (r'users.csv')  
  
 users = pd.DataFrame(user_data, columns= ['Initials'])
@@ -23,12 +26,18 @@ def stringtime_to_floatminute(time_string):
     
         return(time)
 
-def data_read(initials):
+cols = ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
+
+def pull_data(initials):
     file_name = "{}activities.csv".format(initials)
     
     data = pd.read_csv(r'{}'.format(file_name))
-    df = pd.DataFrame(data, columns= ['Activity Type','Date','Distance','Time'])
+    df = pd.DataFrame(data, columns= cols)
     df = df.sort_values(by='Date')#sort_values is deprecated Python
+    return(df)
+
+def data_read(initials):
+    df = pull_data(initials)
 
     dates_times = df['Date'].tolist()
     dates = []
@@ -62,3 +71,39 @@ def data_read(initials):
     types = df['Activity Type'].tolist()
     
     return(dates,distances,durations,types)
+    
+def all_times(initials,distance):
+    df = pull_data(initials)
+    
+    types = df['Activity Type'].tolist()
+    dates = df['Date'].tolist()
+    dists = df['Distance'].tolist()
+    splits = df[distance].tolist()
+    
+    return(types,dates,dists,splits)
+    
+def week_times(initials,distance):
+    all_types,all_dates,all_dists,all_splits = all_times(initials,distance)
+    
+    y_day_obj = datetime.strptime(y_day_string,'%Y-%m-%d')
+    
+    last_week = y_day_obj - timedelta(days=7)
+    
+    types = []
+    dates = []
+    dists = []
+    splits = []
+    
+    for i in range(0,len(all_dates)):
+        stamp = all_dates[i][:10]
+        obj = datetime.strptime(stamp,'%Y-%m-%d')
+        
+        if obj > last_week:
+            types.append(all_types[i])
+            dates.append(all_dates[i])
+            dists.append(all_dists[i])
+            splits.append(all_splits[i])
+            
+    return(types,dates,dists,splits)
+    
+    

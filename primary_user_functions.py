@@ -8,7 +8,7 @@ Created on Thu Jun 18 18:22:17 2020
 
 import matplotlib.pyplot as plt
 
-from today_string import today_string, year, month, day
+from today_string import today_string, year, month, day, y_day_string
 
 from datetime import datetime
 
@@ -523,3 +523,263 @@ def plot_week_and_previous_distances(today_string,activity):
     
     ax.legend(); 
     plt.title(title)
+
+def furthest(category):
+    running_dates = []
+    running_dists = []
+    
+    for i in range(0,len(dates)):
+        if category in types[i]:
+            
+            if len(running_dists) == 0 or distances[i] > running_dists[-1]:
+                running_dists.append(distances[i])
+                running_dates.append(dates[i])
+        
+    if len(running_dists) > 0:
+        dist = running_dists[-1]
+        date = running_dates[-1]
+        
+        out = 'Furthest: {}km on {}'.format(dist,date[:10])
+    else:
+        out = 'NONE'
+        
+    return(out)
+
+import analyse
+
+def personal_best(category):
+    full_types,full_dates,full_dists,full_splits = dr.all_times(initials,category)
+    
+    running_dates = []
+    running_splits = []
+    
+    for i in range(0,len(full_splits)):
+        if full_splits[i] != 'NONE':
+            if len(running_splits) == 0 or full_splits[i] < running_splits[-1]:
+                running_splits.append(full_splits[i])
+                running_dates.append(full_dates[i])
+        
+    if len(running_splits) > 0:
+        best_time = running_splits[-1]
+        best = analyse.best_time_string(best_time)
+        date = running_dates[-1]
+        
+        best = best + ' on {}'.format(date[:10])
+    else:
+        best = 'NONE'
+        
+    if 'C' in category:
+        category = category[1:]
+        
+    if category == 'Half':
+        category = 'Half marathon'
+    if category == 'Full':
+        category = 'Marathon'
+    
+    string = '{}: {}'.format(category,best)
+    
+    return(string)   
+
+#column reference: ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
+    
+def all_personal_bests():
+    body = f"""
+{personal_best('1km')}
+{personal_best('1 mile')}
+{personal_best('1.5 mile')}
+{personal_best('3 mile')}
+{personal_best('5km')}
+{personal_best('10km')}
+{personal_best('20km')}
+{personal_best('Half')}
+{personal_best('Full')}
+{furthest('Running')}
+{personal_best('C10k')}
+{personal_best('C20k')}
+{personal_best('C50k')}
+{personal_best('C100k')}
+{personal_best('C200k')}
+{personal_best('C250k')}
+{furthest('Cycling')}
+"""
+    
+    return(body)
+    
+def all_personal_bests_html():
+
+    html = f"""\
+<html>
+<body>
+    <p><b><u>Personal bests</u></b><br>
+    <b>Running</b><br>
+    {personal_best('1km')}<br>
+    {personal_best('1 mile')}<br>
+    {personal_best('1.5 mile')}<br>
+    {personal_best('3 mile')}<br>
+    {personal_best('5km')}<br>
+    {personal_best('10km')}<br>
+    {personal_best('20km')}<br>
+    {personal_best('Half')}<br>
+    {personal_best('Full')}<br>
+    {furthest('Running')}<br>
+    <b>Cycling</b><br>
+    {personal_best('C10k')}<br>
+    {personal_best('C20k')}<br>
+    {personal_best('C50k')}<br>
+    {personal_best('C100k')}<br>
+    {personal_best('C200k')}<br>
+    {personal_best('C250k')}<br>
+    {furthest('Cycling')}</p>
+  </body>
+</html>
+"""
+
+    return(html)
+
+"""
+NOTE: values  start to be redefined from this 
+"""
+week_types,week_dates,week_dists,dummy_splits = dr.week_times(initials,'1km')
+
+def activity_check():
+    
+    week_events = len(week_types)
+    running_events = 0
+    cycling_events = 0
+    walking_events = 0
+    other_events = 0
+        
+    if week_events != 0:
+        for i in range(0,week_events):
+            if week_types[i] == 'Running':
+                running_events =+ 1
+            elif types[i] == 'Cycling':
+                cycling_events =+ 1
+            elif types[i] == 'Walking' or types[i] == 'Hiking':
+                walking_events =+ 1
+            else:
+                other_events =+ 1
+    
+    return(week_events,running_events,cycling_events,walking_events,other_events)
+
+def week_best(category):
+    full_types,full_dates,full_dists,full_splits = dr.week_times(initials,category)
+    
+    running_dates = []
+    running_splits = []
+    
+    for i in range(0,len(full_splits)):
+        if full_splits[i] != 'NONE':
+            if len(running_splits) == 0 or full_splits[i] < running_splits[-1]:
+                running_splits.append(full_splits[i])
+                running_dates.append(full_dates[i])
+        
+    if len(running_splits) > 0:
+        best_time = running_splits[-1]
+        best = analyse.best_time_string(best_time)
+        date = running_dates[-1]
+        
+        best = best + ' on {}'.format(date[:10])
+    else:
+        best = 'NONE'
+    
+    string = '{}: {}'.format(category,best)
+    
+    return(string)
+
+def activity_week_summary_html(activity_type):
+    event_dates,distance_sum = distance_sum_curr_week(y_day_string,activity_type)
+    total_distance = distance_sum[-1]
+    n_events = len(event_dates) - 1
+    
+    if activity_type == 'Running':
+        verb = 'ran'
+        event = 'runs'
+    if activity_type == 'Cycling':
+        verb = 'cycled'
+        event = 'rides'
+    #if activity_type == 'Walking' or activity_type == 'Hiking':
+    #    verb = 'walked or hiked'
+    #    event = 'walks or hikes'
+    #else:
+    #    verb = 'did?'    
+    #    event = 'events?'
+    
+    summary = f"""<p><b>{activity_type}</b><br><p>
+<p>You {verb} <b>{total_distance}km</b> across {n_events} {event}.<p>"""
+    
+    if activity_type == 'Running':
+        bests = f"""<p>              
+{week_best('1km')}<br>
+{week_best('1 mile')}<br>
+{week_best('1.5 mile')}<br>
+{week_best('3 mile')}<br>
+{week_best('5km')}<br>
+{week_best('10km')}<br>
+{week_best('20km')}<br>
+{week_best('Half')}<br>
+{week_best('Full')}</p>
+ """
+        summary = summary + bests
+    if activity_type == 'Cycling':
+        bests = f"""<p>              
+{week_best('C10k')}<br>
+{week_best('C20k')}<br>
+{week_best('C50k')}<br>
+{week_best('C100k')}<br>
+{week_best('C200k')}<br>
+{week_best('C250k')}</p>
+ """
+        summary = summary + bests
+    
+    return(summary)
+    
+def week_summary_html():
+    week_events,running_events,cycling_events,walking_events,other_events = activity_check()
+    
+    if week_events == 0:
+        body = f"""
+<body>
+<p>Your last activity was on {dates[-1]}<p>
+</body> 
+        """
+    else:
+        opening = """
+<body>
+<p><b><u>This week:</u></b></p>
+</body>
+"""
+        chunks = [opening]
+        if running_events > 0:
+            chunk = f"""
+<body>
+{activity_week_summary_html('Running')}
+</body>
+"""
+            chunks.append(chunk)
+        if cycling_events > 0:
+            chunk = f"""
+<body>
+{activity_week_summary_html('Cycling')}
+</body>
+"""
+            chunks.append(chunk)
+        
+        body = chunks[0]
+        
+        for n in range(1,len(chunks)):
+            body =+ chunks[n]
+    
+    html = f"""
+<html>
+{body}
+</html>
+"""
+    
+    return(html)
+    
+
+            
+        
+
+    
