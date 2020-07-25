@@ -11,7 +11,7 @@ import pandas as pd
 from fitparse import FitFile
 
 #work out way of importing
-fitfile = FitFile('A7NH3442.FIT')
+fitfile = FitFile('A7OH5840.FIT')
 
 timestamps = []
 #note that this is possibly not GMT, or whatever my timezone is now.
@@ -59,19 +59,73 @@ for i in range(0,len(timestamps)):
     df = df.append(a_row,ignore_index=True)
 
 time = timestamps[0]
-file_name = 'activity_m{}.csv'.format(time)
+activity_file = 'activity_m{}.csv'.format(time)
     
-df.to_csv(r'{}'.format(file_name))
+df.to_csv(r'{}'.format(activity_file))
 
 import analyse
 
 #print(analyse.best_time(1000,df))    
 
+user_data = pd.read_csv (r'users.csv')  
+ 
+users = pd.DataFrame(user_data, columns= ['First name','Last name','Initials','Username','Password','GPX'])
+
+firsts = users['First name'].tolist()
+lasts = users['Last name'].tolist()
+initials = users['Initials'].tolist()
+usernames = users['Username'].tolist()
+passwords = users['Password'].tolist()
+gpx_statii = users['GPX'].tolist()
+
+file_name = "{}activities.csv".format(initials[0])
+    
+data = pd.read_csv(r'{}'.format(file_name))
+    
+if gpx_statii[0] == 'Y':
+    archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
+else:
+    archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
+
+from today_string import today_string
+
+archive.to_csv(r'{}{}'.format(today_string,file_name), index = False)
+
 from datetime import timedelta
-print(timestamps[0])
-print(timestamps[1])
-print(timestamps[2])
-full = timestamps[-1] - timestamps[0]
-print('Start time: ',timestamps[0])
-print('Duration: ',full)
-print('Distance: ',distances[-1])
+import time
+
+date = timestamps[0] + timedelta(hours=1)
+dist = round((distances[-1]/1000),2)
+full_td = timestamps[-1] - timestamps[0]
+full_secs = full_td.total_seconds()
+full_string = time.strftime('%H:%M:%S',time.gmtime(full_secs))
+
+pace = full_secs/dist
+
+if pace < 181:
+    activity = 'Cycling'
+if pace >= 181 and pace <= 375:
+    activity = 'Running'
+if pace > 375:
+    activity = 'Walking'
+
+temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])
+
+row = ['MANUAL',activity,date, dist,full_string]
+a_row = pd.Series(row,index=temp_df.columns)
+temp_df = temp_df.append(a_row,ignore_index=True)
+
+import os
+
+if gpx_statii[0] == 'Y':
+    temp_df.to_csv(r'temp-activities.csv',index=False)
+        
+    analyse.assess('temp-activities.csv',file_name)
+        
+    os.remove('temp-activities.csv')
+                
+else:
+    temp_df.to_csv(r'{}'.format(file_name))
+
+
+
