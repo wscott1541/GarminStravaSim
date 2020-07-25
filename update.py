@@ -138,12 +138,12 @@ for user in range(0,len(initials)):
 
     if stop == 1:
         print('{} activities added for {} {}'.format(i,firsts[user],lasts[user]))
-        
+    
     if gpx_statii[user] == 'Y' and i != 0:
         val = [i]
         
         val_df = pd.DataFrame(columns=['Val'])
-        val_row = pd.Series(val,index=val_df)
+        val_row = pd.Series(val,index=val_df.columns)
         mod_val = val_df.append(val_row,ignore_index=True)
         mod_val.to_csv(r'temp-val.csv',index = False)
         
@@ -151,7 +151,10 @@ for user in range(0,len(initials)):
         
         temp_df.to_csv(r'temp-activities.csv',index=False)
         
-        analyse.assess('temp-activities.csv',file_name)
+        try:
+            analyse.assess('temp-activities.csv',file_name)
+        except:
+            print('Error! Work it out!')
         
         os.remove('temp-activities.csv')
         

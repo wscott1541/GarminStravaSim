@@ -438,7 +438,8 @@ import pandas as pd
 try:
     val_data = pd.read_csv(r'temp-val.csv')
     vals_df = pd.DataFrame(val_data,columns=['Val'])
-    val = vals_df['Val'].tolist()[0]
+    vals_list = vals_df['Val'].tolist()
+    val = vals_list[0]
     
 except:
     val = 14

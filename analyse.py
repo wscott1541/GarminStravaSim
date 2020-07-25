@@ -224,7 +224,8 @@ def assess(temporary,main):
         for n in range(0,len(statii)):
             if statii[n] != 'Y' and statii[n] != 'NONE':
                 starts.append(n)
-        
+        if len(starts) == 0:
+            starts.append(len(statii))
         #prev_activities = new['Activity number'].tolist()
     except:
         new = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
@@ -309,7 +310,12 @@ def assess(temporary,main):
             #a_row = pd.Series(new_row,index=new.columns)#this should be done with a replace if the activity exists, else append
             #mod_df = new.append(a_row,ignore_index = True)
             #new = mod_df.sort_values(by='Date')
-            new.iloc[i] = new_row
+            try:
+                new.iloc[i] = new_row
+            except:
+                a_row = pd.Series(new_row,index=new.columns)#this should be done with a replace if the activity exists, else append
+                mod_df = new.append(a_row,ignore_index = True)
+                new = mod_df.sort_values(by='Date')
             new.to_csv(r'{}'.format(main),index=False)  
     
    

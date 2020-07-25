@@ -47,7 +47,5 @@ muf.plot_month_distances(month,year,'Running')
 
 muf.plot_distances_this_week(today_string,'Running')
 
-
 print(puf.personal_best('1km'))
 print(puf.all_personal_bests())
-print(puf.week_summary())

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from today_string import today_string, year, month, day, y_day_string
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import data_read as dr
 
@@ -210,6 +210,24 @@ def datestring_to_floatday(datestring):
     
     return(floatday)
     #I have four years to code for leap years
+    
+def daily_rolling_average(today_string,activity):
+    dists = []
+    
+    day_obj = datetime.strptime(today_string,'%Y-%m-%d')
+    earl = day_obj - timedelta(days=30)
+    
+    for i in range(0,len(dates)):
+        date_stamp = dates[i][:10]
+        date_obj = datetime.strptime(date_stamp,'%Y-%m-%d')
+        
+        if date_obj > earl and date_obj < day_obj:
+            dists.append(distances[i])
+            
+    daily_average = round(sum(dists)/28,2)
+    
+    return(daily_average) 
+
 """
 Complete Functions
 """
@@ -522,7 +540,7 @@ def plot_week_and_previous_distances(today_string,activity):
     plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
     
     ax.legend(); 
-    plt.title(title)
+    plt.title(title)        
 
 def furthest(category):
     running_dates = []
@@ -644,23 +662,33 @@ week_types,week_dates,week_dists,dummy_splits = dr.week_times(initials,'1km')
 def activity_check():
     
     week_events = len(week_types)
-    running_events = 0
-    cycling_events = 0
-    walking_events = 0
-    other_events = 0
+    running_events_sub = []
+    cycling_events_sub = []
+    walking_events_sub = []
+    other_events_sub = []
         
     if week_events != 0:
         for i in range(0,week_events):
             if week_types[i] == 'Running':
-                running_events =+ 1
+                running_events_sub.append(1)
             elif types[i] == 'Cycling':
-                cycling_events =+ 1
+                cycling_events_sub.append(1)
             elif types[i] == 'Walking' or types[i] == 'Hiking':
-                walking_events =+ 1
+                walking_events_sub.append(1)
             else:
-                other_events =+ 1
+                other_events_sub.append(1)
+    
+    running_events = len(running_events_sub)
+    cycling_events = len(cycling_events_sub)
+    walking_events = len(walking_events_sub)
+    other_events = len(other_events_sub)
     
     return(week_events,running_events,cycling_events,walking_events,other_events)
+    
+week_events,running_events,cycling_events,walking_events,other_events = activity_check()
+
+print(week_events)
+print(walking_events)
 
 def week_best(category):
     full_types,full_dates,full_dists,full_splits = dr.week_times(initials,category)
@@ -688,25 +716,31 @@ def week_best(category):
     return(string)
 
 def activity_week_summary_html(activity_type):
+    week_events,running_events,cycling_events,walking_events,other_events = activity_check()
+    
     event_dates,distance_sum = distance_sum_curr_week(y_day_string,activity_type)
     total_distance = distance_sum[-1]
-    n_events = len(event_dates) - 1
     
+
+
     if activity_type == 'Running':
         verb = 'ran'
         event = 'runs'
+        n_events = running_events
     if activity_type == 'Cycling':
         verb = 'cycled'
         event = 'rides'
-    #if activity_type == 'Walking' or activity_type == 'Hiking':
-    #    verb = 'walked or hiked'
-    #    event = 'walks or hikes'
+        n_events = cycling_events
+    if 'king' in activity_type:
+        verb = 'walked or hiked'
+        event = 'walks or hikes'
+        n_events = walking_events
     #else:
     #    verb = 'did?'    
     #    event = 'events?'
     
     summary = f"""<p><b>{activity_type}</b><br><p>
-<p>You {verb} <b>{total_distance}km</b> across {n_events} {event}.<p>"""
+<p>You {verb} <b>{total_distance}km</b> across {n_events} {event}, against a weekly average of {daily_rolling_average(today_string,activity_type)}km.<p>"""
     
     if activity_type == 'Running':
         bests = f"""<p>              
@@ -733,42 +767,54 @@ def activity_week_summary_html(activity_type):
         summary = summary + bests
     
     return(summary)
-    
+        
 def week_summary_html():
     week_events,running_events,cycling_events,walking_events,other_events = activity_check()
     
     if week_events == 0:
         body = f"""
 <body>
-<p>Your last activity was on {dates[-1]}<p>
+<p>Your last activity was on {dates[-1]}.<p>
 </body> 
         """
     else:
-        opening = """
+        body = """
 <body>
 <p><b><u>This week:</u></b></p>
 </body>
 """
-        chunks = [opening]
+        #chunks = [opening]
         if running_events > 0:
             chunk = f"""
 <body>
 {activity_week_summary_html('Running')}
 </body>
 """
-            chunks.append(chunk)
+            #chunks.append(chunk)
+            body = body + chunk
         if cycling_events > 0:
             chunk = f"""
 <body>
 {activity_week_summary_html('Cycling')}
 </body>
 """
-            chunks.append(chunk)
+            #chunks.append(chunk)
+            body = body + chunk
+            #chunks.append(chunk)
         
-        body = chunks[0]
+        #body = chunks[0]
         
-        for n in range(1,len(chunks)):
-            body =+ chunks[n]
+        if walking_events > 0:
+            chunk = f"""
+<body>
+{activity_week_summary_html('Walking')}
+</body>
+"""
+            #chunks.append(chunk)
+            body = body + chunk
+        
+        #for n in range(1,len(chunks)):
+        #    body =+ chunks[n]
     
     html = f"""
 <html>
