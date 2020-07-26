@@ -626,7 +626,6 @@ def all_personal_bests():
 def all_personal_bests_html():
 
     html = f"""\
-<html>
 <body>
     <p><b><u>Personal bests</u></b><br>
     <b>Running</b><br>
@@ -649,7 +648,6 @@ def all_personal_bests_html():
     {personal_best('C250k')}<br>
     {furthest('Cycling')}</p>
   </body>
-</html>
 """
 
     return(html)
@@ -686,9 +684,6 @@ def activity_check():
     return(week_events,running_events,cycling_events,walking_events,other_events)
     
 week_events,running_events,cycling_events,walking_events,other_events = activity_check()
-
-print(week_events)
-print(walking_events)
 
 def week_best(category):
     full_types,full_dates,full_dists,full_splits = dr.week_times(initials,category)
@@ -817,9 +812,7 @@ def week_summary_html():
         #    body =+ chunks[n]
     
     html = f"""
-<html>
 {body}
-</html>
 """
     
     return(html)

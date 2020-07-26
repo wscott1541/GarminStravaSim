@@ -55,63 +55,78 @@ message["Subject"] = subject
 #intro = "Maybe one day this will also provide text insights. "
 #message.attach(MIMEText(intro, "plain"))
 
-intro = puf.week_summary_html()
-message.attach(MIMEText(intro,'html'))
+body = puf.week_summary_html()
+#message.attach(MIMEText(intro,'html'))
 
-def attach_chart_as_html():
+def attach_chart_as_html(body):
     plt.savefig('temp_image.jpg')
     
     encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
     
-    html = f"""\
-<html>
+    img = f"""\
  <body>
    <img src='data:image/jpg;base64,{encoded}'>
  </body>
-</html>
 """
     
-    part = MIMEText(html, "html")
-    message.attach(part)
+    new = body + img
+
+    #part = MIMEText(html, "html")
+    #message.attach(part)
     
     os.remove('temp_image.jpg')
     
+    return(new)
+    
 
 """List functions to send"""
-puf.plot_month_distance(month,year,'Running')
-attach_chart_as_html()
-puf.plot_month_and_previous_distances(month,year,'Running')
-attach_chart_as_html()
-puf.plot_month_and_previous_durations(month,year,'Running')
-attach_chart_as_html()
-puf.plot_month_and_previous_distances(month,year,'Cycling')
-attach_chart_as_html()
-puf.plot_month_and_previous_distances(month,year,'Walking')
-attach_chart_as_html()
-puf.plot_distances_this_year(month,year,'Running')
-attach_chart_as_html()
-puf.plot_durations_all_previous(month,year,'Running')
-attach_chart_as_html()
-puf.plot_distances_all_previous(month,year,'Running')
-attach_chart_as_html()
-puf.plot_cumulative_distance(month,year,'Running')
-attach_chart_as_html()
-puf.plot_cumulative_distance(month,year,'All')
-attach_chart_as_html()
+
 puf.plot_week_and_previous_distances(y_day_string,'Running')
-attach_chart_as_html()  
+body = attach_chart_as_html(body)  
 puf.plot_week_and_previous_distances(y_day_string,'Cycling')
-attach_chart_as_html() 
+body = attach_chart_as_html(body) 
 puf.plot_week_and_previous_distances(y_day_string,'All')
-attach_chart_as_html()      
+body = attach_chart_as_html(body) 
+puf.plot_month_distance(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_month_and_previous_distances(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_month_and_previous_durations(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_month_and_previous_distances(month,year,'Cycling')
+body = attach_chart_as_html(body)
+puf.plot_month_and_previous_distances(month,year,'Walking')
+body = attach_chart_as_html(body)
+puf.plot_distances_this_year(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_cumulative_distance(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_cumulative_distance(month,year,'All')
+body = attach_chart_as_html(body)
+puf.plot_durations_all_previous(month,year,'Running')
+body = attach_chart_as_html(body)
+puf.plot_distances_all_previous(month,year,'Running')
+body = attach_chart_as_html(body)
+
+     
 
 muf.plot_month_distances(month,year,'Running')
-attach_chart_as_html()
+body = attach_chart_as_html(body)
 muf.plot_distances_this_week(y_day_string,'Running')
-attach_chart_as_html()
+body = attach_chart_as_html(body)
 
 outtro = puf.all_personal_bests_html()
-message.attach(MIMEText(outtro, "html"))
+#message.attach(MIMEText(outtro, "html"))
+
+final = body + outtro
+
+html = f"""
+<html>
+{final}
+</html>
+"""
+
+message.attach(MIMEText(final,'html'))
 
 """Complete and send email"""
 
@@ -125,7 +140,6 @@ with smtplib.SMTP(smtp_server, port) as server:
     server.sendmail(sender_email, receiver_email, text)
         
 print('Sent to {}'.format(receiver_email))
-
 
    
 
