@@ -11,7 +11,12 @@ import pandas as pd
 from fitparse import FitFile
 
 #work out way of importing
-fitfile = FitFile('A7OH5840.FIT')
+
+ac_file = 'A81A2327.FIT'
+
+ac_abbr = ac_file[:-4]
+
+fitfile = FitFile(ac_file)
 
 timestamps = []
 #note that this is possibly not GMT, or whatever my timezone is now.
@@ -45,6 +50,7 @@ for record in fitfile.get_messages('record'):
             ))
         else:
             print (" * %s: %s" % (record_data.name, record_data.value))
+        #cadence, distance,enhanced_speed,heart_rate,lat,lon,speed,timestamp, unknown_88
         """
 
 df = pd.DataFrame(columns=['time','lat','lon','HR','distance'])
@@ -59,7 +65,7 @@ for i in range(0,len(timestamps)):
     df = df.append(a_row,ignore_index=True)
 
 time = timestamps[0]
-activity_file = 'activity_m{}.csv'.format(time)
+activity_file = 'activity_{}.csv'.format(ac_abbr)
     
 df.to_csv(r'{}'.format(activity_file))
 
@@ -104,14 +110,20 @@ pace = full_secs/dist
 
 if pace < 181:
     activity = 'Cycling'
-if pace >= 181 and pace <= 375:
+if pace >= 181 and pace <= 570:
     activity = 'Running'
-if pace > 375:
+if pace > 570:
     activity = 'Walking'
+    
+#ac_check = input('Was this a {} activity? (Y/N) '.format(activity))
+
+#if ac_check == 'N':
+#    print('Pace: ',pace)
+#    activity = input('Activity: ')
 
 temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])
 
-row = ['MANUAL',activity,date, dist,full_string]
+row = [ac_abbr,activity,date, dist,full_string]
 a_row = pd.Series(row,index=temp_df.columns)
 temp_df = temp_df.append(a_row,ignore_index=True)
 
@@ -126,6 +138,5 @@ if gpx_statii[0] == 'Y':
                 
 else:
     temp_df.to_csv(r'{}'.format(file_name))
-
 
 

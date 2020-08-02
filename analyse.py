@@ -20,6 +20,7 @@ import os
 
 def pull_gpx(activity_number):
     
+
     fileDir = os.path.dirname(os.path.realpath('__file__'))
 
     filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
@@ -32,7 +33,7 @@ def pull_gpx(activity_number):
         stop = 0
     except:
         stop = 1
-    
+        
     #time_str = str(data[0].time)[:19]
     #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
 
@@ -73,6 +74,34 @@ def pull_gpx(activity_number):
             df = df.append(row,ignore_index = True)
 
     return(df)
+    
+#print(pull_gpx(5221284558))
+    
+def pull_csv(activity_number):
+    
+    filename = 'activity_{}.csv'.format(activity_number)
+    
+    #I think I only need distance and time
+    
+    data = pd.read_csv(r'{}'.format(filename))
+    old_df = pd.DataFrame(data,columns=['time','distance'])
+    
+    dists_un = old_df['distance'].tolist()
+    times_un = old_df['time'].tolist()
+    
+    df = pd.DataFrame(columns=['time','distance'])
+    
+    for i in range(0,len(times_un)):
+        
+        time_dt = datetime.strptime(times_un[i],'%Y-%m-%d %H:%M:%S')
+        
+        row = [time_dt,dists_un[i]]
+        a_row = pd.Series(row,index=df.columns)
+        df = df.append(a_row,ignore_index=True)
+
+    return(df)
+    
+#print(pull_csv('A81A2327'))
 
 def best_time(distance,gpx_df):
     times = gpx_df['time'].tolist()    
@@ -274,26 +303,35 @@ def assess(temporary,main):
                 c_times = ['NONE','NONE','NONE','NONE','NONE','NONE']
                 status = 'NONE'
             else:
-                fileDir = os.path.dirname(os.path.realpath('__file__'))
-
-                filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(ac_no))
+                
+                if len(ac_no) == 10:
+                
+                    fileDir = os.path.dirname(os.path.realpath('__file__'))
+                    
+                    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(ac_no))
         
-                size = os.stat(filename).st_size
-                print(size)
+                    size = os.stat(filename).st_size
+                    print(size)
+                
         
-                if size > 0:
-                    today = time()
-                    today_dt = datetime.fromtimestamp(today)
-                    time_string = datetime.strftime(today_dt,'%H:%M:%S')
-                    print('Reading activity {} GPX at {}'.format(i,time_string))
-                    gpx_df = pull_gpx(row[0])
-                    today = time()
-                    today_dt = datetime.fromtimestamp(today)
-                    time_string = datetime.strftime(today_dt,'%H:%M:%S')
-                    print('Read activity {} GPX at {}'.format(i,time_string))
+                    if size > 0:
+                        today = time()
+                        today_dt = datetime.fromtimestamp(today)
+                        time_string = datetime.strftime(today_dt,'%H:%M:%S')
+                        print('Reading activity {} GPX at {}'.format(i,time_string))
+                        gpx_df = pull_gpx(row[0])
+                        today = time()
+                        today_dt = datetime.fromtimestamp(today)
+                        time_string = datetime.strftime(today_dt,'%H:%M:%S')
+                        print('Read activity {} GPX at {}'.format(i,time_string))
+                        status = 'Y'
+                    else:
+                        status = 'INVALID'
+                    
+                elif len(ac_no) == 8:
+                    filename = 'activity_{}.csv'.format(ac_no)
+                    gpx_df = pull_csv(ac_no)
                     status = 'Y'
-                else:
-                    status = 'INVALID'
             
             if row[1] == 'Running':
                 r_times = best_times_running(gpx_df)
