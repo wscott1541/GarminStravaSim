@@ -20,7 +20,6 @@ import os
 
 def pull_gpx(activity_number):
     
-
     fileDir = os.path.dirname(os.path.realpath('__file__'))
 
     filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
@@ -79,7 +78,9 @@ def pull_gpx(activity_number):
     
 def pull_csv(activity_number):
     
-    filename = 'activity_{}.csv'.format(activity_number)
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
     
     #I think I only need distance and time
     
@@ -251,7 +252,7 @@ def assess(temporary,main):
         statii = new['Status'].tolist()
         starts = []
         for n in range(0,len(statii)):
-            if statii[n] != 'Y' and statii[n] != 'NONE':
+            if statii[n] != 'GPX' and statii[n] != 'NONE' and statii[n] != 'CSV':
                 starts.append(n)
         if len(starts) == 0:
             starts.append(len(statii))
@@ -275,7 +276,7 @@ def assess(temporary,main):
     for i in ran:
         if prev == 1:
             try:
-                if statii[i] == 'Y' or statii[i] == 'NONE':
+                if statii[i] == 'GPX' or statii[i] == 'NONE' or statii[i] == 'CSV':
                     skip = 1
                 else:
                     skip = 0
@@ -324,14 +325,14 @@ def assess(temporary,main):
                         today_dt = datetime.fromtimestamp(today)
                         time_string = datetime.strftime(today_dt,'%H:%M:%S')
                         print('Read activity {} GPX at {}'.format(i,time_string))
-                        status = 'Y'
+                        status = 'GPX'
                     else:
                         status = 'INVALID'
                     
                 elif len(ac_no) == 8:
                     filename = 'activity_{}.csv'.format(ac_no)
                     gpx_df = pull_csv(ac_no)
-                    status = 'Y'
+                    status = 'CSV'
             
             if row[1] == 'Running':
                 r_times = best_times_running(gpx_df)

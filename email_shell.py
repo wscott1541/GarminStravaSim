@@ -15,7 +15,7 @@ dates_df = pd.DataFrame(email_data, columns= ['Email sent'])
 dates_list = dates_df['Email sent'].tolist()
 latest_date = dates_list[-1]
 
-#import update
+import update
 
 from today_string import today_string
 

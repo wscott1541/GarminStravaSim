@@ -127,7 +127,10 @@ for user in range(0,len(initials)):
             if i == 0:
                 #archive only if update necessary
                 archive = pd.DataFrame(data)
-                archive.to_csv(r'{}{}'.format(today_string,file_name), index = False)
+                fileDir = os.path.dirname(os.path.realpath('__file__'))
+                archname = os.path.join(fileDir, 'Archive.gitignore/activity_{}.csv'.format(today_string,file_name))
+                #archive = pd.DataFrame(data)
+                archive.to_csv(r'{}{}'.format(archname), index = False)
             
             a_row = pd.Series(row,index=temp_df.columns)
             mod_df = temp_df.append(a_row,ignore_index = True)
@@ -138,7 +141,7 @@ for user in range(0,len(initials)):
 
     if stop == 1:
         print('{} activities added for {} {}'.format(i,firsts[user],lasts[user]))
-    
+    """
     if gpx_statii[user] == 'Y' and i != 0:
         val = [i]
         
@@ -165,7 +168,10 @@ for user in range(0,len(initials)):
         
     else:
         temp_df.to_csv(r'{}'.format(file_name))
-        
+    """
+    if i != 0:
+        temp_df.to_csv(r'{}'.format(file_name))
+    
    
 print('Update complete!')
         

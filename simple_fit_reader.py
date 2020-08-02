@@ -6,9 +6,13 @@ Created on Fri Jul 24 17:09:14 2020
 @author: WS
 """
 
+import os
+
 import pandas as pd
 
 from fitparse import FitFile
+
+from today_string import today_string
 
 #work out way of importing
 
@@ -65,9 +69,12 @@ for i in range(0,len(timestamps)):
     df = df.append(a_row,ignore_index=True)
 
 time = timestamps[0]
-activity_file = 'activity_{}.csv'.format(ac_abbr)
+
+fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(ac_abbr))
     
-df.to_csv(r'{}'.format(activity_file))
+df.to_csv(r'{}'.format(filename))
 
 import analyse
 
@@ -93,9 +100,10 @@ if gpx_statii[0] == 'Y':
 else:
     archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
 
-from today_string import today_string
-
-archive.to_csv(r'{}{}'.format(today_string,file_name), index = False)
+#initial archiving
+archive = pd.DataFrame(data)
+archname = os.path.join(fileDir, 'Archive.gitignore/activity_{}.csv'.format(today_string,file_name))
+archive.to_csv(r'{}'.format(archname), index = False)
 
 from datetime import timedelta
 import time
@@ -127,8 +135,6 @@ row = [ac_abbr,activity,date, dist,full_string]
 a_row = pd.Series(row,index=temp_df.columns)
 temp_df = temp_df.append(a_row,ignore_index=True)
 
-import os
-
 if gpx_statii[0] == 'Y':
     temp_df.to_csv(r'temp-activities.csv',index=False)
         
@@ -139,4 +145,5 @@ if gpx_statii[0] == 'Y':
 else:
     temp_df.to_csv(r'{}'.format(file_name))
 
+os.remove(ac_file)
 
