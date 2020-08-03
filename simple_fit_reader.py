@@ -16,9 +16,14 @@ from today_string import today_string
 
 #work out way of importing
 
-ac_file = 'A81A2327.FIT'
+ac_file = 'A8373131.FIT'
 
 ac_abbr = ac_file[:-4]
+
+abbr_df = pd.DataFrame(columns=['Abbr'])
+abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)
+mod_abbr = abbr_df.append(abbr_row,ignore_index=True)
+mod_abbr.to_csv(r'temp-abbr.csv',index = False)
 
 fitfile = FitFile(ac_file)
 
@@ -59,10 +64,37 @@ for record in fitfile.get_messages('record'):
 
 df = pd.DataFrame(columns=['time','lat','lon','HR','distance'])
 
+lat_breaks = []
+lat_break_checks = []
+lon_breaks = []
+lon_break_checks = []
+
 for i in range(0,len(timestamps)):
     
-    lat = latitudes[i] * (10 ** (-7))
-    lon = longitudes[i] * (10 ** (-7))
+    try:
+        lat = latitudes[i] / (10 ** (7))
+    except:
+        if len(lat_breaks) == 0:
+            lat_breaks.append(latitudes[i-1] / (10 ** (7)))
+        elif lat_break_checks[-1] == i - 1:
+            print(' ')
+        else:
+            lat_breaks = [latitudes[i-1] / (10 ** (7))]
+        lat_break_checks.append(i)
+        
+        lat = lat_breaks[0]
+    try:
+        lon = longitudes[i] * (10 ** (-7))
+    except:
+        if len(lon_breaks) == 0:
+            lon_breaks.append(longitudes[i-1] / (10 ** (7)))
+        elif lon_break_checks[-1] == i - 1:
+            print(' ')
+        else:
+            lon_breaks = [longitudes[i-1] / (10 ** (7))]
+        lon_break_checks.append(i)    
+        
+        lon = lon_breaks[0]
     
     row = [timestamps[i],lat,lon,heart_rates[i],distances[i]]
     a_row = pd.Series(row,index=df.columns)
@@ -102,7 +134,7 @@ else:
 
 #initial archiving
 archive = pd.DataFrame(data)
-archname = os.path.join(fileDir, 'Archive.gitignore/activity_{}.csv'.format(today_string,file_name))
+archname = os.path.join(fileDir, 'Archive.gitignore/{}{}'.format(today_string,file_name))
 archive.to_csv(r'{}'.format(archname), index = False)
 
 from datetime import timedelta
@@ -145,5 +177,7 @@ if gpx_statii[0] == 'Y':
 else:
     temp_df.to_csv(r'{}'.format(file_name))
 
-os.remove(ac_file)
+import map_email_gen
 
+os.remove(ac_file)
+os.remove('temp-abbr.csv')
