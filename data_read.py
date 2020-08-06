@@ -11,6 +11,8 @@ import pandas as pd
 from today_string import y_day_string
 from datetime import datetime, timedelta
 
+import os
+
 user_data = pd.read_csv (r'users.csv')  
  
 users = pd.DataFrame(user_data, columns= ['Initials'])
@@ -105,5 +107,8 @@ def week_times(initials,distance):
             splits.append(all_splits[i])
             
     return(types,dates,dists,splits)
+
+     
+        
     
     

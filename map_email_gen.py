@@ -34,7 +34,7 @@ password = pw_list[0]
 
 users_data = pd.read_csv (r'users.csv')
 
-users_df = pd.DataFrame(users_data, columns= ['Username'])
+users_df = pd.DataFrame(users_data, columns= ['Username','Initials'])
 users_list = users_df['Username'].tolist()
 receiver_email = users_list[0]
 
@@ -43,7 +43,22 @@ from email.mime.text import MIMEText
 
 from today_string import day, month, year, today_string, y_day_string
 
-subject = "Map test".format(day,month_caller(month),year)
+import data_read as dr
+
+initials = users_df['Initials'].tolist()[0]
+
+dates,distances,durations,types = dr.data_read(initials)
+
+date = dates[-1]
+"""
+abbr_data = pd.read_csv(r'temp-abbr.csv')
+abbr_df = pd.DataFrame(abbr_data,columns=['Abbr'])
+abbrs = abbr_df['Abbr'].tolist()
+"""
+
+ac_abbr = 'A85I1222'#abbrs[0]
+
+subject = "Activity {}".format(date)
 
 message = MIMEMultipart()
 message["From"] = sender_email
@@ -52,15 +67,19 @@ message["Subject"] = subject
 
 import mapper
 
-def attach_chart_as_html():
+import analyse
+
+body = """<body>Your activity:</body>"""
+
+def attach_chart_as_html(body):
     plt.savefig('temp_image.jpg')
     
     encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
     
     img = f"""\
- <body>
+<body>
    <img src='data:image/jpg;base64,{encoded}'>
- </body>
+</body>
 """
     
     #new = body + img
@@ -68,14 +87,29 @@ def attach_chart_as_html():
     #part = MIMEText(html, "html")
     #message.attach(part)
     
+    new = body + img
+    
     os.remove('temp_image.jpg')
     
-    return(img)
+    plt.show()
+    
+    return(new)
 
-mapper.pyplot_map()
-piece = attach_chart_as_html()     
+plt.show()
+ac_route = analyse.route_data(ac_abbr)
+mapper.pyplot_map(ac_abbr)
+body = attach_chart_as_html(body)
+analyse.hr_plot_time(ac_route)
+body = attach_chart_as_html(body)
+analyse.hr_plot_dist(ac_route)      
+body = attach_chart_as_html(body)
 
-message.attach(MIMEText(piece,'html'))
+html = f"""<html>
+{body}
+</html>
+"""
+
+message.attach(MIMEText(html,'html'))
 
 """Complete and send email"""
 

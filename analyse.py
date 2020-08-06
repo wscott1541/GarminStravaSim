@@ -29,6 +29,7 @@ def pull_gpx(activity_number):
         gpx = gpxpy.parse(gpx_file)
 
         data = gpx.tracks[0].segments[0].points
+        
         stop = 0
     except:
         stop = 1
@@ -37,7 +38,7 @@ def pull_gpx(activity_number):
     #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
 
 
-    df = pd.DataFrame(columns=['lon','lat','alt','time','distance'])
+    df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
     #df = pd.DataFrame(columns=['lon','lat','alt'])
 
     dist = [0]
@@ -47,6 +48,11 @@ def pull_gpx(activity_number):
             lon = data[i].longitude
             lat = data[i].latitude
             alt = data[i].elevation
+            try:
+                ext = data.extensions[0].getchildren()[0]
+                hr = int(ext.text)
+            except:
+                hr = 'N/A'
         
             time_str = str(data[i].time)[:19]
             time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
@@ -68,7 +74,7 @@ def pull_gpx(activity_number):
                 
             distance = dist[-1]
 
-            a_row = [lon,lat,alt,time_dt,distance]
+            a_row = [lon,lat,alt,time_dt,distance,hr]
             row = pd.Series(a_row,index=df.columns)
             df = df.append(row,ignore_index = True)
 
@@ -85,24 +91,35 @@ def pull_csv(activity_number):
     #I think I only need distance and time
     
     data = pd.read_csv(r'{}'.format(filename))
-    old_df = pd.DataFrame(data,columns=['time','distance'])
+    old_df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
     
+    lats = old_df['lat'].tolist()
+    lons = old_df['lon'].tolist()
     dists_un = old_df['distance'].tolist()
     times_un = old_df['time'].tolist()
+    hrs = old_df['HR'].tolist()
     
-    df = pd.DataFrame(columns=['time','distance'])
+    df = pd.DataFrame(columns=['lon','lat','time','distance','HR'])
     
     for i in range(0,len(times_un)):
         
         time_dt = datetime.strptime(times_un[i],'%Y-%m-%d %H:%M:%S')
         
-        row = [time_dt,dists_un[i]]
+        row = [lons[i],lats[i],time_dt,dists_un[i],hrs[i]]
         a_row = pd.Series(row,index=df.columns)
         df = df.append(a_row,ignore_index=True)
 
     return(df)
     
-#print(pull_csv('A81A2327'))
+def route_data(activity_number):
+    if len(activity_number) == 10:
+        df = pull_gpx(activity_number)
+    if len(activity_number) == 8:
+        df = pull_csv(activity_number)
+        
+    return(df)
+    
+#print(route_data('A81A2327'))
 
 def best_time(distance,gpx_df):
     times = gpx_df['time'].tolist()    
@@ -357,4 +374,41 @@ def assess(temporary,main):
                 new = mod_df.sort_values(by='Date')
             new.to_csv(r'{}'.format(main),index=False)  
     
-   
+import matplotlib.pyplot as plt
+
+def hr_plot_time(df):
+
+    try:
+        times_un = df['time'].tolist()
+        hrs = df['HR'].tolist()
+    except:
+        new = route_data(df)
+        times_un = new['time'].tolist()
+        hrs = new['HR'].tolist()
+    
+    times = []
+    for i in range(0,len(times_un)):
+        if i == 0:
+            times.append(0)
+        else:
+            full_td = times_un[i] - times_un[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+        
+    #hrs = df['HR'].tolist()
+    
+    plt.plot(times,hrs)
+
+def hr_plot_dist(df):
+    try:
+        dists = df['distance'].tolist()
+        hrs = df['HR'].tolist()
+    except:
+        new = route_data(df)
+        dists = new['distance'].tolist()
+        hrs = new['HR'].tolist()
+    
+    plt.plot(dists,hrs)
+    
+#route = route_data('A85I1222')
+#hr_plot_time(route)

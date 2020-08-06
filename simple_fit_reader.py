@@ -16,7 +16,7 @@ from today_string import today_string
 
 #work out way of importing
 
-ac_file = 'A8373131.FIT'
+ac_file = 'A85I1222.FIT'
 
 ac_abbr = ac_file[:-4]
 
