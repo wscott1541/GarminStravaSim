@@ -217,16 +217,25 @@ def daily_rolling_average(today_string,activity):
     day_obj = datetime.strptime(today_string,'%Y-%m-%d')
     earl = day_obj - timedelta(days=30)
     
+    if activity == 'All':
+        activity = 'i'
+    
     for i in range(0,len(dates)):
         date_stamp = dates[i][:10]
         date_obj = datetime.strptime(date_stamp,'%Y-%m-%d')
         
-        if date_obj > earl and date_obj < day_obj:
+        if date_obj > earl and date_obj < day_obj and activity in types[i]:
             dists.append(distances[i])
             
     daily_average = round(sum(dists)/28,2)
     
-    return(daily_average) 
+    return(daily_average)
+    
+def weekly_rolling_average(today_string,activity):
+    daily_average = daily_rolling_average(today_string,activity)
+    weekly_average = round(7 * daily_average,2)
+    
+    return(weekly_average)
 
 """
 Complete Functions
@@ -735,7 +744,7 @@ def activity_week_summary_html(activity_type):
     #    event = 'events?'
     
     summary = f"""<p><b>{activity_type}</b><br><p>
-<p>You {verb} <b>{total_distance}km</b> across {n_events} {event}, against a weekly average of {daily_rolling_average(today_string,activity_type)}km.<p>"""
+<p>You {verb} <b>{total_distance}km</b> across {n_events} {event}, against a weekly average of {weekly_rolling_average(today_string,activity_type)}km.<p>"""
     
     if activity_type == 'Running':
         bests = f"""<p>              
@@ -762,6 +771,7 @@ def activity_week_summary_html(activity_type):
         summary = summary + bests
     
     return(summary)
+
         
 def week_summary_html():
     week_events,running_events,cycling_events,walking_events,other_events = activity_check()

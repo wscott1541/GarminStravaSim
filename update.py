@@ -50,7 +50,7 @@ gpx_statii = users['GPX'].tolist()
 import analyse
 
 #pull activities
-for user in range(0,len(initials)):
+for user in range(1,len(initials)):#1 to only update WM because mine should have been updated manually anyway
     
     #log into Garmin
     try:
@@ -128,9 +128,9 @@ for user in range(0,len(initials)):
                 #archive only if update necessary
                 archive = pd.DataFrame(data)
                 fileDir = os.path.dirname(os.path.realpath('__file__'))
-                archname = os.path.join(fileDir, 'Archive.gitignore/activity_{}.csv'.format(today_string,file_name))
+                archname = os.path.join(fileDir, 'Archive.gitignore/{}{}.csv'.format(today_string,file_name))
                 #archive = pd.DataFrame(data)
-                archive.to_csv(r'{}{}'.format(archname), index = False)
+                archive.to_csv(r'{}'.format(archname), index = False)
             
             a_row = pd.Series(row,index=temp_df.columns)
             mod_df = temp_df.append(a_row,ignore_index = True)
