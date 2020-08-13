@@ -397,7 +397,23 @@ def hr_plot_time(df):
         
     #hrs = df['HR'].tolist()
     
-    plt.plot(times,hrs)
+    for i in range(1,len(times)):
+        if hrs[i-1] < 120:
+            fill_color = 'green'
+        if hrs[i-1] >= 120 and hrs[i] < 155:
+            fill_color = 'blue'
+        if hrs[i-1] >= 155:
+            fill_color = 'red'
+        
+        xs = [times[i-1],times[i]]
+        ys = [hrs[i-1],hrs[i]]
+        
+        plt.plot(xs,ys,color=fill_color)
+    
+    plt.xlabel('Duration (s)')
+    plt.ylabel('HR (bpm)')
+    
+    #plt.plot(times,hrs)
 
 def hr_plot_dist(df):
     try:
@@ -408,7 +424,121 @@ def hr_plot_dist(df):
         dists = new['distance'].tolist()
         hrs = new['HR'].tolist()
     
-    plt.plot(dists,hrs)
+    for i in range(1,len(dists)):
+        if hrs[i-1] < 120:
+            fill_color = 'green'
+        if hrs[i-1] >= 120 and hrs[i] < 155:
+            fill_color = 'blue'
+        if hrs[i-1] >= 155:
+            fill_color = 'red'
+        
+        xs = [dists[i-1],dists[i]]
+        ys = [hrs[i-1],hrs[i]]
+        
+        plt.plot(xs,ys,color=fill_color)
     
+    plt.xlabel('Distance (m)')
+    plt.ylabel('HR (bpm)')
+    
+    #plt.plot(dists,hrs)
+
+#plt.show()    
 #route = route_data('A85I1222')
 #hr_plot_time(route)
+#plt.show()
+#hr_plot_dist(route)
+#plt.show()
+
+def hr_dist_pace_plot(df):
+    dists = df['distance'].tolist()
+    hrs = df['HR'].tolist()
+    times_un = df['time'].tolist()
+    
+    paces = []
+    for i in range(0,len(times_un)):
+        if i < 30:
+            paces.append(0)
+        else:
+            full_td = times_un[i] - times_un[i-30]
+            full_secs = full_td.total_seconds()
+            pace = ((dists[i]-dists[i-30])/full_secs) * 3.6
+            paces.append(pace)
+            
+    fig,ax = plt.subplots()
+    ax.plot(dists,hrs,color='blue')
+    
+    ax.set_xlabel('Distance (m)')
+    ax.set_ylabel('HR (bpm)')
+    
+    ax2=ax.twinx()
+    
+    ax2.plot(dists,paces,':',color='orange')
+    ax2.set_ylabel('Pace (km/h)')
+    
+    #ax2.plot(dists,paces)
+    
+def hr_zones_pie(df):
+    hrs = df['HR'].tolist()
+    #times_un = df['time'].tolist()
+    
+    zone_one = []
+    zone_two = []
+    zone_thr = []
+    zone_fou = []
+    zone_fiv = []
+    
+    max_hr = 220 - 26
+    
+    for i in range(0,len(hrs)):
+        if hrs[i] < max_hr * 0.2:
+            zone_one.append(hrs[i])
+        if hrs[i] >= max_hr * 0.2 and hrs[i] < max_hr * 0.4:
+            zone_two.append(hrs[i])
+        if hrs[i] >= max_hr * 0.4 and hrs[i] < max_hr * 0.6:
+            zone_thr.append(hrs[i])
+        if hrs[i] >= max_hr * 0.6 and hrs[i] < max_hr * 0.8:
+            zone_fou.append(hrs[i])
+        if hrs[i] >= max_hr * 0.8:
+            zone_fiv.append(hrs[i])
+    
+    zone_labels = []
+    zone_values = []
+    
+    if len(zone_one) > len(hrs) * 0.02:
+        amount_s = len(zone_one)
+        mins,secs = divmod(amount_s,60)
+        zone_labels.append(f'Zone 1: {mins}m{secs}s')
+        zone_values.append(len(zone_one))
+    if len(zone_two) > len(hrs) * 0.02:
+        amount_s = len(zone_two)
+        mins,secs = divmod(amount_s,60)
+        zone_labels.append(f'Zone 2: {mins}m{secs}s')
+        zone_values.append(len(zone_two))
+    if len(zone_thr) > len(hrs) * 0.02:
+        amount_s = len(zone_thr)
+        mins,secs = divmod(amount_s,60)
+        zone_labels.append(f'Zone 3: {mins}m{secs}s')
+        zone_values.append(len(zone_thr))
+    if len(zone_fou) > len(hrs) * 0.02:
+        amount_s = len(zone_fou)
+        mins,secs = divmod(amount_s,60)
+        zone_labels.append(f'Zone 4: {mins}m{secs}s')
+        zone_values.append(len(zone_fou))
+    if len(zone_fiv) > len(hrs) * 0.02:
+        amount_s = len(zone_fiv)
+        mins,secs = divmod(amount_s,60)
+        zone_labels.append(f'Zone 5: {mins}m{secs}s')
+        zone_values.append(len(zone_fiv))
+        
+     
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    ax.axis('equal')
+    #zone_labels = ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5']
+    #zones = [len(zone_one),len(zone_two),len(zone_thr),len(zone_fou),len(zone_fiv)]
+    plt.pie(zone_values, labels = zone_labels,autopct='%1.2f%%')
+
+#plt.show()
+#route = route_data('A85I1222') 
+#hr_zones_pie(route)
+#plt.show()      

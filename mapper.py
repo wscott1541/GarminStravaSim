@@ -256,28 +256,31 @@ def pyplot_basic(activity_df):
 
 def pyplot_colourmap(activity_df):
     #print(len(activity_number))
-    df = activity_df#analyse.route_data(activity_number)
+    #df = activity_df#analyse.route_data(activity_number)
     
     #print(len(times_un))
 
-    lats = df['lat'].tolist()
+    lats = activity_df['lat'].tolist()
     #print(lats[0])
-    lons = df['lon'].tolist()
+    lons = activity_df['lon'].tolist()
     #print(lons[0])
-    dists = df['distance'].tolist()
+    dists = activity_df['distance'].tolist()
 
     n = 1
     markers = [0]
+    
     for i in range(0,len(dists)):
         
         if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
             markers.append(i-1)
             
             n += 1
-    
+    markers.append(len(dists))
     #colors = ['red','blue','green'] 
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=len(markers), clip=True)
-    mapper = cm.ScalarMappable(norm=norm, cmap=cm.tab20)
+    #norm = matplotlib.colors.Normalize(vmin=0, vmax=len(markers), clip=True)
+    #mapper = cm.ScalarMappable(norm=norm, cmap=cm.tab20)
+    
+    #color_options = ['black']
     
     for i in range(1,len(markers)):
         sta = markers[i-1]
@@ -288,8 +291,8 @@ def pyplot_colourmap(activity_df):
             if v >= sta and v <= fin:
                 minor_lats.append(lats[v])
                 minor_lons.append(lons[v])
-        fill_color=matplotlib.colors.to_hex(mapper.to_rgba(i))
-        plt.plot(minor_lons,minor_lats,color=fill_color)
+        #fill_color=matplotlib.colors.to_hex(mapper.to_rgba(i))
+        plt.plot(minor_lons,minor_lats)
     plt.axis('off')
     """
     plt.axis('off')
@@ -317,10 +320,10 @@ def pyplot_colourmap(activity_df):
     """
 
 #print(cm.tab10[1])
-#ac_df = analyse.route_data('A85I1222')
+#ac_df = analyse.route_data('A8CK1828')
 #plt.show()
 #pyplot_map('A85I1222')
-#pyplot_colourmap('A85I1222')
+#pyplot_colourmap(ac_df)
 #pyplot_basic(ac_df)
 #plt.show()
 #plot_osm_map(output='test-speed-map.html', hr=None)
