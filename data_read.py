@@ -108,7 +108,75 @@ def week_times(initials,distance):
             
     return(types,dates,dists,splits)
 
-     
+def activity_splits(initials,activity_number,distance):
+    df = pull_data(initials)
+    
+    ac_numbers = df['Activity number'].tolist()
+    splits = df[distance].tolist()
+    
+    split_list = []
+    for i in range(0,len(ac_numbers)):
+        if ac_numbers[i] == activity_number:
+            split_list.append(splits[i])
+    
+    split = split_list[0]
+    
+    return(split)
+    
         
+def activity_details(initials,activity_number):        
+    df = pull_data(initials)
+    
+    ac_numbers = df['Activity number'].tolist()
+    types_list = df['Activity Type'].tolist()
+    dates = df['Date'].tolist()
+    distances = df['Distance'].tolist()
+    durs = df['Time'].tolist()
+    
+    ac_type = []
+    date = []
+    dist = []
+    dur = []
+    
+    for i in range(0,len(ac_numbers)):
+        if activity_number == ac_numbers[i]:
+            ac_type.append(types_list[i])
+            date.append(dates[i])
+            dist.append(distances[i])
+            dur.append(durs[i])
+    
+    return(ac_type[0],date[0],dist[0],dur[0])
+    
+def split_rank(initials,activity_number,distance):
+    df = pull_data(initials)
+    #df = df.sort_values(by=distance)
+    
+    #df.to_csv(r'check-sorting.csv')
+    
+    ac_numbers = df['Activity number'].tolist()
+    ac_types = df['Activity Type'].tolist()
+    splits = df[distance].tolist()
+    
+    ac_type, junk, junk, junk = activity_details(initials,activity_number)
+    split = activity_splits(initials,activity_number,distance)
+    
+    n = 1
+    stop = 0
+    while stop == 0:
+        for i in range(0,len(splits)):
+            if splits[i] < split and ac_type == ac_types[i]:
+                n += 1
+            elif activity_number == ac_numbers[i]:
+                stop = 1
+    
+    if split == 'NONE':
+        n = 'NONE'
+    
+    return(n)
+
+#print(split_rank('WS','A85I1222','Distance'))
+            
+    
+    
     
     

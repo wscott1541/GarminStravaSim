@@ -719,6 +719,7 @@ def week_best(category):
     
     return(string)
 
+
 def activity_week_summary_html(activity_type):
     week_events,running_events,cycling_events,walking_events,other_events = activity_check()
     
@@ -827,8 +828,52 @@ def week_summary_html():
     
     return(html)
     
-
-            
-        
-
+def html_assessment(ac_number):    
     
+    ac_type,date,dist,dur = dr.activity_details(initials,ac_number)
+    
+    all_dists = []
+    all_durs = []
+    
+    abbr_date = date[:10]
+    date_strp = datetime.strptime(abbr_date,'%Y-%m-%d')
+    date_obj = datetime.timestamp(date_strp)
+    
+    for i in range(0,len(dates)):
+        temp_d_strp = datetime.strptime(dates[i],'%Y-%m-%d')
+        temp_d_obj = datetime.timestamp(temp_d_strp)
+        
+        if ac_type == types[i] and temp_d_obj < date_obj:
+            
+            all_dists.append(distances[i])
+            all_durs.append(durations[i])
+            
+    avg = round(sum(all_dists)/len(all_dists),2)
+    
+    full = len(all_durs) + 1
+    
+    opening = f"""
+<body><p>You ran/walked/cycled {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
+This was run/walk/cycle {full}, and compared to an average of {avg}km.<br>
+This was your {full - dr.split_rank(initials,ac_number,'Distance')} furthest and {full - dr.split_rank(initials,ac_number,'Time')} longest run/walk/cycle.</p></body>
+"""
+    
+    if ac_type == 'Running':
+        part = f"""<body>              
+<p>1km: {dr.activity_splits(initials,ac_number,'1km')}: {dr.split_rank(initials,ac_number,'1km')}/{len(all_durs)+1}<br>
+1 mile: {dr.activity_splits(initials,ac_number,'1 mile')}: {dr.split_rank(initials,ac_number,'1 mile')}/{len(all_durs)+1}<br>
+1.5 mile: {dr.activity_splits(initials,ac_number,'1.5 mile')}: {dr.split_rank(initials,ac_number,'1.5 mile')}/{len(all_durs)+1}<br>
+3 mile: {dr.activity_splits(initials,ac_number,'3 mile')}: {dr.split_rank(initials,ac_number,'3 mile')}/{len(all_durs)+1}<br>
+5km: {dr.activity_splits(initials,ac_number,'5km')}: {dr.split_rank(initials,ac_number,'5km')}/{len(all_durs)+1}<br>
+10km: {dr.activity_splits(initials,ac_number,'10km')}: {dr.split_rank(initials,ac_number,'10km')}/{len(all_durs)+1}<br>
+20km: {dr.activity_splits(initials,ac_number,'20km')}: {dr.split_rank(initials,ac_number,'20km')}/{len(all_durs)+1}<br>
+Half marathon: {dr.activity_splits(initials,ac_number,'Half')}: {dr.split_rank(initials,ac_number,'Half')}/{len(all_durs)+1}<br>
+Full: {dr.activity_splits(initials,ac_number,'Full')}: {dr.split_rank(initials,ac_number,'Full')}/{len(all_durs)+1}</p></body>
+"""
+        statement = opening + part
+    else:
+        statement = opening
+        
+    return(statement)
+
+#print(html_assessment('A85I1222'))

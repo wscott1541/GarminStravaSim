@@ -50,13 +50,17 @@ initials = users_df['Initials'].tolist()[0]
 dates,distances,durations,types = dr.data_read(initials)
 
 date = dates[-1]
-"""
-abbr_data = pd.read_csv(r'temp-abbr.csv')
-abbr_df = pd.DataFrame(abbr_data,columns=['Abbr'])
-abbrs = abbr_df['Abbr'].tolist()
-"""
 
-ac_abbr = 'A85I1222'#abbrs[0]
+try:
+    abbr_data = pd.read_csv(r'temp-abbr.csv')
+    abbr_df = pd.DataFrame(abbr_data,columns=['abbr','type'])
+    abbrs = abbr_df['abbr'].tolist()
+    ac_abbr = abbrs[0]
+    ac_types = abbr_df['type'].tolist()
+    ac_type = ac_types[0]
+except:
+    ac_abbr = 'A8CK1828'
+    ac_type = 'Running'
 
 subject = "Activity {}".format(date)
 
@@ -69,7 +73,9 @@ import mapper
 
 import analyse
 
-body = """<body>Your activity:</body>"""
+import primary_user_functions as puf
+
+body = puf.html_assessment(ac_abbr)
 
 def attach_chart_as_html(body):
     plt.savefig('temp_image.jpg')
@@ -97,12 +103,18 @@ def attach_chart_as_html(body):
 
 plt.show()
 ac_route = analyse.route_data(ac_abbr)
-mapper.pyplot_map(ac_abbr)
+mapper.pyplot_heatmap(ac_route)
+body = attach_chart_as_html(body)
+mapper.pyplot_colourmap(ac_route)
+body = attach_chart_as_html(body)
+mapper.pyplot_basic(ac_route)
 body = attach_chart_as_html(body)
 analyse.hr_plot_time(ac_route)
 body = attach_chart_as_html(body)
 analyse.hr_plot_dist(ac_route)      
 body = attach_chart_as_html(body)
+puf.plot_week_and_previous_distances(today_string,ac_type)
+body = attach_chart_as_html(body)  
 
 html = f"""<html>
 {body}

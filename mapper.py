@@ -139,9 +139,9 @@ import matplotlib.pyplot as plt
 
 import analyse
     
-def pyplot_map(activity_number):
+def pyplot_heatmap(activity_df):
     #print(len(activity_number))
-    df = analyse.route_data(activity_number)
+    df = activity_df#analyse.route_data(activity_number)
     
     times_un = df['time'].tolist()
     #times_un = []
@@ -207,17 +207,120 @@ def pyplot_map(activity_number):
         plt.plot(xs,ys,color=fill_color)
     plt.axis('off')
     #one latitude/longtitude = 111km
-    far_right = max(lons)
+    far_right = max(lons) + 0.0005
     #print('fr: ',far_right)
-    top_up = max(lats)
+    top_up = max(lats) + 0.0005
     #print('top: ',top_up)
     fr_plus = far_right - (1/111)
     tu_plus = top_up - (1/111)
     arrow_x = [fr_plus,far_right,far_right]
     arrow_y = [top_up,top_up,tu_plus]
     plt.plot(arrow_x,arrow_y,color='blue',label='1km')
+    
+    #plt.scatter([lons[0]],[lats[0]],color='green')
+    #plt.annotate('S',(lons[0],lats[0]),color='green')
+    #plt.scatter([lons[-1]],[lats[-1]],color='red')
+    #plt.annotate('F',(lons[-1],lats[-1]),color='red')
+    
+    #n = 1
+    #for i in range(0,len(dists)):
+    #    if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
+    #        plt.annotate('{}km'.format(n),(lons[i-1],lats[i-1]))
+    #        n += 1
 
+def pyplot_basic(activity_df):
+    df = activity_df#analyse.route_data(activity_number)
+    
+    lats = df['lat'].tolist()
+    #print(lats[0])
+    lons = df['lon'].tolist()
+    #print(lons[0])
+    dists = df['distance'].tolist()
+    final = round(dists[-1]/1000,2)
+    
+    plt.plot(lons,lats)
+    
+    plt.scatter([lons[0]],[lats[0]],color='green')
+    plt.annotate('S',(lons[0],lats[0]),color='green')
+    plt.scatter([lons[-1]],[lats[-1]],color='red')
+    plt.annotate('F: {}km'.format(final),(lons[-1],lats[-1]),color='red')
+    
+    n = 1
+    for i in range(0,len(dists)):
+        if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
+            plt.scatter([lons[i-1]],[lats[i-1]],color='grey')
+            plt.annotate('{}km'.format(n),(lons[i-1],lats[i-1]),color='grey')
+            n += 1
+            
+    plt.axis('off')
+
+def pyplot_colourmap(activity_df):
+    #print(len(activity_number))
+    df = activity_df#analyse.route_data(activity_number)
+    
+    #print(len(times_un))
+
+    lats = df['lat'].tolist()
+    #print(lats[0])
+    lons = df['lon'].tolist()
+    #print(lons[0])
+    dists = df['distance'].tolist()
+
+    n = 1
+    markers = [0]
+    for i in range(0,len(dists)):
+        
+        if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
+            markers.append(i-1)
+            
+            n += 1
+    
+    #colors = ['red','blue','green'] 
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=len(markers), clip=True)
+    mapper = cm.ScalarMappable(norm=norm, cmap=cm.tab20)
+    
+    for i in range(1,len(markers)):
+        sta = markers[i-1]
+        fin = markers[i]
+        minor_lats = []
+        minor_lons = []
+        for v in range(0,len(lats)):
+            if v >= sta and v <= fin:
+                minor_lats.append(lats[v])
+                minor_lons.append(lons[v])
+        fill_color=matplotlib.colors.to_hex(mapper.to_rgba(i))
+        plt.plot(minor_lons,minor_lats,color=fill_color)
+    plt.axis('off')
+    """
+    plt.axis('off')
+    #one latitude/longtitude = 111km
+    far_right = max(lons) + 0.0005
+    #print('fr: ',far_right)
+    top_up = max(lats) + 0.0005
+    #print('top: ',top_up)
+    fr_plus = far_right - (1/111)
+    tu_plus = top_up - (1/111)
+    arrow_x = [fr_plus,far_right,far_right]
+    arrow_y = [top_up,top_up,tu_plus]
+    plt.plot(arrow_x,arrow_y,color='blue',label='1km')
+    
+    plt.scatter([lons[0]],[lats[0]],color='green')
+    plt.annotate('S',(lons[0],lats[0]),color='green')
+    plt.scatter([lons[-1]],[lats[-1]],color='red')
+    plt.annotate('F',(lons[-1],lats[-1]),color='red')
+    
+    n = 1
+    for i in range(0,len(dists)):
+        if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
+            plt.annotate('{}km'.format(n),(lons[i-1],lats[i-1]))
+            n += 1
+    """
+
+#print(cm.tab10[1])
+#ac_df = analyse.route_data('A85I1222')
 #plt.show()
 #pyplot_map('A85I1222')
+#pyplot_colourmap('A85I1222')
+#pyplot_basic(ac_df)
 #plt.show()
 #plot_osm_map(output='test-speed-map.html', hr=None)

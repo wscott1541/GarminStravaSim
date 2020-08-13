@@ -16,14 +16,9 @@ from today_string import today_string
 
 #work out way of importing
 
-ac_file = 'A85I1222.FIT'
+ac_file = 'A8CK1828.FIT'
 
 ac_abbr = ac_file[:-4]
-
-abbr_df = pd.DataFrame(columns=['Abbr'])
-abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)
-mod_abbr = abbr_df.append(abbr_row,ignore_index=True)
-mod_abbr.to_csv(r'temp-abbr.csv',index = False)
 
 fitfile = FitFile(ac_file)
 
@@ -155,6 +150,11 @@ if pace >= 181 and pace <= 570:
 if pace > 570:
     activity = 'Walking'
     
+abbr_df = pd.DataFrame(columns=['abbr','type'])
+abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)
+mod_abbr = abbr_df.append(abbr_row,ignore_index=True)
+mod_abbr.to_csv(r'temp-abbr.csv',index = False)
+    
 #ac_check = input('Was this a {} activity? (Y/N) '.format(activity))
 
 #if ac_check == 'N':
@@ -173,7 +173,7 @@ if gpx_statii[0] == 'Y':
     analyse.assess('temp-activities.csv',file_name)
         
     os.remove('temp-activities.csv')
-                
+    
 else:
     temp_df.to_csv(r'{}'.format(file_name))
 
