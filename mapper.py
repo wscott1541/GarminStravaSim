@@ -206,6 +206,12 @@ def pyplot_heatmap(activity_df):
         ys = [lats[i],lats[i-1]]
         plt.plot(xs,ys,color=fill_color)
     plt.axis('off')
+    
+    mapper.set_array(virt_speeds)
+    #plt.colorbar(mapper)
+    cb = plt.colorbar(mapper)
+    cb.set_label('Speed (km/h)')
+    
     #one latitude/longtitude = 111km
     far_right = max(lons) + 0.0005
     #print('fr: ',far_right)
@@ -215,7 +221,7 @@ def pyplot_heatmap(activity_df):
     tu_plus = top_up - (1/111)
     arrow_x = [fr_plus,far_right,far_right]
     arrow_y = [top_up,top_up,tu_plus]
-    plt.plot(arrow_x,arrow_y,color='blue',label='1km')
+    plt.plot(arrow_x,arrow_y,color='grey',label='1km')
     
     #plt.scatter([lons[0]],[lats[0]],color='green')
     #plt.annotate('S',(lons[0],lats[0]),color='green')
@@ -320,10 +326,10 @@ def pyplot_colourmap(activity_df):
     """
 
 #print(cm.tab10[1])
-#ac_df = analyse.route_data('A8CK1828')
-#plt.show()
-#pyplot_map('A85I1222')
+ac_df = analyse.route_data('A8CK1828')
+plt.show()
+pyplot_heatmap(ac_df)
 #pyplot_colourmap(ac_df)
 #pyplot_basic(ac_df)
-#plt.show()
+plt.show()
 #plot_osm_map(output='test-speed-map.html', hr=None)

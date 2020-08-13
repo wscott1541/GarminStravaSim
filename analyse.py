@@ -449,31 +449,77 @@ def hr_plot_dist(df):
 #hr_plot_dist(route)
 #plt.show()
 
-def hr_dist_pace_plot(df):
+def hr_dist_speed_plot(df):
     dists = df['distance'].tolist()
     hrs = df['HR'].tolist()
     times_un = df['time'].tolist()
     
-    paces = []
+    speeds = []
     for i in range(0,len(times_un)):
         if i < 30:
-            paces.append(0)
+            speeds.append(0)
         else:
             full_td = times_un[i] - times_un[i-30]
             full_secs = full_td.total_seconds()
-            pace = ((dists[i]-dists[i-30])/full_secs) * 3.6
-            paces.append(pace)
+            speed = ((dists[i]-dists[i-30])/full_secs) * 3.6
+            speeds.append(speed)
             
     fig,ax = plt.subplots()
-    ax.plot(dists,hrs,color='blue')
+    ax.plot(dists,hrs,color='blue',label='HR (bpm)')
     
     ax.set_xlabel('Distance (m)')
     ax.set_ylabel('HR (bpm)')
     
     ax2=ax.twinx()
     
-    ax2.plot(dists,paces,':',color='orange')
-    ax2.set_ylabel('Pace (km/h)')
+    ax2.plot(dists,speeds,':',color='orange',label='Speed (km/h)')
+    ax2.set_ylabel('Speed (km/h)')
+    
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width, box.height])
+    ax.legend(loc='upper center', bbox_to_anchor=(0.3, 1.14))
+    
+    box = ax2.get_position()
+    ax2.set_position([box.x0, box.y0, box.width, box.height])
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.75, 1.14))
+    
+    #ax2.plot(dists,paces)
+    
+def hr_dist_durs_plot(df):
+    dists = df['distance'].tolist()
+    hrs = df['HR'].tolist()
+    times_un = df['time'].tolist()
+    
+    times = []
+    for i in range(0,len(times_un)):
+        if i == 0:
+            times.append(0)
+        else:
+            full_td = times_un[i] - times_un[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+            
+    fig,ax = plt.subplots()
+    ax.plot(dists,hrs,color='blue',label = 'Distance (m)')
+    
+    #ax.set_xlabel('Distance (m)')
+    ax.set_ylabel('HR (bpm)')
+    
+    ax2=ax.twiny()
+    
+    ax2.plot(times,hrs,color='red',label='Durations (s)')
+    #ax2.set_xlabel('Duration (s)')
+    
+    ax.legend();
+    ax2.legend();
+    
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width, box.height])
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.06))
+    
+    box = ax2.get_position()
+    ax2.set_position([box.x0, box.y0, box.width, box.height])
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2))
     
     #ax2.plot(dists,paces)
     
@@ -538,7 +584,7 @@ def hr_zones_pie(df):
     #zones = [len(zone_one),len(zone_two),len(zone_thr),len(zone_fou),len(zone_fiv)]
     plt.pie(zone_values, labels = zone_labels,autopct='%1.2f%%')
 
-#plt.show()
-#route = route_data('A85I1222') 
-#hr_zones_pie(route)
+plt.show()
+route = route_data('A85I1222') 
+hr_dist_speed_plot(route)
 #plt.show()      
