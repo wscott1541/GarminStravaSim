@@ -176,7 +176,14 @@ def split_rank(initials,activity_number,distance):
 
 #print(split_rank('WS','A85I1222','Distance'))
             
+def latest_activity(initials):
+    df = pull_data(initials)
     
+    ac_numbers = df['Activity number'].tolist()
+
+    latest = ac_numbers[-1]
+    
+    return(latest)    
     
     
     

@@ -53,16 +53,19 @@ date = dates[-1]
 
 try:
     abbr_data = pd.read_csv(r'temp-abbr.csv')
-    abbr_df = pd.DataFrame(abbr_data,columns=['abbr','type'])
+    abbr_df = pd.DataFrame(abbr_data,columns=['abbr'])
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
-    ac_types = abbr_df['type'].tolist()
-    ac_type = ac_types[0]
 except:
-    ac_abbr = 'A8CK1828'
-    ac_type = 'Running'
+    ac_abbr = 'A81A2327'
 
-subject = "Activity {}".format(date)
+ac_type,junk,junk,junk = dr.activity_details(initials,ac_abbr)
+
+import analyse
+
+noun,verb,plural = analyse.words(ac_type)
+
+subject = "{} {}".format(noun.capitalize(),date)
 
 message = MIMEMultipart()
 message["From"] = sender_email
@@ -71,7 +74,6 @@ message["Subject"] = subject
 
 import mapper
 
-import analyse
 
 import primary_user_functions as puf
 
@@ -107,6 +109,8 @@ mapper.pyplot_heatmap(ac_route)
 body = attach_chart_as_html(body)
 analyse.hr_dist_speed_plot(ac_route)
 body = attach_chart_as_html(body)
+analyse.lap_bars(ac_route)
+body = attach_chart_as_html(body)
 mapper.pyplot_colourmap(ac_route)
 body = attach_chart_as_html(body)
 mapper.pyplot_basic(ac_route)
@@ -120,7 +124,7 @@ body = attach_chart_as_html(body)
 analyse.hr_zones_pie(ac_route)
 body = attach_chart_as_html(body)
 puf.plot_week_and_previous_distances(today_string,ac_type)
-body = attach_chart_as_html(body)  
+body = attach_chart_as_html(body)
 
 html = f"""<html>
 {body}
@@ -142,6 +146,8 @@ with smtplib.SMTP(smtp_server, port) as server:
         
 print('Sent to {}'.format(receiver_email))
 
-   
-
+try:
+    os.remove('temp-abbr.csv')
+except:
+    print('No temp csv')
 

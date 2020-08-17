@@ -498,12 +498,31 @@ def hr_dist_durs_plot(df):
             full_td = times_un[i] - times_un[0]
             full_secs = full_td.total_seconds()
             times.append(full_secs)
-            
+    
+    max_hr = 220 - 26
+    zone_thr = 0.4 * max_hr
+    zone_fou = 0.6 * max_hr
+    zone_fiv = 0.8 * max_hr
+    
+    min_hr = min(hrs)
+    max_hr = max(hrs)
+    xs = [0,dists[-1]]
+    
     fig,ax = plt.subplots()
+    
+    if min_hr < zone_thr:
+        ax.plot(xs,[zone_thr,zone_thr],':',color='orange')
+    if max_hr > zone_fou:
+        ax.plot(xs,[zone_fou,zone_fou],':',color='orange')
+    if max_hr > zone_fiv:
+        ax.plot(xs,[zone_fiv,zone_fiv],':',color='orange')    
+        
     ax.plot(dists,hrs,color='blue',label = 'Distance (m)')
     
     #ax.set_xlabel('Distance (m)')
     ax.set_ylabel('HR (bpm)')
+    
+    plt.xlim([0,dists[-1]])
     
     ax2=ax.twiny()
     
@@ -520,6 +539,10 @@ def hr_dist_durs_plot(df):
     box = ax2.get_position()
     ax2.set_position([box.x0, box.y0, box.width, box.height])
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, 1.2))
+    
+    plt.xlim([0,times[-1]])
+    
+    plt.ylim([min_hr-5,max_hr+5])
     
     #ax2.plot(dists,paces)
     
@@ -584,7 +607,92 @@ def hr_zones_pie(df):
     #zones = [len(zone_one),len(zone_two),len(zone_thr),len(zone_fou),len(zone_fiv)]
     plt.pie(zone_values, labels = zone_labels,autopct='%1.2f%%')
 
-plt.show()
-route = route_data('A85I1222') 
-hr_dist_speed_plot(route)
-#plt.show()      
+#plt.show()
+#route = route_data('A85I1222') 
+#hr_dist_speed_plot(route)
+#plt.show()
+
+def lap_bars(df):
+    
+    dists = df['distance'].tolist()
+    times_un = df['time'].tolist()
+    #times = []
+    
+    n = 1
+    markers = [0]
+    
+    for i in range(0,len(dists)):
+        #time = times_un[i].total_seconds()
+        #times.append(time)
+        
+        if dists[i-1] < (n * 1000) and dists[i] > (n * 1000):
+            markers.append(i-1)
+            
+            n += 1
+    
+    markers.append(len(times_un)-1)
+    
+    order = []
+    r_lap_times = []
+    r_labels = []
+    
+    for i in range(1,len(markers)):
+        sta = markers[i-1]
+        fin = markers[i]
+        lap_time_s = (times_un[fin]-times_un[sta]).total_seconds()
+        lap_time_m = lap_time_s/60
+        r_lap_times.append(lap_time_m)
+        order.append(i)
+        if i < len(markers):
+            label = f'{i-1}-{i}km'
+        else:
+            fin = round((dists[-1]/1000),2)
+            label = f'{i-1}-{fin}km'
+        r_labels.append(label)
+    
+    lap_times = []
+    labels = []
+    
+    for i in range(0,len(order)):
+        tot = len(order)-1
+        #order.append(t_order[tot-i])
+        lap_times.append(r_lap_times[tot-i])
+        labels.append(r_labels[tot-i])
+        
+    plt.barh(order,lap_times)
+    
+    plt.xlabel("Time (mins)")
+    plt.yticks(order,labels)
+    
+
+def words(activity_type):
+    
+    if activity_type == 'Running':
+        noun = 'run'
+        verb = 'ran'
+        plural = 'runs'
+    elif activity_type == 'Cycling':
+        noun = 'cycle'
+        verb = 'cycled'
+        plural = 'cycles'
+    elif activity_type == 'Walking' or activity_type == 'Hiking':
+        noun = 'walk'
+        verb = 'walked'
+        plural = 'walks'
+    else:
+        pos = activity_type.find('ing')
+        base = activity_type[:pos]
+        noun = base
+        verb = base + 'ed'
+        plural = base + 's'
+    
+    return(noun,verb,plural)
+        
+#plt.show()    
+#route = route_data('A8FC1636') 
+#lap_bars(route)
+#plt.show()
+#hr_dist_durs_plot(route)
+#plt.show()
+#hr_zones_pie(route)
+#plt.show()

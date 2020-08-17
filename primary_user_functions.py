@@ -832,6 +832,8 @@ def html_assessment(ac_number):
     
     ac_type,date,dist,dur = dr.activity_details(initials,ac_number)
     
+    noun,verb,plural = analyse.words(ac_type)
+    
     all_dists = []
     all_durs = []
     
@@ -847,15 +849,17 @@ def html_assessment(ac_number):
             
             all_dists.append(distances[i])
             all_durs.append(durations[i])
-            
-    avg = round(sum(all_dists)/len(all_dists),2)
+    try:        
+        avg = round(sum(all_dists)/len(all_dists),2)
+    except:
+        avg = 0
     
     full = len(all_durs) + 1
     
     opening = f"""
-<body><p>You ran/walked/cycled {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
-This was run/walk/cycle {full}, and compared to an average of {avg}km.<br>
-This was your {full - dr.split_rank(initials,ac_number,'Distance')} furthest and {full - dr.split_rank(initials,ac_number,'Time')} longest run/walk/cycle.</p></body>
+<body><p>You {verb} {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
+This was {noun} {full}, and compared to an average of {avg}km.<br>
+This was your {full + 1 - dr.split_rank(initials,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(initials,ac_number,'Time')} longest {noun}.</p></body>
 """
     
     if ac_type == 'Running':

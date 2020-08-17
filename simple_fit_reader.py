@@ -16,7 +16,7 @@ from today_string import today_string
 
 #work out way of importing
 
-ac_file = 'A8CK1828.FIT'
+ac_file = 'A8H95825.FIT'
 
 ac_abbr = ac_file[:-4]
 
@@ -149,6 +149,8 @@ if pace >= 181 and pace <= 570:
     activity = 'Running'
 if pace > 570:
     activity = 'Walking'
+    
+#activity = 'Kayaking'
     
 abbr_df = pd.DataFrame(columns=['abbr','type'])
 abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)

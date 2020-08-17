@@ -163,13 +163,13 @@ def pyplot_heatmap(activity_df):
 
     for i in range(0,len(times_un)):
         time = times_un[i] - times_un[0]
-        if i == 0:
+        if i < 5:
             speed = 0
         else:
-            full_td = times_un[i] - times_un[i-1]
+            full_td = times_un[i] - times_un[i-5]
             full_secs = full_td.total_seconds()
             try:
-                speed = (dists[i] - dists[i-1])/(full_secs)
+                speed = (dists[i] - dists[i-5])/(full_secs) * 3.6
             except:
                 speed = 0
         times.append(time)
@@ -326,10 +326,10 @@ def pyplot_colourmap(activity_df):
     """
 
 #print(cm.tab10[1])
-ac_df = analyse.route_data('A8CK1828')
-plt.show()
-pyplot_heatmap(ac_df)
+#ac_df = analyse.route_data('A8FC1636')
+#plt.show()
+#pyplot_heatmap(ac_df)
 #pyplot_colourmap(ac_df)
 #pyplot_basic(ac_df)
-plt.show()
+#plt.show()
 #plot_osm_map(output='test-speed-map.html', hr=None)
