@@ -93,13 +93,13 @@ for i in range(0,len(timestamps)):
         
         lon = lon_breaks[0]
         
-    time = timestamps[i] + timedelta(hours=1)
+    timestamp = timestamps[i] + timedelta(hours=1)
         
-    row = [time,lat,lon,heart_rates[i],distances[i]]
+    row = [timestamp,lat,lon,heart_rates[i],distances[i]]
     a_row = pd.Series(row,index=df.columns)
     df = df.append(a_row,ignore_index=True)
 
-time = timestamps[0]
+#time = timestamps[0]
 
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 
@@ -134,7 +134,7 @@ else:
 #initial archiving
 archive = pd.DataFrame(data)
 archname = os.path.join(fileDir, 'Archive.gitignore/{}{}'.format(today_string,file_name))
-archive.to_csv(r'{}'.format(archname), index 
+archive.to_csv(r'{}'.format(archname), index = False)
 
 date = timestamps[0] + timedelta(hours=1)
 dist = round((distances[-1]/1000),2)
