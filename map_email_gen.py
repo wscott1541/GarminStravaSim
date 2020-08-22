@@ -74,7 +74,6 @@ message["Subject"] = subject
 
 import mapper
 
-
 import primary_user_functions as puf
 
 body = puf.html_assessment(ac_abbr)
@@ -104,27 +103,37 @@ def attach_chart_as_html(body):
     return(new)
 
 plt.show()
-ac_route = analyse.route_data(ac_abbr)
-mapper.pyplot_heatmap(ac_route)
-body = attach_chart_as_html(body)
-analyse.hr_dist_speed_plot(ac_route)
-body = attach_chart_as_html(body)
-analyse.lap_bars(ac_route)
-body = attach_chart_as_html(body)
-mapper.pyplot_colourmap(ac_route)
-body = attach_chart_as_html(body)
-mapper.pyplot_basic(ac_route)
-body = attach_chart_as_html(body)
-#analyse.hr_plot_time(ac_route)
-#body = attach_chart_as_html(body)
-#analyse.hr_plot_dist(ac_route)      
-#body = attach_chart_as_html(body)
-analyse.hr_dist_durs_plot(ac_route)
-body = attach_chart_as_html(body)
-analyse.hr_zones_pie(ac_route)
-body = attach_chart_as_html(body)
-puf.plot_week_and_previous_distances(today_string,ac_type)
-body = attach_chart_as_html(body)
+if ac_type != 'Cardio':
+    ac_route = analyse.route_data(ac_abbr)
+    mapper.pyplot_heatmap(ac_route)
+    body = attach_chart_as_html(body)
+    analyse.hr_dist_speed_plot(ac_route)
+    body = attach_chart_as_html(body)
+    analyse.lap_bars(ac_route)
+    body = attach_chart_as_html(body)
+    mapper.pyplot_colourmap(ac_route)
+    body = attach_chart_as_html(body)
+    mapper.pyplot_basic(ac_route)
+    body = attach_chart_as_html(body)
+    #analyse.hr_plot_time(ac_route)
+    #body = attach_chart_as_html(body)
+    #analyse.hr_plot_dist(ac_route)      
+    #body = attach_chart_as_html(body)
+    analyse.hr_dist_durs_plot(ac_route)
+    body = attach_chart_as_html(body)
+    analyse.hr_zones_pie(ac_route)
+    body = attach_chart_as_html(body)
+    puf.plot_week_and_previous_distances(today_string,ac_type)
+    body = attach_chart_as_html(body)
+else:
+    ac_route = analyse.route_data(ac_abbr)
+    analyse.hr_plot_time(ac_route)
+    body = attach_chart_as_html(body)
+    analyse.hr_zones_pie(ac_route)
+    body = attach_chart_as_html(body)
+    #puf.plot_week_and_previous_durations(today_string,ac_type)
+    #body = attach_chart_as_html(body)
+    
 
 html = f"""<html>
 {body}

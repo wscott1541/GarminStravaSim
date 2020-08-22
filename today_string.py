@@ -38,4 +38,5 @@ day = round(float(datetime.strftime(today_dt,'%d')))
 """
 row_date_strp = datetime.strptime(row_date_string,'%Y-%m-%d %H:%M:%S')
         row_date_object = datetime.timestamp(row_date_strp)
+        
 """

@@ -725,8 +725,6 @@ def activity_week_summary_html(activity_type):
     
     event_dates,distance_sum = distance_sum_curr_week(y_day_string,activity_type)
     total_distance = distance_sum[-1]
-    
-
 
     if activity_type == 'Running':
         verb = 'ran'
@@ -856,10 +854,16 @@ def html_assessment(ac_number):
     
     full = len(all_durs) + 1
     
-    opening = f"""
+    if ac_type != 'Cardio':
+        opening = f"""
 <body><p>You {verb} {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
 This was {noun} {full}, and compared to an average of {avg}km.<br>
 This was your {full + 1 - dr.split_rank(initials,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(initials,ac_number,'Time')} longest {noun}.</p></body>
+"""
+    else:
+        opening = f"""
+<body>
+<p>You worked out for {dur} on {date[:10]} at {date[11:]}</p></body>
 """
     
     if ac_type == 'Running':
@@ -881,3 +885,39 @@ Full: {dr.activity_splits(initials,ac_number,'Full')}: {dr.split_rank(initials,a
     return(statement)
 
 #print(html_assessment('A85I1222'))
+    
+def simple_week_update_html(start_date):
+    
+    earliest_date = datetime.strptime(start_date,'%Y-%m-%d') - timedelta(days=7)
+    
+    e_d_strip = datetime.strftime(earliest_date,'%Y-%m-%d')
+    
+    opening = f"""
+<p><u><b>Activities from {e_d_strip} to {start_date}</b></u></p>"""   
+
+    for i in range(0,len(dates)):
+        
+        date_obj = datetime.strptime(dates[i],'%Y-%m-%d')
+        
+        if date_obj > earliest_date:
+            
+            activity_text = f"""
+<p><u>{types[i]}, {dates[i]}</u>: {distances[i]} in {durations[i]} minutes.</p>
+"""
+            
+            opening = opening + activity_text
+            
+    body = f"""
+<body>
+{opening}
+</body>"""
+
+    return(body)
+    
+#print(simple_week_update_html(today_string))
+            
+
+    
+    
+    
+    

@@ -14,9 +14,10 @@ from fitparse import FitFile
 
 from today_string import today_string
 
-#work out way of importing
+from datetime import timedelta
+import time
 
-ac_file = 'A8H95825.FIT'
+ac_file = 'A8MF5819.FIT'
 
 ac_abbr = ac_file[:-4]
 
@@ -66,6 +67,7 @@ lon_break_checks = []
 
 for i in range(0,len(timestamps)):
     
+    #blank out and add lat/lon if cardio
     try:
         lat = latitudes[i] / (10 ** (7))
     except:
@@ -90,8 +92,10 @@ for i in range(0,len(timestamps)):
         lon_break_checks.append(i)    
         
         lon = lon_breaks[0]
-    
-    row = [timestamps[i],lat,lon,heart_rates[i],distances[i]]
+        
+    time = timestamps[i] + timedelta(hours=1)
+        
+    row = [time,lat,lon,heart_rates[i],distances[i]]
     a_row = pd.Series(row,index=df.columns)
     df = df.append(a_row,ignore_index=True)
 
@@ -130,10 +134,7 @@ else:
 #initial archiving
 archive = pd.DataFrame(data)
 archname = os.path.join(fileDir, 'Archive.gitignore/{}{}'.format(today_string,file_name))
-archive.to_csv(r'{}'.format(archname), index = False)
-
-from datetime import timedelta
-import time
+archive.to_csv(r'{}'.format(archname), index 
 
 date = timestamps[0] + timedelta(hours=1)
 dist = round((distances[-1]/1000),2)
@@ -151,6 +152,7 @@ if pace > 570:
     activity = 'Walking'
     
 #activity = 'Kayaking'
+#activity = 'Cardio'
     
 abbr_df = pd.DataFrame(columns=['abbr','type'])
 abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)

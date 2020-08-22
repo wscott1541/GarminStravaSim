@@ -395,14 +395,18 @@ def hr_plot_time(df):
             full_secs = full_td.total_seconds()
             times.append(full_secs)
         
-    #hrs = df['HR'].tolist()
+    max_hr = 220 - 26
     
     for i in range(1,len(times)):
-        if hrs[i-1] < 120:
-            fill_color = 'green'
-        if hrs[i-1] >= 120 and hrs[i] < 155:
+        if hrs[i-1] < (0.6 * max_hr):
             fill_color = 'blue'
-        if hrs[i-1] >= 155:
+        if hrs[i-1] >= (0.6 * max_hr) and hrs[i] < (0.7 * max_hr):
+            fill_color = 'green'
+        if hrs[i-1] >= (0.7 * max_hr) and hrs[i] < (0.8 * max_hr):
+            fill_color = 'yellow'
+        if hrs[i-1] >= (0.8 * max_hr) and hrs[i] < (0.9 * max_hr):
+            fill_color = 'orange'
+        if hrs[i-1] >= (0.9 * max_hr):
             fill_color = 'red'
         
         xs = [times[i-1],times[i]]
@@ -500,9 +504,9 @@ def hr_dist_durs_plot(df):
             times.append(full_secs)
     
     max_hr = 220 - 26
-    zone_thr = 0.4 * max_hr
-    zone_fou = 0.6 * max_hr
-    zone_fiv = 0.8 * max_hr
+    zone_thr = 0.7 * max_hr
+    zone_fou = 0.8 * max_hr
+    zone_fiv = 0.9 * max_hr
     
     min_hr = min(hrs)
     max_hr = max(hrs)
@@ -559,15 +563,15 @@ def hr_zones_pie(df):
     max_hr = 220 - 26
     
     for i in range(0,len(hrs)):
-        if hrs[i] < max_hr * 0.2:
+        if hrs[i] < max_hr * 0.6:
             zone_one.append(hrs[i])
-        if hrs[i] >= max_hr * 0.2 and hrs[i] < max_hr * 0.4:
+        if hrs[i] >= max_hr * 0.6 and hrs[i] < max_hr * 0.7:
             zone_two.append(hrs[i])
-        if hrs[i] >= max_hr * 0.4 and hrs[i] < max_hr * 0.6:
+        if hrs[i] >= max_hr * 0.7 and hrs[i] < max_hr * 0.8:
             zone_thr.append(hrs[i])
-        if hrs[i] >= max_hr * 0.6 and hrs[i] < max_hr * 0.8:
+        if hrs[i] >= max_hr * 0.8 and hrs[i] < max_hr * 0.9:
             zone_fou.append(hrs[i])
-        if hrs[i] >= max_hr * 0.8:
+        if hrs[i] >= max_hr * 0.9:
             zone_fiv.append(hrs[i])
     
     zone_labels = []
@@ -679,6 +683,10 @@ def words(activity_type):
         noun = 'walk'
         verb = 'walked'
         plural = 'walks'
+    elif activity_type == 'Cardio':
+        noun = 'Cardio'
+        verb = 'worked out'
+        plural = 'work outs'
     else:
         pos = activity_type.find('ing')
         base = activity_type[:pos]
