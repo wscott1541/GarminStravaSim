@@ -8,6 +8,8 @@ Created on Sun Jun 21 17:44:06 2020
 
 import pandas as pd
 
+import update
+
 email_data = pd.read_csv (r'email_dates.csv')
 
 dates_df = pd.DataFrame(email_data, columns= ['Email sent'])
