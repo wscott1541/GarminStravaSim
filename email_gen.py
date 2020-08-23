@@ -55,7 +55,7 @@ message["Subject"] = subject
 #intro = "Maybe one day this will also provide text insights. "
 #message.attach(MIMEText(intro, "plain"))
 
-body = puf.week_summary_html()
+body = puf.week_summary_html(y_day_string)
 #message.attach(MIMEText(intro,'html'))
 
 def attach_chart_as_html(body):

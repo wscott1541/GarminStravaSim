@@ -146,7 +146,7 @@ def time_string(n):
     return(string)
 
 def add_zeros(number):
-    if float(number) >= 10:
+    if float(number) >= 10 or float(number) == 0:
         string = number
     else:
         string = '0{}'.format(number)
@@ -678,9 +678,9 @@ def activity_check():
         for i in range(0,week_events):
             if week_types[i] == 'Running':
                 running_events_sub.append(1)
-            elif types[i] == 'Cycling':
+            elif week_types[i] == 'Cycling':
                 cycling_events_sub.append(1)
-            elif types[i] == 'Walking' or types[i] == 'Hiking':
+            elif week_types[i] == 'Walking' or week_types[i] == 'Hiking':
                 walking_events_sub.append(1)
             else:
                 other_events_sub.append(1)
@@ -692,7 +692,7 @@ def activity_check():
     
     return(week_events,running_events,cycling_events,walking_events,other_events)
     
-week_events,running_events,cycling_events,walking_events,other_events = activity_check()
+#week_events,running_events,cycling_events,walking_events,other_events = activity_check(
 
 def week_best(category):
     full_types,full_dates,full_dists,full_splits = dr.week_times(initials,category)
@@ -771,8 +771,35 @@ def activity_week_summary_html(activity_type):
     
     return(summary)
 
+def simple_week_update_html(start_date):
+    
+    earliest_date = datetime.strptime(start_date,'%Y-%m-%d') - timedelta(days=7)
+    
+    e_d_strip = datetime.strftime(earliest_date,'%Y-%m-%d')
+    
+    opening = f"""
+<p><u><b>Activities from {e_d_strip} to {start_date}</b></u></p>"""   
+
+    for i in range(0,len(dates)):
         
-def week_summary_html():
+        date_obj = datetime.strptime(dates[i],'%Y-%m-%d')
+        
+        if date_obj > earliest_date:
+            
+            activity_text = f"""
+<p><u>{types[i]}, {dates[i]}</u>: {distances[i]}km in {durations[i]} minutes.</p>
+"""
+            
+            opening = opening + activity_text
+            
+    body = f"""
+<body>
+{opening}
+</body>"""
+
+    return(body)
+        
+def week_summary_html(start_date):
     week_events,running_events,cycling_events,walking_events,other_events = activity_check()
     
     if week_events == 0:
@@ -819,12 +846,41 @@ def week_summary_html():
         
         #for n in range(1,len(chunks)):
         #    body =+ chunks[n]
+        
+        if other_events > 0:
+            earliest_date = datetime.strptime(start_date,'%Y-%m-%d') - timedelta(days=7)
+            
+            chunk = """<p><b>Misc. activities</b><br>"""
+            
+            for i in range(0,len(dates)):
+        
+                date_obj = datetime.strptime(dates[i],'%Y-%m-%d')
+        
+                if date_obj > earliest_date:
+                    
+                    if types[i] == 'Cardio':
+                        sub_chunk = f"""
+<u>{types[i]}</u>, {dates[i]}: {floatminute_to_stringtime(durations[i])}.<br>
+"""
+                        chunk = chunk + sub_chunk
+                    else:
+                        sub_chunk = f"""
+<u>{types[i]}</u>, {dates[i]}: {distances[i]}km in {floatminute_to_stringtime(durations[i])}.<br>
+"""
+                        chunk = chunk + sub_chunk
+                        
+            chunk = f"""
+<body>{chunk[:-5]}</p></body>"""
+
+            body = body + chunk
     
     html = f"""
 {body}
 """
     
     return(html)
+    
+print(week_summary_html(y_day_string))
     
 def html_assessment(ac_number):    
     
@@ -863,7 +919,7 @@ This was your {full + 1 - dr.split_rank(initials,ac_number,'Distance')} furthest
     else:
         opening = f"""
 <body>
-<p>You worked out for {dur} on {date[:10]} at {date[11:]}</p></body>
+<p>You worked out for {dur} on {date[:10]} at {date[11:]}.</p></body>
 """
     
     if ac_type == 'Running':
@@ -886,33 +942,7 @@ Full: {dr.activity_splits(initials,ac_number,'Full')}: {dr.split_rank(initials,a
 
 #print(html_assessment('A85I1222'))
     
-def simple_week_update_html(start_date):
-    
-    earliest_date = datetime.strptime(start_date,'%Y-%m-%d') - timedelta(days=7)
-    
-    e_d_strip = datetime.strftime(earliest_date,'%Y-%m-%d')
-    
-    opening = f"""
-<p><u><b>Activities from {e_d_strip} to {start_date}</b></u></p>"""   
 
-    for i in range(0,len(dates)):
-        
-        date_obj = datetime.strptime(dates[i],'%Y-%m-%d')
-        
-        if date_obj > earliest_date:
-            
-            activity_text = f"""
-<p><u>{types[i]}, {dates[i]}</u>: {distances[i]} in {durations[i]} minutes.</p>
-"""
-            
-            opening = opening + activity_text
-            
-    body = f"""
-<body>
-{opening}
-</body>"""
-
-    return(body)
     
 #print(simple_week_update_html(today_string))
             
