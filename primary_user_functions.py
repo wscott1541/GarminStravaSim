@@ -614,9 +614,9 @@ def week_duration_sum_list(activities_df,date_string,activity):
     #print(end_date)
     #print(sta_date)
     
-    temp_date = sta_date - timedelta(days=1)
+    #temp_date = sta_date - timedelta(days=1)
     
-    days = [temp_date]
+    days = [sta_date]
     vals = [0]
     #days = []
     #vals = []
@@ -645,6 +645,9 @@ def week_duration_sum_list(activities_df,date_string,activity):
     #print(vals)
     
     return(days, vals)
+    
+#ac_df = dr.pull_data('WS')
+#week_duration_sum_list(ac_df,today_string,'Cardio')
     
 def plot_week_previous_durations(activities_df,date_string,activity):
     
@@ -684,9 +687,9 @@ def plot_week_previous_durations(activities_df,date_string,activity):
     ax.legend(); 
     plt.title(title)    
     
-#ac_df = dr.pull_data('WS')
+ac_df = dr.pull_data('WS')
 #days,vals = week_duration_sum_list(ac_df,today_string,'Cardio')
-#plot_week_previous_durations(ac_df,today_string,'All')
+plot_week_previous_durations(ac_df,today_string,'Cardio')
 
     
 """
