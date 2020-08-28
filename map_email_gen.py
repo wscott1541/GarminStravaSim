@@ -123,7 +123,12 @@ if ac_type != 'Cardio':
     body = attach_chart_as_html(body)
     analyse.hr_zones_pie(ac_route)
     body = attach_chart_as_html(body)
+    analyse.hr_distribution(ac_route)
+    body = attach_chart_as_html(body)
     puf.plot_week_and_previous_distances(today_string,ac_type)
+    body = attach_chart_as_html(body)
+    ac_df = dr.pull_data(initials)
+    puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
 else:
     ac_route = analyse.route_data(ac_abbr)
@@ -131,8 +136,12 @@ else:
     body = attach_chart_as_html(body)
     analyse.hr_zones_pie(ac_route)
     body = attach_chart_as_html(body)
-    #puf.plot_week_and_previous_durations(today_string,ac_type)
-    #body = attach_chart_as_html(body)
+    analyse.hr_distribution(ac_route)
+    body = attach_chart_as_html(body)
+    body = body + analyse.hr_html(ac_route)
+    ac_df = dr.pull_data(initials)
+    puf.plot_week_previous_durations(ac_df,date,ac_type)
+    body = attach_chart_as_html(body)
     
 
 html = f"""<html>
@@ -160,3 +169,7 @@ try:
 except:
     print('No temp csv')
 
+try:
+    os.remove(f'{ac_abbr}.FIT')
+except:
+    print('No FIT file')

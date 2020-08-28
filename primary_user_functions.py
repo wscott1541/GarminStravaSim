@@ -145,11 +145,12 @@ def time_string(n):
         string = '{}'.format(round(n))
     return(string)
 
-def add_zeros(number):
-    if float(number) >= 10 or float(number) == 0:
-        string = number
+def add_zeros(str_n):
+    if float(str_n) >= 10 or float(str_n) == 0:
+        string = str_n
     else:
-        string = '0{}'.format(number)
+        string = '0{}'.format(str_n)
+    
     return(string)
     
 def floatminute_to_stringtime(time):
@@ -161,12 +162,24 @@ def floatminute_to_stringtime(time):
     seconds = mins_calc[1]
     
     hour_string = time_string(hours)
-    mins_string = add_zeros(time_string(minutes))
-    secs_string = add_zeros(round(seconds * 60))
+    mins_string = time_string(minutes)
+    secs_string = time_string(round(seconds * 60))
     
     string = '{}:{}:{}'.format(hour_string,mins_string,secs_string)
     
+    #if time == 0:
+    #    string = '00:00:00'
+    
     return(string)
+    
+def stringtime_to_floatminute(time_string):
+        hours = float(time_string[:2])
+        minutes = float(time_string[3:5])
+        seconds = float(time_string[6:8])
+    
+        time = hours * 60 + minutes + seconds/60
+    
+        return(time)
 
 """
 def add_times(a,b):
@@ -549,7 +562,152 @@ def plot_week_and_previous_distances(today_string,activity):
     plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
     
     ax.legend(); 
-    plt.title(title)        
+    plt.title(title)
+
+def populate_list(start_date,end_date,days,vals):
+    
+    #if days[-1] < lim:
+    #    days.append((days[-1]) + 1)
+    #    vals.append(vals[-1])
+    
+    lim_str = str(end_date - start_date)
+    pos = lim_str.find(' ')
+    n = lim_str[:pos]
+    lim = round(float(n))
+    
+    count = 0
+    i = 0      
+    
+    while i < lim:
+        a = start_date + timedelta(days=(i+1))
+        b = start_date + timedelta(days=(i+1-count))
+        if days[i] == days[-1] and days[i] != end_date:
+            days.append(b)
+            vals.append(vals[-1])
+        elif days[i] == days[i+1]:
+            count += 1
+            lim += 1
+        elif days[i + 1] != start_date + timedelta(days=(i+1-count)):
+            days.insert(i + 1,b)
+            vals.insert(i + 1,vals[i])  
+        i += 1
+    
+    if days[0] != days[1]:    
+        days.insert(0,days[0])
+        vals.insert(0,0)
+
+def week_duration_sum_list(activities_df,date_string,activity):
+    dur_strings = activities_df['Time'].tolist()
+    dates = activities_df['Date'].tolist()
+    types = activities_df['Activity Type'].tolist()
+    
+    durs = []
+    
+    for i in range(0,len(dur_strings)):
+        dur = stringtime_to_floatminute(dur_strings[i])
+        
+        durs.append(dur)
+    
+    end_date = datetime.strptime(date_string,'%Y-%m-%d')
+    #end_date = datetime.timestamp(date_strf)
+    sta_date = end_date - timedelta(days=6)
+    #print(end_date)
+    #print(sta_date)
+    
+    temp_date = sta_date - timedelta(days=1)
+    
+    days = [temp_date]
+    vals = [0]
+    #days = []
+    #vals = []
+    
+    for i in range(0,len(dates)):
+        date_obj = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
+        date_str = datetime.strftime(date_obj,'%Y-%m-%d')
+        date_obj = datetime.strptime(date_str,'%Y-%m-%d')
+        
+        if date_obj >= sta_date and date_obj <= end_date and activity in types[i]:
+            if len(vals) > 0:
+                dur_sum = vals[-1] + durs[i]
+            else:
+                dur_sum = durs[i]
+            
+            vals.append(dur_sum)
+            
+            day_string = datetime.strftime(date_obj,'%Y-%m-%d')
+            day_strf = datetime.strptime(day_string,'%Y-%m-%d')
+            
+            days.append(day_strf)
+    
+    populate_list(sta_date,end_date,days,vals)
+    
+    #print(days)
+    #print(vals)
+    
+    return(days, vals)
+    
+def plot_week_previous_durations(activities_df,date_string,activity):
+    
+    title = '{} activities in the two previous weeks'.format(activity)
+    
+    if activity == 'All':
+        activity = 'i'
+    
+    curr_week = datetime.strptime(date_string,'%Y-%m-%d')
+    prev_week = curr_week - timedelta(days=7)
+    #print(prev_week)
+    prev_string = datetime.strftime(prev_week,'%Y-%m-%d')
+    
+    curr_days,curr_vals = week_duration_sum_list(activities_df,date_string,activity)
+    curr_annot = 'This week: {}'.format(floatminute_to_stringtime(curr_vals[-1]))
+    prev_days,prev_vals = week_duration_sum_list(activities_df,prev_string,activity)
+    prev_annot = 'Last week: {}'.format(floatminute_to_stringtime(prev_vals[-1]))
+    
+    fig,ax = plt.subplots()
+    plt.plot(prev_vals,color='blue',label=prev_annot)
+    
+    plt.plot(curr_vals,color='red',label=curr_annot)
+    
+    x_labels = []
+    i = 0
+    while i < 7:
+        day = datetime.strptime(date_string,'%Y-%m-%d') - timedelta(days=(7+i))
+        tag = datetime.strftime(day,'%a')
+        x_labels.append(tag)
+        i += 1
+    
+    x_labels.reverse()
+    #0.5,1.5,2.5,3.5,4.5,5.5,6.5
+    ax.set_xticks([1,2,3,4,5,6,7])
+    ax.set_xticklabels(x_labels)
+    
+    ax.legend(); 
+    plt.title(title)    
+    
+#ac_df = dr.pull_data('WS')
+#days,vals = week_duration_sum_list(ac_df,today_string,'Cardio')
+#plot_week_previous_durations(ac_df,today_string,'All')
+
+    
+"""
+def plot_week_and_previous_distances(activities_df,date_string,activity):
+   
+    title = '{} activities in the two previous weeks'.format(activity)
+    
+    tw_dates,tw_dist = distance_sum_curr_week(today_string,activity)
+    this_annot = 'This week: {}km'.format(tw_dist[-1])
+   
+    pw_dates,pw_dist = distance_sum_prev_week(today_string,activity)
+    prev_annot = 'Last week: {}km'.format(pw_dist[-1])
+    
+    fig,ax = plt.subplots()
+    plt.plot(pw_dates, pw_dist,color='blue',label=prev_annot)
+    
+    plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
+    
+    ax.legend(); 
+    plt.title(title)
+"""        
 
 def furthest(category):
     running_dates = []
@@ -880,7 +1038,7 @@ def week_summary_html(start_date):
     
     return(html)
     
-print(week_summary_html(y_day_string))
+#print(week_summary_html(y_day_string))
     
 def html_assessment(ac_number):    
     

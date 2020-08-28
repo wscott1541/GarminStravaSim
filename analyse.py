@@ -397,6 +397,9 @@ def hr_plot_time(df):
         
     max_hr = 220 - 26
     
+    avg_hr = sum(hrs)/len(hrs)
+    plt.plot([0,times[-1]],[avg_hr,avg_hr],':',color='black')
+    
     for i in range(1,len(times)):
         if hrs[i-1] < (0.6 * max_hr):
             fill_color = 'blue'
@@ -412,12 +415,20 @@ def hr_plot_time(df):
         xs = [times[i-1],times[i]]
         ys = [hrs[i-1],hrs[i]]
         
-        plt.plot(xs,ys,color=fill_color)
+        try:
+            plt.plot(xs,ys,color=fill_color)
+        except:
+            print('Breaks at {}'.format(i))
     
     plt.xlabel('Duration (s)')
     plt.ylabel('HR (bpm)')
     
     #plt.plot(times,hrs)
+
+#plt.show()
+#route = route_data('A8PF0657')
+#hr_plot_time(route)
+
 
 def hr_plot_dist(df):
     try:
@@ -612,7 +623,7 @@ def hr_zones_pie(df):
     plt.pie(zone_values, labels = zone_labels,autopct='%1.2f%%')
 
 #plt.show()
-#route = route_data('A85I1222') 
+#route = route_data('A8PF0657')
 #hr_dist_speed_plot(route)
 #plt.show()
 
@@ -695,12 +706,217 @@ def words(activity_type):
         plural = base + 's'
     
     return(noun,verb,plural)
+
+def hr_distribution(df):
+    hrs = df['HR'].tolist()
+    
+    hr_max = max(hrs)
+
+    hr_min = min(hrs)
+
+    xs = []
+    ys = []
+    
+    for i in range(hr_min,hr_max+1):
+        n = 0
+        hr = i
+        for v in range(0,len(hrs)):
+            if hrs[v] == hr:
+                n += 1
+                
+        xs.append(hr)
+        ys.append(n)
+    
+    max_hr = 220 - 26
+    
+    mean = sum(hrs)/len(hrs)
+    #mode_vals = [0]
+    
+    #for i in range(0,len(ys)):
+    #    if ys[i] > mode_vals[-1]:
+    #        mode_vals.append(i)
+    #        
+    #mode = xs[(mode_vals[-1])] - 1 
+    
+    mode_vals = []
+    
+    for i in range(0,len(ys)):
+        if ys[i] == max(ys):
+            mode_vals.append(i)
+            
+    mode = xs[mode_vals[0]]
+    
+    median_val = int(sum(ys)/2)
+    median_sum = [ys[0]]
+    median_vals = []
+    
+    for i in range(1,len(ys)):
+        if sum(median_sum) < median_val:
+            median_sum.append(ys[i])
+            median_vals.append(i)
+    
+    median = xs[median_vals[-1]]
+    
+    fig,ax = plt.subplots()
+    
+    plt.plot([mean,mean],[0,max(ys)],'--',color='black',label='Mean')
+    plt.plot([mode,mode],[0,max(ys)],'-.',color='black',label='Mode')
+    plt.plot([median,median],[0,max(ys)],':',color='black',label='Median')
+    
+    ax.legend();
+    
+    for i in range(1,len(xs)):
+        x_vals = [xs[i-1],xs[i]]
+        y_vals = [ys[i-1],ys[i]]
         
+        if xs[i] < (0.6 * max_hr):
+            fill_color = 'blue'
+        if xs[i] >= (0.6 * max_hr) and xs[i] < (0.7 * max_hr):
+            fill_color = 'green'
+        if xs[i] >= (0.7 * max_hr) and xs[i] < (0.8 * max_hr):
+            fill_color = 'yellow'
+        if xs[i] >= (0.8 * max_hr) and xs[i] < (0.9 * max_hr):
+            fill_color = 'orange'
+        if xs[i] >= (0.9 * max_hr):
+            fill_color = 'red'
+        
+        if (ys[i-1] + ys[i]) != 0:    
+            plt.plot(x_vals,y_vals,color=fill_color)
+    
+    #plt.plot(xs,ys)
+        
+    plt.xlabel("HR (bpm)")
+    plt.ylabel('n')
+    
+    plt.ylim([0,max(ys)+5])
+    plt.xlim([min(xs),max(xs)])
+
+def hr_time_differential(df):
+    hrs = df['HR'].tolist()
+    times_un = df['time'].tolist()
+    
+    avg_hr = sum(hrs)/len(hrs)
+    
+    hr_diffs = []
+    
+    for i in range(0,len(hrs)):
+        diff = hrs[i] - avg_hr
+        hr_diffs.append(diff)
+    
+    times = []
+    for i in range(0,len(times_un)):
+        if i == 0:
+            times.append(0)
+        else:
+            full_td = times_un[i] - times_un[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+            
+    plt.plot(times,hr_diffs)
+
+def hr_delta(df):
+    hrs = df['HR'].tolist()
+    times_un = df['time'].tolist()
+    
+    times = []
+    for i in range(0,len(times_un)):
+        if i == 0:
+            times.append(0)
+        else:
+            full_td = times_un[i] - times_un[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+            
+    deltas = [0]
+    
+    for i in range(1,len(hrs)):
+        if i < 60:
+            delta = hrs[i] - hrs[i-1]
+        else:
+            delta = (sum(hrs[i-30:i]) - sum(hrs[i-60:i-30]))/30
+        
+        deltas.append(delta)
+        
+    plt.plot(times,deltas)
+    
+def hr_html(df):
+    hrs = df['HR'].tolist()
+    
+    mean = sum(hrs)/len(hrs)
+    max_hr = max(hrs)
+    min_hr = min(hrs)
+    
+    totals = []
+    
+    for i in range(0,len(hrs)):
+        beats = hrs[i]/60
+        totals.append(beats)
+    
+    total = sum(totals)
+    
+    xs = []
+    ys = []
+    
+    for i in range(min_hr,max_hr+1):
+        n = 0
+        hr = i
+        for v in range(0,len(hrs)):
+            if hrs[v] == hr:
+                n += 1
+                
+        xs.append(hr)
+        ys.append(n)
+    
+    #mode_vals = [0]
+    
+    #for i in range(0,len(ys)):
+    #    if ys[i] > mode_vals[-1]:
+    #        mode_vals.append(i)
+            
+    #mode = xs[(mode_vals[-1])] - 1 
+    
+    mode_vals = []
+    
+    for i in range(0,len(ys)):
+        if ys[i] == max(ys):
+            mode_vals.append(i)
+            
+    mode = xs[mode_vals[0]]
+    
+    median_val = int(sum(ys)/2)
+    median_sum = [ys[0]]
+    median_vals = []
+    
+    for i in range(1,len(ys)):
+        if sum(median_sum) < median_val:
+            median_sum.append(ys[i])
+            median_vals.append(i)
+    
+    median = xs[median_vals[-1]]
+    
+    html = f"""
+<body>
+<p>Average HR: {round(mean)} bpm<br>
+Min. HR: {min_hr} bpm<br>
+Max. HR: {max_hr} bpm<br>
+Modal HR: {mode} bpm<br>
+Median HR: {median} bpm<br>
+Total number of heart beats: {round(total)} beats</p></body>"""    
+
+    return(html)
+               
 #plt.show()    
-#route = route_data('A8FC1636') 
+#route = route_data('A8RG3448')
+#print('Route pulled') 
+#print(hr_html(route))
+#plt.show()
 #lap_bars(route)
 #plt.show()
 #hr_dist_durs_plot(route)
 #plt.show()
 #hr_zones_pie(route)
 #plt.show()
+#plt.show()
+#hr_distribution(route)
+#plt.show()
+#hr_plot_time(route)

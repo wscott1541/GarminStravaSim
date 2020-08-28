@@ -17,7 +17,7 @@ from today_string import today_string
 from datetime import timedelta
 import time
 
-ac_file = 'A8MF5819.FIT'
+ac_file = 'A8RG3448.FIT'
 
 ac_abbr = ac_file[:-4]
 
@@ -68,6 +68,7 @@ lon_break_checks = []
 for i in range(0,len(timestamps)):
     
     #blank out and add lat/lon if cardio
+    """
     try:
         lat = latitudes[i] / (10 ** (7))
     except:
@@ -92,7 +93,11 @@ for i in range(0,len(timestamps)):
         lon_break_checks.append(i)    
         
         lon = lon_breaks[0]
-        
+    """
+    
+    lat = 'NONE'
+    lon = 'NONE'
+    
     timestamp = timestamps[i] + timedelta(hours=1)
         
     row = [timestamp,lat,lon,heart_rates[i],distances[i]]
@@ -152,7 +157,7 @@ if pace > 570:
     activity = 'Walking'
     
 #activity = 'Kayaking'
-#activity = 'Cardio'
+activity = 'Cardio'
     
 abbr_df = pd.DataFrame(columns=['abbr','type'])
 abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)
@@ -183,5 +188,12 @@ else:
 
 import map_email_gen
 
-os.remove(ac_file)
-os.remove('temp-abbr.csv')
+try:
+    os.remove(f'{ac_abbr}.FIT')
+except:
+    print('No FIT file')
+
+try:
+    os.remove('temp-abbr.csv')
+except:
+    print('Complete!')    

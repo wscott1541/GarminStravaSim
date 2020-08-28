@@ -184,6 +184,7 @@ def latest_activity(initials):
     latest = ac_numbers[-1]
     
     return(latest)    
-    
+
+
     
     
