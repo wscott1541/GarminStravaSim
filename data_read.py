@@ -108,11 +108,10 @@ def week_times(initials,distance):
             
     return(types,dates,dists,splits)
 
-def activity_splits(initials,activity_number,distance):
-    df = pull_data(initials)
+def activity_splits(user_df,activity_number,distance):
     
-    ac_numbers = df['Activity number'].tolist()
-    splits = df[distance].tolist()
+    ac_numbers = user_df['Activity number'].tolist()
+    splits = user_df[distance].tolist()
     
     split_list = []
     for i in range(0,len(ac_numbers)):
@@ -123,15 +122,13 @@ def activity_splits(initials,activity_number,distance):
     
     return(split)
     
-        
-def activity_details(initials,activity_number):        
-    df = pull_data(initials)
+def activity_details(user_df,activity_number,field):        
     
-    ac_numbers = df['Activity number'].tolist()
-    types_list = df['Activity Type'].tolist()
-    dates = df['Date'].tolist()
-    distances = df['Distance'].tolist()
-    durs = df['Time'].tolist()
+    ac_numbers = user_df['Activity number'].tolist()
+    types_list = user_df['Activity Type'].tolist()
+    dates = user_df['Date'].tolist()
+    distances = user_df['Distance'].tolist()
+    durs = user_df['Time'].tolist()
     
     ac_type = []
     date = []
@@ -145,20 +142,31 @@ def activity_details(initials,activity_number):
             dist.append(distances[i])
             dur.append(durs[i])
     
-    return(ac_type[0],date[0],dist[0],dur[0])
+    if 'Type' in field:
+        value = ac_type[0]
+    if 'Date' in field:
+        value = date[0]
+    if 'Distance' in field:
+        value = dist[0]
+    if 'Duration' in field:
+        value = dur[0]
     
-def split_rank(initials,activity_number,distance):
-    df = pull_data(initials)
+    return(value)
+
+#user_df = pull_data('WS')
+#print(activity_details(user_df,'A9BH4030','Type'))
+    
+def split_rank(user_df,activity_number,distance):
     #df = df.sort_values(by=distance)
     
     #df.to_csv(r'check-sorting.csv')
     
-    ac_numbers = df['Activity number'].tolist()
-    ac_types = df['Activity Type'].tolist()
-    splits = df[distance].tolist()
+    ac_numbers = user_df['Activity number'].tolist()
+    ac_types = user_df['Activity Type'].tolist()
+    splits = user_df[distance].tolist()
     
-    ac_type, junk, junk, junk = activity_details(initials,activity_number)
-    split = activity_splits(initials,activity_number,distance)
+    ac_type = activity_details(user_df,activity_number,'Type')
+    split = activity_splits(user_df,activity_number,distance)
     
     n = 1
     stop = 0
@@ -173,9 +181,21 @@ def split_rank(initials,activity_number,distance):
         n = 'NONE'
     
     return(n)
-
-#print(split_rank('WS','A85I1222','Distance'))
             
+def split_count(user_df,split):
+    
+    #ac_numbers = user_df['Activity number'].tolist()
+    splits = user_df[split].tolist()
+    
+    #ac_type = activity_details(user_df,activity_number,'Type')
+    
+    n = 0
+    for i in range(0,len(splits)):
+        if splits[i] != 'NONE':
+            n += 1           
+                
+    return(n)
+    
 def latest_activity(initials):
     df = pull_data(initials)
     

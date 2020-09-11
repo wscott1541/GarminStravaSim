@@ -904,6 +904,7 @@ Median HR: {median} bpm<br>
 Total number of heart beats: {round(total)} beats</p></body>"""    
 
     return(html)
+       
                
 #plt.show()    
 #route = route_data('A8RG3448')

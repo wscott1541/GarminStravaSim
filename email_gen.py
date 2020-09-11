@@ -36,9 +36,13 @@ password = pw_list[0]
 
 users_data = pd.read_csv (r'users.csv')
 
-users_df = pd.DataFrame(users_data, columns= ['Username'])
+import data_read as dr
+
+users_df = pd.DataFrame(users_data, columns= ['Username','Initials'])
 users_list = users_df['Username'].tolist()
 receiver_email = users_list[0]
+initials_list = users_df['Initials'].tolist()
+initials = initials_list[0]
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -78,14 +82,14 @@ def attach_chart_as_html(body):
     
     return(new)
     
-
 """List functions to send"""
 
 puf.plot_week_and_previous_distances(y_day_string,'Running')
 body = attach_chart_as_html(body)  
-puf.plot_week_and_previous_distances(y_day_string,'Cycling')
-body = attach_chart_as_html(body) 
-puf.plot_week_and_previous_distances(y_day_string,'All')
+#puf.plot_week_and_previous_distances(y_day_string,'Cycling')
+#body = attach_chart_as_html(body)
+ac_df = dr.pull_data(initials) 
+puf.plot_week_previous_durations(ac_df,y_day_string,'All')
 body = attach_chart_as_html(body) 
 puf.plot_month_distance(month,year,'Running')
 body = attach_chart_as_html(body)
@@ -93,8 +97,8 @@ puf.plot_month_and_previous_distances(month,year,'Running')
 body = attach_chart_as_html(body)
 puf.plot_month_and_previous_durations(month,year,'Running')
 body = attach_chart_as_html(body)
-puf.plot_month_and_previous_distances(month,year,'Cycling')
-body = attach_chart_as_html(body)
+#puf.plot_month_and_previous_distances(month,year,'Cycling')
+#body = attach_chart_as_html(body)
 puf.plot_month_and_previous_distances(month,year,'Walking')
 body = attach_chart_as_html(body)
 puf.plot_distances_this_year(month,year,'Running')
@@ -106,9 +110,7 @@ body = attach_chart_as_html(body)
 puf.plot_durations_all_previous(month,year,'Running')
 body = attach_chart_as_html(body)
 puf.plot_distances_all_previous(month,year,'Running')
-body = attach_chart_as_html(body)
-
-     
+body = attach_chart_as_html(body)     
 
 muf.plot_month_distances(month,year,'Running')
 body = attach_chart_as_html(body)

@@ -57,9 +57,11 @@ try:
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
 except:
-    ac_abbr = 'A81A2327'
+    ac_abbr = 'A9BH4030'
 
-ac_type,junk,junk,junk = dr.activity_details(initials,ac_abbr)
+user_df = dr.pull_data(initials)
+
+ac_type = dr.activity_details(user_df,ac_abbr,'Type')
 
 import analyse
 
@@ -76,7 +78,7 @@ import mapper
 
 import primary_user_functions as puf
 
-body = puf.html_assessment(ac_abbr)
+body = puf.html_assessment(user_df,ac_abbr)
 
 def attach_chart_as_html(body):
     plt.savefig('temp_image.jpg')

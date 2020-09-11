@@ -687,10 +687,9 @@ def plot_week_previous_durations(activities_df,date_string,activity):
     ax.legend(); 
     plt.title(title)    
     
-ac_df = dr.pull_data('WS')
+#ac_df = dr.pull_data('WS')
 #days,vals = week_duration_sum_list(ac_df,today_string,'Cardio')
-plot_week_previous_durations(ac_df,today_string,'Cardio')
-
+#plot_week_previous_durations(ac_df,today_string,'Cardio')
     
 """
 def plot_week_and_previous_distances(activities_df,date_string,activity):
@@ -1043,9 +1042,12 @@ def week_summary_html(start_date):
     
 #print(week_summary_html(y_day_string))
     
-def html_assessment(ac_number):    
+def html_assessment(user_df,ac_number):    
     
-    ac_type,date,dist,dur = dr.activity_details(initials,ac_number)
+    ac_type = dr.activity_details(user_df,ac_number,'Type')
+    date = dr.activity_details(user_df,ac_number,'Date')
+    dist = dr.activity_details(user_df,ac_number,'Distance')
+    dur = dr.activity_details(user_df,ac_number,'Duration')
     
     noun,verb,plural = analyse.words(ac_type)
     
@@ -1075,7 +1077,7 @@ def html_assessment(ac_number):
         opening = f"""
 <body><p>You {verb} {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
 This was {noun} {full}, and compared to an average of {avg}km.<br>
-This was your {full + 1 - dr.split_rank(initials,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(initials,ac_number,'Time')} longest {noun}.</p></body>
+This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(user_df,ac_number,'Time')} longest {noun}.</p></body>
 """
     else:
         opening = f"""
@@ -1085,15 +1087,15 @@ This was your {full + 1 - dr.split_rank(initials,ac_number,'Distance')} furthest
     
     if ac_type == 'Running':
         part = f"""<body>              
-<p>1km: {dr.activity_splits(initials,ac_number,'1km')}: {dr.split_rank(initials,ac_number,'1km')}/{len(all_durs)+1}<br>
-1 mile: {dr.activity_splits(initials,ac_number,'1 mile')}: {dr.split_rank(initials,ac_number,'1 mile')}/{len(all_durs)+1}<br>
-1.5 mile: {dr.activity_splits(initials,ac_number,'1.5 mile')}: {dr.split_rank(initials,ac_number,'1.5 mile')}/{len(all_durs)+1}<br>
-3 mile: {dr.activity_splits(initials,ac_number,'3 mile')}: {dr.split_rank(initials,ac_number,'3 mile')}/{len(all_durs)+1}<br>
-5km: {dr.activity_splits(initials,ac_number,'5km')}: {dr.split_rank(initials,ac_number,'5km')}/{len(all_durs)+1}<br>
-10km: {dr.activity_splits(initials,ac_number,'10km')}: {dr.split_rank(initials,ac_number,'10km')}/{len(all_durs)+1}<br>
-20km: {dr.activity_splits(initials,ac_number,'20km')}: {dr.split_rank(initials,ac_number,'20km')}/{len(all_durs)+1}<br>
-Half marathon: {dr.activity_splits(initials,ac_number,'Half')}: {dr.split_rank(initials,ac_number,'Half')}/{len(all_durs)+1}<br>
-Full: {dr.activity_splits(initials,ac_number,'Full')}: {dr.split_rank(initials,ac_number,'Full')}/{len(all_durs)+1}</p></body>
+<p>1km: {dr.activity_splits(user_df,ac_number,'1km')}: {dr.split_rank(user_df,ac_number,'1km')}/{dr.split_count(user_df,'1km')}<br>
+1 mile: {dr.activity_splits(user_df,ac_number,'1 mile')}: {dr.split_rank(user_df,ac_number,'1 mile')}/{dr.split_count(user_df,'1 mile')}<br>
+1.5 mile: {dr.activity_splits(user_df,ac_number,'1.5 mile')}: {dr.split_rank(user_df,ac_number,'1.5 mile')}/{dr.split_count(user_df,'1.5 mile')}<br>
+3 mile: {dr.activity_splits(user_df,ac_number,'3 mile')}: {dr.split_rank(user_df,ac_number,'3 mile')}/{dr.split_count(user_df,'3 mile')}<br>
+5km: {dr.activity_splits(user_df,ac_number,'5km')}: {dr.split_rank(user_df,ac_number,'5km')}/{dr.split_count(user_df,'5km')}<br>
+10km: {dr.activity_splits(user_df,ac_number,'10km')}: {dr.split_rank(user_df,ac_number,'10km')}/{dr.split_count(user_df,'10km')}<br>
+20km: {dr.activity_splits(user_df,ac_number,'20km')}: {dr.split_rank(user_df,ac_number,'20km')}/{dr.split_count(user_df,'20km')}<br>
+Half marathon: {dr.activity_splits(user_df,ac_number,'Half')}: {dr.split_rank(user_df,ac_number,'Half')}/{dr.split_count(user_df,'Half')}<br>
+Full: {dr.activity_splits(user_df,ac_number,'Full')}: {dr.split_rank(user_df,ac_number,'Full')}/{dr.split_count(user_df,'Full')}</p></body>
 """
         statement = opening + part
     else:
