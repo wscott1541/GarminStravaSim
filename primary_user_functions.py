@@ -1087,21 +1087,57 @@ This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest 
     
     if ac_type == 'Running':
         part = f"""<body>              
-<p>1km: {dr.activity_splits(user_df,ac_number,'1km')}: {dr.split_rank(user_df,ac_number,'1km')}/{dr.split_count(user_df,'1km')}<br>
-1 mile: {dr.activity_splits(user_df,ac_number,'1 mile')}: {dr.split_rank(user_df,ac_number,'1 mile')}/{dr.split_count(user_df,'1 mile')}<br>
-1.5 mile: {dr.activity_splits(user_df,ac_number,'1.5 mile')}: {dr.split_rank(user_df,ac_number,'1.5 mile')}/{dr.split_count(user_df,'1.5 mile')}<br>
-3 mile: {dr.activity_splits(user_df,ac_number,'3 mile')}: {dr.split_rank(user_df,ac_number,'3 mile')}/{dr.split_count(user_df,'3 mile')}<br>
-5km: {dr.activity_splits(user_df,ac_number,'5km')}: {dr.split_rank(user_df,ac_number,'5km')}/{dr.split_count(user_df,'5km')}<br>
-10km: {dr.activity_splits(user_df,ac_number,'10km')}: {dr.split_rank(user_df,ac_number,'10km')}/{dr.split_count(user_df,'10km')}<br>
-20km: {dr.activity_splits(user_df,ac_number,'20km')}: {dr.split_rank(user_df,ac_number,'20km')}/{dr.split_count(user_df,'20km')}<br>
-Half marathon: {dr.activity_splits(user_df,ac_number,'Half')}: {dr.split_rank(user_df,ac_number,'Half')}/{dr.split_count(user_df,'Half')}<br>
-Full: {dr.activity_splits(user_df,ac_number,'Full')}: {dr.split_rank(user_df,ac_number,'Full')}/{dr.split_count(user_df,'Full')}</p></body>
+<p>1km: {dr.activity_splits(user_df,ac_number,'1km')}: {dr.split_rank(user_df,ac_number,'1km')}/{dr.split_count(user_df,'1km')} - {fastest_since(user_df,ac_number,'1km')}<br>
+1 mile: {dr.activity_splits(user_df,ac_number,'1 mile')}: {dr.split_rank(user_df,ac_number,'1 mile')}/{dr.split_count(user_df,'1 mile')} - {fastest_since(user_df,ac_number,'1 mile')}<br>
+1.5 mile: {dr.activity_splits(user_df,ac_number,'1.5 mile')}: {dr.split_rank(user_df,ac_number,'1.5 mile')}/{dr.split_count(user_df,'1.5 mile')} - {fastest_since(user_df,ac_number,'1.5 mile')}<br>
+3 mile: {dr.activity_splits(user_df,ac_number,'3 mile')}: {dr.split_rank(user_df,ac_number,'3 mile')}/{dr.split_count(user_df,'3 mile')} - {fastest_since(user_df,ac_number,'3 mile')}<br>
+5km: {dr.activity_splits(user_df,ac_number,'5km')}: {dr.split_rank(user_df,ac_number,'5km')}/{dr.split_count(user_df,'5km')} - {fastest_since(user_df,ac_number,'5km')}<br>
+10km: {dr.activity_splits(user_df,ac_number,'10km')}: {dr.split_rank(user_df,ac_number,'10km')}/{dr.split_count(user_df,'10km')} - {fastest_since(user_df,ac_number,'10km')}<br>
+20km: {dr.activity_splits(user_df,ac_number,'20km')}: {dr.split_rank(user_df,ac_number,'20km')}/{dr.split_count(user_df,'20km')} - {fastest_since(user_df,ac_number,'20km')}<br>
+Half marathon: {dr.activity_splits(user_df,ac_number,'Half')}: {dr.split_rank(user_df,ac_number,'Half')}/{dr.split_count(user_df,'Half')} - {fastest_since(user_df,ac_number,'Half')}<br>
+Full: {dr.activity_splits(user_df,ac_number,'Full')}: {dr.split_rank(user_df,ac_number,'Full')}/{dr.split_count(user_df,'Full')} - {fastest_since(user_df,ac_number,'Full')}</p></body>
 """
         statement = opening + part
     else:
         statement = opening
         
     return(statement)
+
+def fastest_since(user_df,activity_number,distance):
+    
+    split = dr.activity_splits(user_df,activity_number,distance)
+    
+    #ac_numbers = user_df['Activity number'].tolist()
+    dates = user_df['Date'].tolist()
+    splits = user_df[distance].tolist()
+    
+    dates.reverse()
+    splits.reverse()
+    
+    cont = True
+    
+    date = []
+    
+    while cont == True:
+        for i in range(0,len(splits)):
+            if splits[i] != 'NONE':
+                if splits[i] < split:
+                    date.append(dates[i])
+                    cont = False
+    
+    if cont == True:
+        out = 'PB!'
+    elif split == 'NONE':
+        out = 'not run'
+    else:
+        out = f'fastest since {date[0][:10]}'
+    
+    return(out)
+        
+    #return(n)
+    
+#df = dr.pull_data('WS')    
+#print(html_assessment(df,'AABB0534'))
 
 #print(html_assessment('A85I1222'))
     

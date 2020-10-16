@@ -114,7 +114,7 @@ def pull_csv(activity_number):
 def route_data(activity_number):
     if len(activity_number) == 10:
         df = pull_gpx(activity_number)
-    if len(activity_number) == 8:
+    if len(activity_number) == 8 or len(activity_number) == 9:
         df = pull_csv(activity_number)
         
     return(df)
@@ -269,7 +269,7 @@ def assess(temporary,main):
         statii = new['Status'].tolist()
         starts = []
         for n in range(0,len(statii)):
-            if statii[n] != 'GPX' and statii[n] != 'NONE' and statii[n] != 'CSV':
+            if statii[n] != 'GPX' and statii[n] != 'NONE' and statii[n] != 'CSV' and statii[n] != 'MCSV':
                 starts.append(n)
         if len(starts) == 0:
             starts.append(len(statii))
@@ -293,7 +293,7 @@ def assess(temporary,main):
     for i in ran:
         if prev == 1:
             try:
-                if statii[i] == 'GPX' or statii[i] == 'NONE' or statii[i] == 'CSV':
+                if statii[i] == 'GPX' or statii[i] == 'NONE' or statii[i] == 'CSV' or statii[i] == 'MCSV':
                     skip = 1
                 else:
                     skip = 0
@@ -350,6 +350,11 @@ def assess(temporary,main):
                     filename = 'activity_{}.csv'.format(ac_no)
                     gpx_df = pull_csv(ac_no)
                     status = 'CSV'
+                
+                elif len(ac_no) == 9:
+                    filename = 'activity_{}.csv'.format(ac_no)
+                    gpx_df = pull_csv(ac_no)
+                    status = 'MCSV'
             
             if row[1] == 'Running':
                 r_times = best_times_running(gpx_df)
@@ -361,11 +366,15 @@ def assess(temporary,main):
             else:
                 c_times = ['NONE','NONE','NONE','NONE','NONE','NONE']
                         #[ten_k, twe_k, fif_k, hun_k, t_h_k, t_f_k]
+            
+            #print(row[3])
+            
             new_row = [row[0],row[1],row[2],row[3],row[4],r_times[0],r_times[1],r_times[2],r_times[3],r_times[4],r_times[5],r_times[6],r_times[7],r_times[8],c_times[0],c_times[1],c_times[2],c_times[3],c_times[4],c_times[5],status]
             
             #a_row = pd.Series(new_row,index=new.columns)#this should be done with a replace if the activity exists, else append
             #mod_df = new.append(a_row,ignore_index = True)
             #new = mod_df.sort_values(by='Date')
+
             try:
                 new.iloc[i] = new_row
             except:
@@ -904,6 +913,7 @@ Median HR: {median} bpm<br>
 Total number of heart beats: {round(total)} beats</p></body>"""    
 
     return(html)
+
        
                
 #plt.show()    
