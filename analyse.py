@@ -667,10 +667,11 @@ def lap_bars(df):
         lap_time_m = lap_time_s/60
         r_lap_times.append(lap_time_m)
         order.append(i)
-        if i < len(markers):
+        if i < len(markers)-1:
             label = f'{i-1}-{i}km'
         else:
             fin = round((dists[-1]/1000),2)
+            #print(fin)
             label = f'{i-1}-{fin}km'
         r_labels.append(label)
     
@@ -683,11 +684,37 @@ def lap_bars(df):
         lap_times.append(r_lap_times[tot-i])
         labels.append(r_labels[tot-i])
         
+        
     plt.barh(order,lap_times)
     
     plt.xlabel("Time (mins)")
     plt.yticks(order,labels)
     
+    #print(order)
+    #print(lap_times)
+    
+    for i in range(0,len(order)):
+        if lap_times[i] > 2:
+            pos = 0.4 * lap_times[i]
+        else:
+            pos = lap_times[i] + 0.1
+        
+        mins = int(lap_times[i])
+        secs = round(60*(lap_times[i]-mins))
+        
+        t_text = f'{mins}m{secs}'
+        
+        plt.text(pos,order[i]-0.1,t_text)
+    
+    #for i in range(0,len(lap_times)):
+    #    plt.text()
+    #for index, value in enumerate(lap_times):
+    #    plt.text(value, index+1, str(value))
+
+#print('Starting')    
+#route = route_data('AABB0534')
+#print('Route pulled')
+#lap_bars(route)    
 
 def words(activity_type):
     
@@ -913,6 +940,25 @@ Median HR: {median} bpm<br>
 Total number of heart beats: {round(total)} beats</p></body>"""    
 
     return(html)
+
+def metres_per_beat(df):
+    dists = df['distance'].tolist()
+    hrs = df['HR'].tolist()
+    times_un = df['time'].tolist()
+    
+    mpbs = [0]
+    
+    for i in range(1,len(dists)):
+        metres = dists[i] - dists[i-1]
+        t_d =  times_un[i] - times_un[i-1]
+        t_d_s = t_d.total_seconds()
+        beats = (t_d_s*(hrs[i]+hrs[i-1]))/(2*60)
+        mpb = metres/beats
+        mpbs.append(mpb)
+        
+    plt.plot(dists,mpbs)
+
+
 
        
                

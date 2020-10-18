@@ -57,7 +57,7 @@ try:
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
 except:
-    ac_abbr = 'A9BH4030'
+    ac_abbr = 'AAIF5032'
 
 user_df = dr.pull_data(initials)
 
@@ -109,8 +109,13 @@ if ac_type != 'Cardio':
     ac_route = analyse.route_data(ac_abbr)
     mapper.pyplot_heatmap(ac_route)
     body = attach_chart_as_html(body)
-    analyse.hr_dist_speed_plot(ac_route)
+    mapper.best_stretch_map(ac_route,1000)
     body = attach_chart_as_html(body)
+    try:
+        analyse.hr_dist_speed_plot(ac_route)
+        body = attach_chart_as_html(body)
+    except:
+        print('No HR')
     analyse.lap_bars(ac_route)
     body = attach_chart_as_html(body)
     mapper.pyplot_colourmap(ac_route)
@@ -121,12 +126,16 @@ if ac_type != 'Cardio':
     #body = attach_chart_as_html(body)
     #analyse.hr_plot_dist(ac_route)      
     #body = attach_chart_as_html(body)
-    analyse.hr_dist_durs_plot(ac_route)
-    body = attach_chart_as_html(body)
-    analyse.hr_zones_pie(ac_route)
-    body = attach_chart_as_html(body)
-    analyse.hr_distribution(ac_route)
-    body = attach_chart_as_html(body)
+    try:
+        analyse.hr_dist_durs_plot(ac_route)
+        body = attach_chart_as_html(body)
+        analyse.hr_zones_pie(ac_route)
+        body = attach_chart_as_html(body)
+        analyse.hr_distribution(ac_route)
+        body = attach_chart_as_html(body)
+        body = body + analyse.hr_html(ac_route)
+    except:
+        print('No HR')
     puf.plot_week_and_previous_distances(today_string,ac_type)
     body = attach_chart_as_html(body)
     ac_df = dr.pull_data(initials)
@@ -144,10 +153,20 @@ else:
     ac_df = dr.pull_data(initials)
     puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
+
+reference = f"""<body><p>
+Ref: <i>{ac_abbr}</i></p></body>"""
     
+if ac_type == 'Running' or ac_type == 'Cycling':
+    outtro = puf.all_personal_bests_html()
+    #message.attach(MIMEText(outtro, "html"))
+
+    final = body + outtro + reference
+else:
+    final = body + reference
 
 html = f"""<html>
-{body}
+{final}
 </html>
 """
 

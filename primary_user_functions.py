@@ -1115,18 +1115,24 @@ def fastest_since(user_df,activity_number,distance):
     splits.reverse()
     
     cont = True
+    slowest = True
     
     date = []
     
     while cont == True:
         for i in range(0,len(splits)):
             if splits[i] != 'NONE':
+                if splits[i] > split and slowest == True:
+                    slowest = False
                 if splits[i] < split:
                     date.append(dates[i])
                     cont = False
     
     if cont == True:
-        out = 'PB!'
+        if slowest == False:
+            out = 'PB!'
+        else:
+            out = 'unPB!'
     elif split == 'NONE':
         out = 'not run'
     else:

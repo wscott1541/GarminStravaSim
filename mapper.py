@@ -325,6 +325,63 @@ def pyplot_colourmap(activity_df):
             n += 1
     """
 
+def best_stretch_map(gpx_df,distance):
+    times = gpx_df['time'].tolist()    
+    distances = gpx_df['distance'].tolist()
+    full = distances[-1]
+    
+    distance_times = []
+    first = [0]
+    ends = []
+    
+    if len(distances) > 0 and distance < full:
+        for i in range(0,len(distances)):
+            
+            if distances[i] > distance - 1:
+                if len(first) == 1:
+                    first.append(i)
+                
+                for v in range(0,i):
+                    if (distances[i] - distances[v]) > (distance - 1) and (distances[i] - distances[v]) < (distance + 100):
+                        delta = times[i] - times[v]
+                        distance_times.append(delta)
+                        ends.append(distances[i])
+    #print(distance_times)
+    #print(ends)        
+    endlist = []
+    
+    if len(distance_times) > 0:
+        #distance_times.sort()
+        best = min(distance_times)
+        #print(best)
+        for i in range(0,len(distance_times)):
+            if distance_times[i] == best:
+                endlist.append(ends[i]) 
+    
+    end = endlist[0]
+    #print(end)            
+        
+    lats = gpx_df['lat'].tolist()
+    #print(lats[0])
+    lons = gpx_df['lon'].tolist()
+
+    for i in range(1,len(lats)):
+        
+        if distances[i] >= end - distance and distances[i] <= end:
+            fill_color='red'
+        else:
+            fill_color='blue'
+        
+        
+        xs = [lons[i],lons[i-1]]
+        ys = [lats[i],lats[i-1]]
+        plt.plot(xs,ys,color=fill_color)
+    
+    plt.axis('off')
+    
+#ac_df = analyse.route_data('AAIF5032')
+#best_stretch_map(ac_df,1600)
+
 #print(cm.tab10[1])
 #ac_df = analyse.route_data('A8FC1636')
 #plt.show()
