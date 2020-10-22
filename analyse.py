@@ -8,6 +8,8 @@ Created on Sun Jul 12 14:18:22 2020
 
 #column reference: ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
+import data_read as dr
+
 import gpxpy
 import pandas as pd
 from datetime import datetime
@@ -958,8 +960,24 @@ def metres_per_beat(df):
         
     plt.plot(dists,mpbs)
 
+def pace(user_df,ac_no):
+    
+    dur = dr.activity_details(user_df,ac_no,'Duration')
+    dist = dr.activity_details(user_df,ac_no,'Distance')
+    
+    mins = float(dur[3:5]) + (float(dur[-2:])/60)
+    
+    pace = mins / dist
+    
+    pace_mins = int(pace)
+    pace_secs = round(60*(pace-pace_mins))
+        
+    text = f'{pace_mins}m{pace_secs}'
+    
+    return(text)
 
-
+#df = dr.pull_data('WS')
+#pace(df,'AAKF0322')
        
                
 #plt.show()    

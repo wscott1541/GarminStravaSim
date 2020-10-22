@@ -223,6 +223,8 @@ def pyplot_heatmap(activity_df):
     arrow_y = [top_up,top_up,tu_plus]
     plt.plot(arrow_x,arrow_y,color='grey',label='1km')
     
+    #plt.gca().set_aspect('equal', adjustable='box')
+    
     #plt.scatter([lons[0]],[lats[0]],color='green')
     #plt.annotate('S',(lons[0],lats[0]),color='green')
     #plt.scatter([lons[-1]],[lats[-1]],color='red')
@@ -259,6 +261,24 @@ def pyplot_basic(activity_df):
             n += 1
             
     plt.axis('off')
+    
+    plt.gca().set_aspect('equal', adjustable='box')
+    
+    #x_range = (max(lons) - min(lons))
+    #y_range = (max(lats) - min(lats))
+    
+    #y_size = 4*(y_range)/(x_range)
+    
+    #fig_size = plt.rcParams["figure.figsize"]
+    #fig_size[0] = 4
+    #fig_size[1] = y_size
+    #plt.rcParams["figure.figsize"] = fig_size
+
+    
+    #plt.axis('scaled')
+    
+#ac_df = analyse.route_data('AAKF0322')
+#pyplot_basic(ac_df)    
 
 def pyplot_colourmap(activity_df):
     #print(len(activity_number))
@@ -299,7 +319,11 @@ def pyplot_colourmap(activity_df):
                 minor_lons.append(lons[v])
         #fill_color=matplotlib.colors.to_hex(mapper.to_rgba(i))
         plt.plot(minor_lons,minor_lats)
+        
     plt.axis('off')
+    
+    plt.gca().set_aspect('equal', adjustable='box')
+    
     """
     plt.axis('off')
     #one latitude/longtitude = 111km
@@ -364,23 +388,62 @@ def best_stretch_map(gpx_df,distance):
     lats = gpx_df['lat'].tolist()
     #print(lats[0])
     lons = gpx_df['lon'].tolist()
-
+    
+    #split_lons = []
+    #split_lats = []
+    
+    #part_one_lons = []
+    #part_one_lats = []
+    
+    #part_two_lons = []
+    #part_two_lats = []
+    
+    #part = True
+    
     for i in range(1,len(lats)):
         
         if distances[i] >= end - distance and distances[i] <= end:
+            #split_lons.append(lons[i])
+            #split_lats.append(lats[i])
+            
+            #part = False
+            
             fill_color='red'
+            dash = '-'
+        #elif part == True:
+            #part_one_lons.append(lons[i])
+            #part_one_lats.append(lats[i])
+            
+            #fill_color='grey'
+            #dash = ':'
+            #split_lons.append(lons[i])
+            #split_lats.append(lats[i])
         else:
-            fill_color='blue'
+            #part_two_lons.append(lons[i])
+            #part_two_lats.append(lats[i])
+            
+            fill_color='grey'
+            dash = ':'
+            #split_lons.append(lons[i])
+            #split_lats.append(lats[i])
         
         
         xs = [lons[i],lons[i-1]]
         ys = [lats[i],lats[i-1]]
-        plt.plot(xs,ys,color=fill_color)
+        plt.plot(xs,ys,dash,color=fill_color)
+    
+    #plt.plot(part_one_lons,part_one_lats,':',color='grey')
+    #plt.plot(split_lons,split_lats,color = 'red')
+    #plt.plot(part_two_lons,part_two_lats,':',color='grey')
     
     plt.axis('off')
     
-#ac_df = analyse.route_data('AAIF5032')
-#best_stretch_map(ac_df,1600)
+    plt.gca().set_aspect('equal', adjustable='box')
+    
+    #matplotlib.axes.Axes.set_aspect(plt,'equal')
+    
+#ac_df = analyse.route_data('AAKF0322')
+#best_stretch_map(ac_df,1000)
 
 #print(cm.tab10[1])
 #ac_df = analyse.route_data('A8FC1636')

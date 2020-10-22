@@ -57,7 +57,7 @@ try:
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
 except:
-    ac_abbr = 'AAIF5032'
+    ac_abbr = 'AAMC2600'
 
 user_df = dr.pull_data(initials)
 
@@ -78,7 +78,31 @@ import mapper
 
 import primary_user_functions as puf
 
-body = puf.html_assessment(user_df,ac_abbr)
+#body = puf.html_assessment(user_df,ac_abbr)
+
+def chart_as_html():
+    plt.savefig('temp_image.jpg')
+    
+    encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
+    
+    img = f"""\
+<body>
+   <img src='data:image/jpg;base64,{encoded}'>
+</body>
+"""
+    
+    #new = body + img
+
+    #part = MIMEText(html, "html")
+    #message.attach(part)
+    
+    #new = body + img
+    
+    os.remove('temp_image.jpg')
+    
+    plt.show()
+    
+    return(img)
 
 def attach_chart_as_html(body):
     plt.savefig('temp_image.jpg')
@@ -107,6 +131,12 @@ def attach_chart_as_html(body):
 plt.show()
 if ac_type != 'Cardio':
     ac_route = analyse.route_data(ac_abbr)
+    
+    mapper.pyplot_colourmap(ac_route)
+    body = chart_as_html()
+    
+    body = body + puf.html_assessment(user_df,ac_abbr)
+    #ac_route = analyse.route_data(ac_abbr)
     mapper.pyplot_heatmap(ac_route)
     body = attach_chart_as_html(body)
     mapper.best_stretch_map(ac_route,1000)
@@ -118,8 +148,7 @@ if ac_type != 'Cardio':
         print('No HR')
     analyse.lap_bars(ac_route)
     body = attach_chart_as_html(body)
-    mapper.pyplot_colourmap(ac_route)
-    body = attach_chart_as_html(body)
+    
     mapper.pyplot_basic(ac_route)
     body = attach_chart_as_html(body)
     #analyse.hr_plot_time(ac_route)
@@ -142,6 +171,7 @@ if ac_type != 'Cardio':
     puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
 else:
+    body = puf.html_assessment(user_df,ac_abbr)
     ac_route = analyse.route_data(ac_abbr)
     analyse.hr_plot_time(ac_route)
     body = attach_chart_as_html(body)

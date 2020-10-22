@@ -1040,7 +1040,7 @@ def week_summary_html(start_date):
     
     return(html)
     
-#print(week_summary_html(y_day_string))
+#print(week_summary_html(y_day_string))   
     
 def html_assessment(user_df,ac_number):    
     
@@ -1075,7 +1075,7 @@ def html_assessment(user_df,ac_number):
     
     if ac_type != 'Cardio':
         opening = f"""
-<body><p>You {verb} {dist}km in {dur} on {date[:10]} at {date[11:]}.<br>
+<body><p>At {date[11:]} on {date[:10]}, you {verb} <b>{dist}km</b> in <b>{dur}</b>, a pace of {analyse.pace(user_df,ac_number)} min/km.<br>
 This was {noun} {full}, and compared to an average of {avg}km.<br>
 This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(user_df,ac_number,'Time')} longest {noun}.</p></body>
 """
@@ -1086,17 +1086,7 @@ This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest 
 """
     
     if ac_type == 'Running':
-        part = f"""<body>              
-<p>1km: {dr.activity_splits(user_df,ac_number,'1km')}: {dr.split_rank(user_df,ac_number,'1km')}/{dr.split_count(user_df,'1km')} - {fastest_since(user_df,ac_number,'1km')}<br>
-1 mile: {dr.activity_splits(user_df,ac_number,'1 mile')}: {dr.split_rank(user_df,ac_number,'1 mile')}/{dr.split_count(user_df,'1 mile')} - {fastest_since(user_df,ac_number,'1 mile')}<br>
-1.5 mile: {dr.activity_splits(user_df,ac_number,'1.5 mile')}: {dr.split_rank(user_df,ac_number,'1.5 mile')}/{dr.split_count(user_df,'1.5 mile')} - {fastest_since(user_df,ac_number,'1.5 mile')}<br>
-3 mile: {dr.activity_splits(user_df,ac_number,'3 mile')}: {dr.split_rank(user_df,ac_number,'3 mile')}/{dr.split_count(user_df,'3 mile')} - {fastest_since(user_df,ac_number,'3 mile')}<br>
-5km: {dr.activity_splits(user_df,ac_number,'5km')}: {dr.split_rank(user_df,ac_number,'5km')}/{dr.split_count(user_df,'5km')} - {fastest_since(user_df,ac_number,'5km')}<br>
-10km: {dr.activity_splits(user_df,ac_number,'10km')}: {dr.split_rank(user_df,ac_number,'10km')}/{dr.split_count(user_df,'10km')} - {fastest_since(user_df,ac_number,'10km')}<br>
-20km: {dr.activity_splits(user_df,ac_number,'20km')}: {dr.split_rank(user_df,ac_number,'20km')}/{dr.split_count(user_df,'20km')} - {fastest_since(user_df,ac_number,'20km')}<br>
-Half marathon: {dr.activity_splits(user_df,ac_number,'Half')}: {dr.split_rank(user_df,ac_number,'Half')}/{dr.split_count(user_df,'Half')} - {fastest_since(user_df,ac_number,'Half')}<br>
-Full: {dr.activity_splits(user_df,ac_number,'Full')}: {dr.split_rank(user_df,ac_number,'Full')}/{dr.split_count(user_df,'Full')} - {fastest_since(user_df,ac_number,'Full')}</p></body>
-"""
+        part = f"""{html_activity_lines(user_df, ac_number)}"""
         statement = opening + part
     else:
         statement = opening
@@ -1141,6 +1131,54 @@ def fastest_since(user_df,activity_number,distance):
     return(out)
         
     #return(n)
+
+def html_activity_line(distance, user_df, ac_number):
+    
+    if distance == 'Half':
+        text = 'Half marathon'
+    elif distance == 'Full':
+        text = 'Marathon'
+    else:
+        text = distance
+    
+    line = f"<b>{text}</b>: {str(dr.activity_splits(user_df,ac_number,distance))[-8:]} - {dr.split_rank(user_df,ac_number,distance)}/{dr.split_count(user_df,distance)} - {fastest_since(user_df,ac_number,distance)}"
+    
+    return(line)
+
+def html_activity_lines(user_df, ac_number):
+    
+    text = f"{html_activity_line('1km', user_df, ac_number)}"
+    
+    options = ['1 mile', '1.5 mile', '3 mile', '5km', '10km', '20km', 'Half', 'Full']
+    
+    for i in range(0,len(options)):
+        
+        sec = f"""<br>
+{html_activity_line(options[i], user_df, ac_number)}"""
+    
+        if 'NONE' not in sec:
+            text = text + sec
+            
+    full = f"""<body><p>
+{text}
+</p></body>"""
+
+    return(full)
+
+"""
+             <b>1km</b>: {dr.activity_splits(user_df,ac_number,'1km')}: {dr.split_rank(user_df,ac_number,'1km')}/{dr.split_count(user_df,'1km')} - {fastest_since(user_df,ac_number,'1km')}<br>
+<b>1 mile</b>: {dr.activity_splits(user_df,ac_number,'1 mile')}: {dr.split_rank(user_df,ac_number,'1 mile')}/{dr.split_count(user_df,'1 mile')} - {fastest_since(user_df,ac_number,'1 mile')}<br>
+<b>1.5 mile</b>: {dr.activity_splits(user_df,ac_number,'1.5 mile')}: {dr.split_rank(user_df,ac_number,'1.5 mile')}/{dr.split_count(user_df,'1.5 mile')} - {fastest_since(user_df,ac_number,'1.5 mile')}<br>
+<b>3 mile</b>: {dr.activity_splits(user_df,ac_number,'3 mile')}: {dr.split_rank(user_df,ac_number,'3 mile')}/{dr.split_count(user_df,'3 mile')} - {fastest_since(user_df,ac_number,'3 mile')}<br>
+<b>5km</b>: {dr.activity_splits(user_df,ac_number,'5km')}: {dr.split_rank(user_df,ac_number,'5km')}/{dr.split_count(user_df,'5km')} - {fastest_since(user_df,ac_number,'5km')}<br>
+<b>10km</b>: {dr.activity_splits(user_df,ac_number,'10km')}: {dr.split_rank(user_df,ac_number,'10km')}/{dr.split_count(user_df,'10km')} - {fastest_since(user_df,ac_number,'10km')}<br>
+<b>20km</b>: {dr.activity_splits(user_df,ac_number,'20km')}: {dr.split_rank(user_df,ac_number,'20km')}/{dr.split_count(user_df,'20km')} - {fastest_since(user_df,ac_number,'20km')}<br>
+<b>Half marathon</b>: {dr.activity_splits(user_df,ac_number,'Half')}: {dr.split_rank(user_df,ac_number,'Half')}/{dr.split_count(user_df,'Half')} - {fastest_since(user_df,ac_number,'Half')}<br>
+<b>Full</b>: {dr.activity_splits(user_df,ac_number,'Full')}: {dr.split_rank(user_df,ac_number,'Full')}/{dr.split_count(user_df,'Full')} - {fastest_since(user_df,ac_number,'Full')}</p></body>
+"""
+
+#df = dr.pull_data('WS')    
+#print(html_activity_lines(df,'AAIF5032')) 
     
 #df = dr.pull_data('WS')    
 #print(html_assessment(df,'AABB0534'))
