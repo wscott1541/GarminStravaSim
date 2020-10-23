@@ -11,6 +11,8 @@ import smtplib, ssl
 from primary_user_functions import month_caller
 import matplotlib.pyplot as plt
 
+import urllib
+
 import base64
 import os
 
@@ -40,6 +42,7 @@ receiver_email = users_list[0]
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
 from today_string import day, month, year, today_string, y_day_string
 
@@ -56,8 +59,14 @@ try:
     abbr_df = pd.DataFrame(abbr_data,columns=['abbr'])
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
+    add_animation = True
 except:
-    ac_abbr = 'AAMC2600'
+    full = dr.pull_data(initials)
+    acs = full['Activity number'].tolist()
+    
+    ac_abbr = acs[-1]
+    
+    add_animation = False
 
 user_df = dr.pull_data(initials)
 
@@ -77,6 +86,9 @@ message["Subject"] = subject
 import mapper
 
 import primary_user_functions as puf
+
+if ac_type != 'Cardio':
+    ac_route = analyse.route_data(ac_abbr)
 
 #body = puf.html_assessment(user_df,ac_abbr)
 
@@ -129,11 +141,44 @@ def attach_chart_as_html(body):
     return(new)
 
 plt.show()
+
+def attach_animation():
+    
+    #anim = codecs.open("animation.html", "r", "utf-8")
+    
+    #anim = base64.b64encode(open('animation.html','rb').read()).decode()
+    #urllib.urlopen("animation.html").read()# encoded = base64.b64encode(open('animation.html','rb').read()).decode()
+    
+    temp_anim = pd.DataFrame(columns= ['abbr'])
+
+    row = [ac_abbr]
+    a_row = pd.Series(row,index=temp_anim.columns)
+    temp_anim = temp_anim.append(a_row,ignore_index=True)
+    
+    temp_anim.to_csv(r'temp-animation.csv',index=False)
+    
+    print('Loading animation')
+    
+    import animation_map
+    
+    anim = MIMEApplication(open(f"{ac_abbr}.html", "rb").read())
+    anim.add_header('Content-Disposition', 'attachment', filename=f"{ac_abbr}.html")
+    message.attach(anim)
+    
+    os.remove(f'{ac_abbr}.html')
+    
+    os.remove(f'temp-animation.csv')
+    #message.attach(MIMEText(anim,'html'))
+    
+    #return(anim)
+    
 if ac_type != 'Cardio':
-    ac_route = analyse.route_data(ac_abbr)
+    
     
     mapper.pyplot_colourmap(ac_route)
     body = chart_as_html()
+    
+    #body = add_animation()
     
     body = body + puf.html_assessment(user_df,ac_abbr)
     #ac_route = analyse.route_data(ac_abbr)
@@ -170,6 +215,10 @@ if ac_type != 'Cardio':
     ac_df = dr.pull_data(initials)
     puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
+    
+    if add_animation == True:
+        attach_animation()
+    
 else:
     body = puf.html_assessment(user_df,ac_abbr)
     ac_route = analyse.route_data(ac_abbr)
