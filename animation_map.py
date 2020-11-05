@@ -24,7 +24,7 @@ import os
 
 import shutil
 
-shutil.rmtree('AABB0534_frames')
+#shutil.rmtree('AABB0534_frames')
 
 try:
     abbr_data = pd.read_csv(r'temp-abbr.csv')
@@ -76,6 +76,8 @@ y_route = []
 
 #print(len(lons))
 
+frms = int(len(lons)/15)
+
 x_min = min(lons) - 0.0015
 x_max = max(lons) + 0.0015
 y_min = min(lats) - 0.0015
@@ -95,6 +97,15 @@ def init():
 
 def animate(i):
     #print('frame: ',i)
+    #for i in range((i+1)*15-15,(i+1)*15):
+    #    x = lons[i]
+    #    x_route.append(x)
+    #    y = lats[i]
+    #    y_route.append(x)
+    
+    
+    
+    
     x = lons[i]
     x_route.append(x)
     y = lats[i]
@@ -109,17 +120,22 @@ def animate(i):
 
 #print(animate(10))
 
+#frames formerly len(lons)
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=len(lons), interval=120, blit=True)
 
 # set embed_frames=True to embed base64-encoded frames directly in the HTML
-anim.save(f'{ac_abbr}.html', writer=HTMLWriter(embed_frames=False))
+anim.save(f'{ac_abbr}.html', writer=HTMLWriter(embed_frames=True))
 
 try:
-    shutil.rmtree('AABB0534_frames')
+    shutil.rmtree(f'{ac_abbr}_frames')
 except:
     print('No frames folder')
     
+try:
+    os.remove('None0000000.png')
+except:
+    print('No png file')
 
 #plt.show()
 """

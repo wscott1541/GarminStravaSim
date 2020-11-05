@@ -181,11 +181,23 @@ if ac_type != 'Cardio':
     #body = add_animation()
     
     body = body + puf.html_assessment(user_df,ac_abbr)
+    
+    puf.activity_comparisons(user_df,ac_abbr)
+    body = attach_chart_as_html(body)
+    
     #ac_route = analyse.route_data(ac_abbr)
     mapper.pyplot_heatmap(ac_route)
     body = attach_chart_as_html(body)
-    mapper.best_stretch_map(ac_route,1000)
+    
+    if ac_type == 'Running':
+        mapper.best_stretch_map(ac_route,1000)
+    else:
+        try:        
+            mapper.best_stretch_map(ac_route,5000)
+        except:
+            mapper.best_stretch_map(ac_route,1000)
     body = attach_chart_as_html(body)
+    
     try:
         analyse.hr_dist_speed_plot(ac_route)
         body = attach_chart_as_html(body)
@@ -215,8 +227,10 @@ if ac_type != 'Cardio':
     ac_df = dr.pull_data(initials)
     puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
+    puf.plot_month_and_previous_distances(month,year,ac_type)#would be nice to redo by date
+    body = attach_chart_as_html(body)
     
-    if add_animation == True:
+    if add_animation == True and ac_type == 'Running':
         attach_animation()
     
 else:

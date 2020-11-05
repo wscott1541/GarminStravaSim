@@ -414,7 +414,12 @@ def plot_distances_this_year(m,yyyy,activity):
     for i in range(1,m+1):
         temp_dates,temp_sum = distance_sum(i,yyyy,activity)
         temp_string = '{} {}: {}km'.format(month_caller(i),yyyy,temp_sum[-1])
-        plt.plot(temp_dates,temp_sum,label=temp_string)
+        if i < 11:
+            plt.plot(temp_dates,temp_sum,label=temp_string)
+        elif i == 11:
+            plt.plot(temp_dates,temp_sum,label=temp_string,color='deeppink')
+        elif i == 12:
+            plt.plot(temp_dates,temp_sum,label=temp_string,color='lime')
     
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
@@ -422,7 +427,7 @@ def plot_distances_this_year(m,yyyy,activity):
     
     plt.title(title)
     
-
+#plot_distances_this_year(12,2019,'Running')
     
 def plot_cumulative_distance(m,yyyy,activity):
     run_vals = []
@@ -561,8 +566,27 @@ def plot_week_and_previous_distances(today_string,activity):
     
     plt.plot(tw_dates, tw_dist,color='red',label=this_annot)
     
+    ax.set_ylabel('Distance (km)')
+    
+    x_labels = []
+    i = 0
+    while i < 7:
+        day = datetime.strptime(today_string,'%Y-%m-%d') - timedelta(days=(7+i))
+        tag = datetime.strftime(day,'%a')
+        x_labels.append(tag)
+        i += 1
+    
+    x_labels.reverse()
+    #0.5,1.5,2.5,3.5,4.5,5.5,6.5
+    ax.set_xticks([1,2,3,4,5,6,7])
+    ax.set_xticklabels(x_labels)
+    
     ax.legend(); 
     plt.title(title)
+    
+#ac_df = dr.pull_data('WS')
+#days,vals = week_duration_sum_list(ac_df,today_string,'Cardio')
+#plot_week_and_previous_distances(today_string,'Running')
 
 def populate_list(start_date,end_date,days,vals):
     
@@ -684,12 +708,14 @@ def plot_week_previous_durations(activities_df,date_string,activity):
     ax.set_xticks([1,2,3,4,5,6,7])
     ax.set_xticklabels(x_labels)
     
+    ax.set_ylabel('Duration (mins)')
+    
     ax.legend(); 
     plt.title(title)    
     
 #ac_df = dr.pull_data('WS')
 #days,vals = week_duration_sum_list(ac_df,today_string,'Cardio')
-#plot_week_previous_durations(ac_df,today_string,'Cardio')
+#plot_week_previous_durations(ac_df,today_string,'Running')
     
 """
 def plot_week_and_previous_distances(activities_df,date_string,activity):
@@ -1075,7 +1101,7 @@ def html_assessment(user_df,ac_number):
     
     if ac_type != 'Cardio':
         opening = f"""
-<body><p>At {date[11:]} on {date[:10]}, you {verb} <b>{dist}km</b> in <b>{dur}</b>, a pace of {analyse.pace(user_df,ac_number)} min/km.<br>
+<body><p>At {date[11:]} on {date[:10]}, you {verb} <b>{dist}km</b> in <b>{dur}</b>, a pace of {analyse.pace(user_df,ac_number)}/km.<br>
 This was {noun} {full}, and compared to an average of {avg}km.<br>
 This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(user_df,ac_number,'Time')} longest {noun}.</p></body>
 """
@@ -1189,8 +1215,67 @@ def html_activity_lines(user_df, ac_number):
     
 #print(simple_week_update_html(today_string))
             
-
+def plot_distances_equiv_month(user_df,m,yyyy,activity):
+    types = user_df['Activity Type'].tolist()
+    dates = user_df['Date'].tolist()
     
+    run_vals = []    
+    
+    title = '{} distances in {}'.format(activity,month_caller(m))
+    
+    if activity == 'All':
+        activity = 'i'
+    
+    for i in range(0,len(dates)):
+        if activity in types[i] and f'-{add_zeros(m)}-' in dates[i]:
+            run_vals.append(i)
+    val = run_vals[0]
+    earliest_date = dates[val]
+    earliest_year = int(earliest_date[:4])
+    
+    #pick_month = yyyy * 12 + m
+    #earl_month = datestring_to_floatmonth(earliest_date)
+    
+    fig,ax = plt.subplots()
+    for y in range(earliest_year,yyyy+1):
+        temp_dates,temp_sum = distance_sum(m,y,activity)
+        temp_label = f'{y}: {temp_sum[-1]}km'
+        plt.plot(temp_dates,temp_sum,label=temp_label)
+    
+    if yyyy+1 - 2016 > 6:    
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    else:
+        ax.legend();
+    
+    plt.title(title)
+    
+def activity_comparisons(user_df,activity_number):
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    dist = dr.activity_details(user_df,activity_number,'Distance')
+    dur = dr.activity_details(user_df,activity_number,'Duration')
+    dur = stringtime_to_floatminute(dur)
+    
+    ac_nos = user_df['Activity number'].tolist()
+    ac_types = user_df['Activity Type'].tolist()
+    dists = user_df['Distance'].tolist()
+    durs = user_df['Time'].tolist()
+    
+    for i in range(0,len(ac_nos)):
+        if ac_types[i] == ac_type and ac_nos[i] != activity_number and dists[i]<25:
+            i_dur = stringtime_to_floatminute(durs[i])
+            plt.scatter(dists[i],i_dur,color='blue')
+            
+    plt.scatter(dist,dur,color='red')
+    
+    plt.xlabel("Distance (km)")
+    plt.ylabel('Duration (mins)')
+    
+
+#ws_df = dr.pull_data('WS')    
+#activity_comparisons(ws_df,'AB3G1638')
+#plot_distances_equiv_month(ws_df,10,2020,'All')
     
     
     

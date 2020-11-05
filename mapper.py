@@ -442,8 +442,10 @@ def best_stretch_map(gpx_df,distance):
     
     #matplotlib.axes.Axes.set_aspect(plt,'equal')
     
-#ac_df = analyse.route_data('AAKF0322')
-#best_stretch_map(ac_df,1000)
+#ac_df = analyse.route_data('AAMC2600')
+#best_stretch_map(ac_df,1600)
+
+
 
 #print(cm.tab10[1])
 #ac_df = analyse.route_data('A8FC1636')
