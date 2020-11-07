@@ -17,7 +17,12 @@ from today_string import today_string
 from datetime import timedelta
 import time
 
-ac_file = 'A8RG3448.FIT'
+#ac_file = input('activity_file_name.FIT: ')
+
+ac_file = 'AB5G2247.FIT'
+
+if len(ac_file) == 44:
+    ac_file = ac_file[-12:]
 
 ac_abbr = ac_file[:-4]
 
@@ -29,12 +34,15 @@ heart_rates = []
 latitudes = []
 longitudes = []
 distances = []
+cadences = []
 
 # Get all data messages that are of type record
 for record in fitfile.get_messages('record'):
 
     # Go through all the data entries in this record
     for record_data in record:
+        
+        #print(record_data)
         
         if record_data.name == 'timestamp':
             timestamps.append(record_data.value)
@@ -46,6 +54,9 @@ for record in fitfile.get_messages('record'):
             heart_rates.append(record_data.value)
         if record_data.name == 'distance':
             distances.append(record_data.value)
+        if record_data.name == 'cadence':
+            cadences.append(record_data.value)
+            
         
         """
         # Print the records name and value (and units if it has any)
@@ -55,10 +66,13 @@ for record in fitfile.get_messages('record'):
             ))
         else:
             print (" * %s: %s" % (record_data.name, record_data.value))
+        
+        
         #cadence, distance,enhanced_speed,heart_rate,lat,lon,speed,timestamp, unknown_88
         """
 
-df = pd.DataFrame(columns=['time','lat','lon','HR','distance'])
+
+df = pd.DataFrame(columns=['time','lat','lon','HR','distance','cadence'])
 
 lat_breaks = []
 lat_break_checks = []
@@ -68,14 +82,14 @@ lon_break_checks = []
 for i in range(0,len(timestamps)):
     
     #blank out and add lat/lon if cardio
-    """
+    
     try:
         lat = latitudes[i] / (10 ** (7))
     except:
         if len(lat_breaks) == 0:
             lat_breaks.append(latitudes[i-1] / (10 ** (7)))
         elif lat_break_checks[-1] == i - 1:
-            print(' ')
+            here = 'junk'
         else:
             lat_breaks = [latitudes[i-1] / (10 ** (7))]
         lat_break_checks.append(i)
@@ -87,20 +101,20 @@ for i in range(0,len(timestamps)):
         if len(lon_breaks) == 0:
             lon_breaks.append(longitudes[i-1] / (10 ** (7)))
         elif lon_break_checks[-1] == i - 1:
-            print(' ')
+            here = 'junk'
         else:
             lon_breaks = [longitudes[i-1] / (10 ** (7))]
         lon_break_checks.append(i)    
         
         lon = lon_breaks[0]
-    """
     
-    lat = 'NONE'
-    lon = 'NONE'
+    
+    #lat = 'NONE'
+    #lon = 'NONE'
     
     timestamp = timestamps[i] + timedelta(hours=1)
         
-    row = [timestamp,lat,lon,heart_rates[i],distances[i]]
+    row = [timestamp,lat,lon,heart_rates[i],distances[i],cadences[i]]
     a_row = pd.Series(row,index=df.columns)
     df = df.append(a_row,ignore_index=True)
 
@@ -132,7 +146,7 @@ file_name = "{}activities.csv".format(initials[0])
 data = pd.read_csv(r'{}'.format(file_name))
     
 if gpx_statii[0] == 'Y':
-    archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
+    archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
 else:
     archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
 
@@ -151,13 +165,17 @@ pace = full_secs/dist
 
 if pace < 181:
     activity = 'Cycling'
+    shoes = 'NONE'
 if pace >= 181 and pace <= 570:
     activity = 'Running'
+    shoes = 'Hoka One One Clifton 6'
 if pace > 570:
     activity = 'Walking'
+    shoes = 'Merrell Vego 2019'
     
 #activity = 'Kayaking'
-activity = 'Cardio'
+#activity = 'Cardio'
+#shoes = 'NONE'
     
 abbr_df = pd.DataFrame(columns=['abbr','type'])
 abbr_row = pd.Series([ac_abbr],index=abbr_df.columns)
@@ -170,21 +188,24 @@ mod_abbr.to_csv(r'temp-abbr.csv',index = False)
 #    print('Pace: ',pace)
 #    activity = input('Activity: ')
 
-temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])
+temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes'])
 
-row = [ac_abbr,activity,date, dist,full_string]
+row = [ac_abbr,activity,date, dist,full_string,shoes]
 a_row = pd.Series(row,index=temp_df.columns)
 temp_df = temp_df.append(a_row,ignore_index=True)
 
 if gpx_statii[0] == 'Y':
     temp_df.to_csv(r'temp-activities.csv',index=False)
-        
+    
+    #print('pre_assess')    
     analyse.assess('temp-activities.csv',file_name)
         
     os.remove('temp-activities.csv')
     
 else:
     temp_df.to_csv(r'{}'.format(file_name))
+
+print('Processing email...')
 
 import map_email_gen
 

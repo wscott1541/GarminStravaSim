@@ -266,7 +266,7 @@ def assess(temporary,main):
 
     try:
         new_data = pd.read_csv(r'{}'.format(main))
-        new = pd.DataFrame(new_data,columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
+        new = pd.DataFrame(new_data,columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
         prev = 1
         statii = new['Status'].tolist()
         starts = []
@@ -277,7 +277,7 @@ def assess(temporary,main):
             starts.append(len(statii))
         #prev_activities = new['Activity number'].tolist()
     except:
-        new = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
+        new = pd.DataFrame(columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status'])
         prev = 0
 
     activities = df['Activity number'].tolist()
@@ -285,6 +285,7 @@ def assess(temporary,main):
     dates = df['Date'].tolist()
     dists = df['Distance'].tolist()
     times = df['Time'].tolist()
+    shoes = df['Shoes'].tolist()
 
     if prev == 1:
         start = starts[0]
@@ -309,7 +310,7 @@ def assess(temporary,main):
             print('Loading activity',i)
             ac_no = activities[i]
     
-            row = [ac_no,types[i],dates[i],dists[i],times[i]]
+            row = [ac_no,types[i],dates[i],dists[i],times[i],shoes[i]]
     
             #gpx_df = analyse.pull_gpx(ac_no)
             
@@ -965,7 +966,9 @@ def pace(user_df,ac_no):
     dur = dr.activity_details(user_df,ac_no,'Duration')
     dist = dr.activity_details(user_df,ac_no,'Distance')
     
-    mins = float(dur[3:5]) + (float(dur[-2:])/60)
+    hours = float(dur[:2])
+    
+    mins = 60 * hours + float(dur[3:5]) + (float(dur[-2:])/60)
     
     pace = mins / dist
     

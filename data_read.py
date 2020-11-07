@@ -28,7 +28,7 @@ def stringtime_to_floatminute(time_string):
     
         return(time)
 
-cols = ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
+cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
 def pull_data(initials):
     file_name = "{}activities.csv".format(initials)
@@ -129,11 +129,13 @@ def activity_details(user_df,activity_number,field):
     dates = user_df['Date'].tolist()
     distances = user_df['Distance'].tolist()
     durs = user_df['Time'].tolist()
+    shoes = user_df['Shoes'].tolist()
     
     ac_type = []
     date = []
     dist = []
     dur = []
+    shoe = []
     
     for i in range(0,len(ac_numbers)):
         if activity_number == ac_numbers[i]:
@@ -141,6 +143,7 @@ def activity_details(user_df,activity_number,field):
             date.append(dates[i])
             dist.append(distances[i])
             dur.append(durs[i])
+            shoe.append(shoes[i])
     
     if 'Type' in field:
         value = ac_type[0]
@@ -150,11 +153,13 @@ def activity_details(user_df,activity_number,field):
         value = dist[0]
     if 'Duration' in field:
         value = dur[0]
+    if 'Shoes' in field:
+        value = shoe[0]
     
     return(value)
 
 #user_df = pull_data('WS')
-#print(activity_details(user_df,'A9BH4030','Type'))
+#print(activity_details(user_df,'AB4H2007','Shoes'))
     
 def split_rank(user_df,activity_number,distance):
     #df = df.sort_values(by=distance)
@@ -203,7 +208,7 @@ def latest_activity(initials):
 
     latest = ac_numbers[-1]
     
-    return(latest)    
+    return(latest) 
 
 
     

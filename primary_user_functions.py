@@ -1103,7 +1103,8 @@ def html_assessment(user_df,ac_number):
         opening = f"""
 <body><p>At {date[11:]} on {date[:10]}, you {verb} <b>{dist}km</b> in <b>{dur}</b>, a pace of {analyse.pace(user_df,ac_number)}/km.<br>
 This was {noun} {full}, and compared to an average of {avg}km.<br>
-This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(user_df,ac_number,'Time')} longest {noun}.</p></body>
+This was your {full + 1 - dr.split_rank(user_df,ac_number,'Distance')} furthest and {full + 1 - dr.split_rank(user_df,ac_number,'Time')} longest {noun}.<br>
+{shoes_distance_html(user_df,ac_number)}</p></body>
 """
     else:
         opening = f"""
@@ -1130,6 +1131,7 @@ def fastest_since(user_df,activity_number,distance):
     dates.reverse()
     splits.reverse()
     
+    found = False
     cont = True
     slowest = True
     
@@ -1143,8 +1145,11 @@ def fastest_since(user_df,activity_number,distance):
                 if splits[i] < split:
                     date.append(dates[i])
                     cont = False
+                    found = True
+            if i == len(splits) - 1:
+                cont = False
     
-    if cont == True:
+    if found == False:
         if slowest == False:
             out = 'PB!'
         else:
@@ -1157,6 +1162,12 @@ def fastest_since(user_df,activity_number,distance):
     return(out)
         
     #return(n)
+
+#AB5G2247.FIT
+
+#ws_df = dr.pull_data('WS')
+#print('Pulled')
+#print(fastest_since(ws_df,'AB5G2247','1.5 mile'))
 
 def html_activity_line(distance, user_df, ac_number):
     
@@ -1272,8 +1283,44 @@ def activity_comparisons(user_df,activity_number):
     plt.xlabel("Distance (km)")
     plt.ylabel('Duration (mins)')
     
+def shoes_distance(user_df,pair_of_shoes):
+    
+    shoes = user_df['Shoes'].tolist()  
+    dists = user_df['Distance'].tolist()    
+    
+    shoe_dists = []
+    
+    for i in range(0,len(shoes)):
+        if pair_of_shoes == shoes[i]:
+            shoe_dists.append(dists[i])
+            
+    shoe_distance = round(sum(shoe_dists),1)
+    
+    return(shoe_distance)
+    
+def shoes_distance_html(user_df,activity_number):
+    
+    shoes = dr.activity_details(user_df,activity_number,'Shoes')
+    
+    dist = shoes_distance(user_df,shoes)
+    
+    if dist > 800:
+        dist_html = f'<b><u>{dist}!</u></b>'
+    elif dist > 600:
+        dist_html = f'<b><u>{dist}</u></b>'
+    elif dist > 400:
+        dist_html = f'<u>{dist}</u>'
+    else:
+        dist_html = f'{dist}'
+    
+    html = f"""{shoes}: {dist_html}km"""
+    
+    return(html)
 
-#ws_df = dr.pull_data('WS')    
+ws_df = dr.pull_data('WS')  
+print(shoes_distance_html(ws_df,'4854330057'))
+
+
 #activity_comparisons(ws_df,'AB3G1638')
 #plot_distances_equiv_month(ws_df,10,2020,'All')
     
