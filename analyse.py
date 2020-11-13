@@ -20,6 +20,70 @@ from time import time
 
 import os
 
+import primary_user_functions as puf
+
+def simple_gpx_pull(filename):
+    
+    #fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    #filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
+    
+    try:
+        gpx_file = open(filename)
+        gpx = gpxpy.parse(gpx_file)
+
+        data = gpx.tracks[0].segments[0].points
+        
+        stop = 0
+    except:
+        stop = 1
+        
+    #time_str = str(data[0].time)[:19]
+    #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+
+
+    df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
+    #df = pd.DataFrame(columns=['lon','lat','alt'])
+
+    dist = [0]
+
+    if stop == 0:
+        for i in range(0,len(data)):
+            lon = data[i].longitude
+            lat = data[i].latitude
+            alt = data[i].elevation
+            try:
+                ext = data.extensions[0].getchildren()[0]
+                hr = int(ext.text)
+            except:
+                hr = 'N/A'
+        
+            time_str = str(data[i].time)[:19]
+            time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+    
+            if i > 0:
+                prev_lon = data[i-1].longitude
+                prev_lat = data[i-1].latitude
+                prev_alt = data[i-1].elevation
+                
+                delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
+                
+                delta_alt = alt - prev_alt
+                
+                distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
+                
+                new = dist[-1] + distance_3D
+        
+                dist.append(new)
+                
+            distance = dist[-1]
+
+            a_row = [lon,lat,alt,time_dt,distance,hr]
+            row = pd.Series(a_row,index=df.columns)
+            df = df.append(row,ignore_index = True)
+
+    return(df)
+
 def pull_gpx(activity_number):
     
     fileDir = os.path.dirname(os.path.realpath('__file__'))
@@ -262,7 +326,7 @@ def assess(temporary,main):
     
     data = pd.read_csv(r'{}'.format(temporary))
 
-    df = pd.DataFrame(data,columns= ['Activity number','Activity Type','Date','Distance','Time'])
+    df = pd.DataFrame(data,columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes'])
 
     try:
         new_data = pd.read_csv(r'{}'.format(main))
@@ -372,7 +436,7 @@ def assess(temporary,main):
             
             #print(row[3])
             
-            new_row = [row[0],row[1],row[2],row[3],row[4],r_times[0],r_times[1],r_times[2],r_times[3],r_times[4],r_times[5],r_times[6],r_times[7],r_times[8],c_times[0],c_times[1],c_times[2],c_times[3],c_times[4],c_times[5],status]
+            new_row = [row[0],row[1],row[2],row[3],row[4],row[5],r_times[0],r_times[1],r_times[2],r_times[3],r_times[4],r_times[5],r_times[6],r_times[7],r_times[8],c_times[0],c_times[1],c_times[2],c_times[3],c_times[4],c_times[5],status]
             
             #a_row = pd.Series(new_row,index=new.columns)#this should be done with a replace if the activity exists, else append
             #mod_df = new.append(a_row,ignore_index = True)
@@ -978,10 +1042,114 @@ def pace(user_df,ac_no):
     text = f'{pace_mins}m{pace_secs}'
     
     return(text)
+    
+def dist_dur_comp(df):
+    dists = df['distance'].tolist()
+    dur = df['time'].tolist()
+    
+    minutes = []
+    times = []
+    for i in range(0,len(dur)):
+        if i == 0:
+            times.append(0)
+            minutes.append(0)
+        else:
+            full_td = dur[i] - dur[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+            full_mins = full_secs/60
+            minutes.append(full_mins)
+
+    #print(minutes[-1])    
+    
+    #fiojg = fgkje    
+    
+    difference = [0]
+    
+    for i in range(1,len(dur)):
+        delta = (dists[i] - times[i]) - (dists[i-1] - times[i-1])
+        difference.append(delta)
+    
+    fig,ax = plt.subplots() 
+        
+    plt.plot([0,times[-1]],[0,dists[-1]],color='grey')
+    
+    for i in range(1,len(dur)):
+        #print(i,'/',len(dur)-1)
+        xs = [times[i-1],times[i]]
+        ys = [dists[i-1],dists[i]]
+        
+        if difference[i] >= 0:
+            colour = 'green'
+        else:
+            colour = 'red'
+            
+        plt.plot(xs,ys,color=colour)
+        
+    tags,points = puf.minutes_axes_label(minutes)
+    
+    new_points = []
+    for i in range(0,len(points)):
+        new_point = points[i] * 60
+        new_points.append(new_point)
+    
+    ax.set_xticks(new_points)
+    ax.set_xticklabels(tags)
+    
+    ax.set_xlabel('Duration')
+    
+    ax.set_ylabel('Distance (m)')
+    
+    
+        
+def dur_dist_comp(df):
+    dists = df['distance'].tolist()
+    dur = df['time'].tolist()
+    
+    times = []
+    for i in range(0,len(dur)):
+        if i == 0:
+            times.append(0)
+        else:
+            full_td = dur[i] - dur[0]
+            full_secs = full_td.total_seconds()
+            times.append(full_secs)
+            
+    difference = [0]
+    
+    for i in range(1,len(dur)):
+        delta = (times[i] - dists[i]) - (times[i-1] - dists[i-1])
+        difference.append(delta)
+            
+    plt.plot([0,dists[-1]],[0,times[-1]],color='grey')
+    
+    for i in range(1,len(dur)):
+        xs = [dists[i-1],dists[i]]
+        ys = [times[i-1],times[i]]
+        
+        
+        if difference[i] >= 0:
+            colour = 'red'
+        else:
+            colour = 'green'
+            
+        plt.plot(xs,ys,color=colour)
+    
+#ac_no = dr.latest_activity('WS')
+#print(ac_no)
+route = route_data('M20201111')
+dist_dur_comp(route) 
+#plt.show()
+#dur_dist_comp(route)
+   
+    
 
 #df = dr.pull_data('WS')
 #pace(df,'AAKF0322')
-       
+
+#pauls = 'Morning_Run.gpx'
+#paul_df = simple_gpx_pull(pauls)     
+#best_times = best_times_running(paul_df)  
                
 #plt.show()    
 #route = route_data('A8RG3448')

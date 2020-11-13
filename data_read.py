@@ -151,7 +151,7 @@ def activity_details(user_df,activity_number,field):
         value = date[0]
     if 'Distance' in field:
         value = dist[0]
-    if 'Duration' in field:
+    if 'Duration' in field or 'Time' in field:
         value = dur[0]
     if 'Shoes' in field:
         value = shoe[0]

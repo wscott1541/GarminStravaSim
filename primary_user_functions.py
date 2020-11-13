@@ -59,11 +59,14 @@ def floatmonth_to_datestring(floatmonth):
     
 def populate_arrays(m,yyyy,month_dates,curr_vals):
     lim = month_length(m,yyyy)
+    
     if month_dates[-1] < lim:
         month_dates.append((month_dates[-1]) + 1)
         curr_vals.append(curr_vals[-1])
+    
     count = 0
     i = 0      
+    
     while i < lim:
         if month_dates[i] == month_dates[-1] and month_dates[i] != lim:
             month_dates.append(i+1-count)
@@ -93,6 +96,8 @@ def distance_sum(m,yyyy,activity):#can add 'All'
     
     #error message?
     return(month_dates,sum_distances)
+
+
     
 def month_caller(m):
     if m == 1:
@@ -180,6 +185,62 @@ def stringtime_to_floatminute(time_string):
         time = hours * 60 + minutes + seconds/60
     
         return(time)
+
+def minutes_crop(string):
+    if string[:2] == '00':
+        new = string[3:]
+    else:
+        new = string
+    
+    return(new)
+
+def minutes_loop(final,multiple):
+    
+    tags = [0]
+    points = [0]
+    
+    val = multiple
+    
+    while val < final:
+        
+        tag = floatminute_to_stringtime(val)
+        
+        tag = minutes_crop(tag)
+        
+        tags.append(tag)
+        points.append(val)
+        
+        val += multiple
+        
+    final_tag = floatminute_to_stringtime(final)
+    final_tag = minutes_crop(final_tag)
+    
+    tags.append(final_tag)
+    points.append(final)
+    
+    return(tags,points)
+    
+#t,p = minutes_loop(48,5)
+#print(t,p)
+
+    
+def minutes_axes_label(minutes):
+    final = minutes[-1]
+    
+    if final > 300:
+        tags,poitns = minutes_loop(final,60)
+    elif final > 180:
+        tags,points = minutes_loop(final,45)
+    elif final > 90:
+        tags,points = minutes_loop(final,15)
+    elif final > 60:
+        tags,points = minutes_loop(final,10)
+    elif final > 30:
+        tags,points = minutes_loop(final,5)
+    else:
+        tags,points = minutes_loop(final,3)
+        
+    return(tags,points)
 
 """
 def add_times(a,b):
@@ -671,7 +732,25 @@ def week_duration_sum_list(activities_df,date_string,activity):
     return(days, vals)
     
 #ac_df = dr.pull_data('WS')
-#week_duration_sum_list(ac_df,today_string,'Cardio')
+#d,v = week_duration_sum_list(ac_df,today_string,'Running')
+
+def order_date_vals(days):
+    vals = [0]
+    
+    count = -1
+    
+    for i in range(1,len(days)):
+        #print('d',i,': ',days[i])
+        #print('d',i-1,': ',days[i-1])
+        if days[i] == days[i-1]:
+            count += 1
+        vals.append(i-count)
+    
+    return(vals)
+
+#print(d)
+    
+#order_date_vals(d)    
     
 def plot_week_previous_durations(activities_df,date_string,activity):
     
@@ -686,14 +765,16 @@ def plot_week_previous_durations(activities_df,date_string,activity):
     prev_string = datetime.strftime(prev_week,'%Y-%m-%d')
     
     curr_days,curr_vals = week_duration_sum_list(activities_df,date_string,activity)
+    curr_days = order_date_vals(curr_days)
     curr_annot = 'This week: {}'.format(floatminute_to_stringtime(curr_vals[-1]))
     prev_days,prev_vals = week_duration_sum_list(activities_df,prev_string,activity)
+    prev_days = order_date_vals(prev_days)
     prev_annot = 'Last week: {}'.format(floatminute_to_stringtime(prev_vals[-1]))
     
     fig,ax = plt.subplots()
-    plt.plot(prev_vals,color='blue',label=prev_annot)
+    plt.plot(prev_days,prev_vals,color='blue',label=prev_annot)
     
-    plt.plot(curr_vals,color='red',label=curr_annot)
+    plt.plot(curr_days,curr_vals,color='red',label=curr_annot)
     
     x_labels = []
     i = 0
@@ -708,7 +789,17 @@ def plot_week_previous_durations(activities_df,date_string,activity):
     ax.set_xticks([1,2,3,4,5,6,7])
     ax.set_xticklabels(x_labels)
     
-    ax.set_ylabel('Duration (mins)')
+    if prev_vals[-1] > curr_vals[-1]:
+        highest = prev_vals
+    else:
+        highest = curr_vals
+        
+    y_tags,y_ticks = minutes_axes_label(highest)
+    
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels(y_tags)
+    
+    ax.set_ylabel('Duration')
     
     ax.legend(); 
     plt.title(title)    
@@ -1163,6 +1254,72 @@ def fastest_since(user_df,activity_number,distance):
         
     #return(n)
 
+def greatest_rank(user_df,activity_number,dist_dur):
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    
+    rank = dr.split_rank(user_df,activity_number,dist_dur)
+    
+    #print(rank)
+    
+    full = user_df['Activity Type'].tolist()
+    
+    same = 0
+    
+    for i in range(0,len(full)):
+        if ac_type == full[i]:
+            same += 1
+    
+    new_rank = same + 1 - rank
+    
+    text = f'{new_rank}/{same}'
+    
+    return(text)
+
+#greatest_rank(ws_df,ac_no,'Distance')
+#greatest_rank(ws_df,ac_no,'Time')
+
+
+def greatest_since(user_df,activity_number,dist_dur):
+    
+    split = dr.activity_splits(user_df,activity_number,dist_dur)
+    
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    #print(ac_type)
+    #ac_numbers = user_df['Activity number'].tolist()
+    dates = user_df['Date'].tolist()
+    splits = user_df[dist_dur].tolist()
+    types = user_df['Activity Type'].tolist()
+    
+    dates.reverse()
+    splits.reverse()
+    types.reverse()
+    
+    found = False
+    cont = True
+    
+    date = []
+    
+    for i in range(0,len(splits)):
+        #print(ac_type,types[i],splits[i],split,cont)
+        if ac_type == types[i] and splits[i] > split and cont == True:
+            date.append(dates[i])
+            cont = False
+            found = True
+    
+    if found == False:
+        if 'Time' in dist_dur:
+            out = 'longest!'
+        if 'Dist' in dist_dur:
+            out = 'furthest!'
+    else:
+        if 'Time' in dist_dur:
+            out = f'longest since {date[0][:10]}'
+        if 'Dist' in dist_dur:
+            out = f'furthest since {date[0][:10]}'
+    
+    return(out)
+
+
 #AB5G2247.FIT
 
 #ws_df = dr.pull_data('WS')
@@ -1182,6 +1339,11 @@ def html_activity_line(distance, user_df, ac_number):
     
     return(line)
 
+#ac_no = dr.latest_activity('WS')
+#ws_df = dr.pull_data('WS')
+#print(html_activity_line('1km',ws_df,ac_no))    
+
+
 def html_activity_lines(user_df, ac_number):
     
     text = f"{html_activity_line('1km', user_df, ac_number)}"
@@ -1195,6 +1357,10 @@ def html_activity_lines(user_df, ac_number):
     
         if 'NONE' not in sec:
             text = text + sec
+         
+    text = text + f"""<br>
+<b>Distance</b>: {dr.activity_details(user_df,ac_number,'Distance')}km - {greatest_rank(user_df,ac_number,'Distance')} - {greatest_since(user_df,ac_number,'Distance')}<br>
+<b>Duration</b>: {dr.activity_details(user_df,ac_number,'Time')} - {greatest_rank(user_df,ac_number,'Time')} - {greatest_since(user_df,ac_number,'Time')}""" 
             
     full = f"""<body><p>
 {text}
@@ -1215,7 +1381,7 @@ def html_activity_lines(user_df, ac_number):
 """
 
 #df = dr.pull_data('WS')    
-#print(html_activity_lines(df,'AAIF5032')) 
+#print(html_activity_lines(ws_df,ac_no)) 
     
 #df = dr.pull_data('WS')    
 #print(html_assessment(df,'AABB0534'))
@@ -1304,7 +1470,9 @@ def shoes_distance_html(user_df,activity_number):
     
     dist = shoes_distance(user_df,shoes)
     
-    if dist > 800:
+    if dist > 1000:
+        dist_html = f'<b><u>{dist}!!!</u></b>'
+    elif dist > 800:
         dist_html = f'<b><u>{dist}!</u></b>'
     elif dist > 600:
         dist_html = f'<b><u>{dist}</u></b>'
@@ -1317,8 +1485,12 @@ def shoes_distance_html(user_df,activity_number):
     
     return(html)
 
-ws_df = dr.pull_data('WS')  
-print(shoes_distance_html(ws_df,'4854330057'))
+
+        
+    
+
+#ws_df = dr.pull_data('WS')  
+#print(shoes_distance_html(ws_df,'4854330057'))
 
 
 #activity_comparisons(ws_df,'AB3G1638')
