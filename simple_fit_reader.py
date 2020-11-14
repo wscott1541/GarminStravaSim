@@ -19,7 +19,7 @@ import time
 
 #ac_file = input('activity_file_name.FIT: ')
 
-ac_file = 'AB5G2247.FIT'
+ac_file = 'ABEF5856.FIT'
 
 if len(ac_file) == 44:
     ac_file = ac_file[-12:]
@@ -36,6 +36,8 @@ longitudes = []
 distances = []
 cadences = []
 
+conversion = 180 / (2 ** 31)
+
 # Get all data messages that are of type record
 for record in fitfile.get_messages('record'):
 
@@ -48,6 +50,7 @@ for record in fitfile.get_messages('record'):
             timestamps.append(record_data.value)
         if record_data.name == 'position_lat':
             latitudes.append(record_data.value)
+            #print(record_data - 10)
         if record_data.name == 'position_long':
             longitudes.append(record_data.value)
         if record_data.name == 'heart_rate':
@@ -70,8 +73,7 @@ for record in fitfile.get_messages('record'):
         
         #cadence, distance,enhanced_speed,heart_rate,lat,lon,speed,timestamp, unknown_88
         """
-
-
+        
 df = pd.DataFrame(columns=['time','lat','lon','HR','distance','cadence'])
 
 lat_breaks = []
@@ -84,31 +86,32 @@ for i in range(0,len(timestamps)):
     #blank out and add lat/lon if cardio
     
     try:
-        lat = latitudes[i] / (10 ** (7))
+        lat = latitudes[i] * conversion
+        #print(lat)
     except:
         if len(lat_breaks) == 0:
-            lat_breaks.append(latitudes[i-1] / (10 ** (7)))
+            lat_breaks.append(latitudes[i-1] * conversion)
         elif lat_break_checks[-1] == i - 1:
             here = 'junk'
         else:
-            lat_breaks = [latitudes[i-1] / (10 ** (7))]
+            lat_breaks = [latitudes[i-1] * conversion]
         lat_break_checks.append(i)
         
         lat = lat_breaks[0]
     try:
-        lon = longitudes[i] * (10 ** (-7))
+        lon = longitudes[i] * conversion
     except:
         if len(lon_breaks) == 0:
-            lon_breaks.append(longitudes[i-1] / (10 ** (7)))
+            lon_breaks.append(longitudes[i-1] * conversion)
         elif lon_break_checks[-1] == i - 1:
             here = 'junk'
         else:
-            lon_breaks = [longitudes[i-1] / (10 ** (7))]
+            lon_breaks = [longitudes[i-1] * conversion]
         lon_break_checks.append(i)    
         
         lon = lon_breaks[0]
     
-    
+    #print(lat)
     #lat = 'NONE'
     #lon = 'NONE'
     
@@ -117,6 +120,8 @@ for i in range(0,len(timestamps)):
     row = [timestamp,lat,lon,heart_rates[i],distances[i],cadences[i]]
     a_row = pd.Series(row,index=df.columns)
     df = df.append(a_row,ignore_index=True)
+
+#fjkgdnd = jrntgi
 
 #time = timestamps[0]
 
@@ -155,7 +160,7 @@ archive = pd.DataFrame(data)
 archname = os.path.join(fileDir, 'Archive.gitignore/{}{}'.format(today_string,file_name))
 archive.to_csv(r'{}'.format(archname), index = False)
 
-date = timestamps[0] + timedelta(hours=1)
+date = timestamps[0]# + timedelta(hours=1)
 dist = round((distances[-1]/1000),2)
 full_td = timestamps[-1] - timestamps[0]
 full_secs = full_td.total_seconds()
@@ -207,7 +212,7 @@ else:
 
 print('Processing email...')
 
-import map_email_gen
+#import map_email_gen
 
 try:
     os.remove(f'{ac_abbr}.FIT')
