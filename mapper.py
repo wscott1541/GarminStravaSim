@@ -249,9 +249,9 @@ def pyplot_basic(activity_df):
     plt.plot(lons,lats)
     
     plt.scatter([lons[0]],[lats[0]],color='green')
-    plt.annotate('S',(lons[0],lats[0]),color='green')
+    #plt.annotate('S',(lons[0],lats[0]),color='green')
     plt.scatter([lons[-1]],[lats[-1]],color='red')
-    plt.annotate('F: {}km'.format(final),(lons[-1],lats[-1]),color='red')
+    plt.annotate('{}km'.format(final),(lons[-1],lats[-1]),color='red')
     
     n = 1
     for i in range(0,len(dists)):
@@ -276,8 +276,11 @@ def pyplot_basic(activity_df):
 
     
     #plt.axis('scaled')
-    
-#ac_df = analyse.route_data('AAKF0322')
+
+#import data_read as dr
+
+#last = dr.latest_activity('WS')
+#ac_df = analyse.route_data(last)
 #pyplot_basic(ac_df)    
 
 def pyplot_colourmap(activity_df):
@@ -373,10 +376,12 @@ def best_stretch_map(gpx_df,distance):
     #print(distance_times)
     #print(ends)        
     endlist = []
+    best_out = []
     
     if len(distance_times) > 0:
         #distance_times.sort()
         best = min(distance_times)
+        best_out.append(best)
         #print(best)
         for i in range(0,len(distance_times)):
             if distance_times[i] == best:
@@ -440,11 +445,20 @@ def best_stretch_map(gpx_df,distance):
     
     plt.gca().set_aspect('equal', adjustable='box')
     
+    #best_str = str(best_out[0])[-8:]
+    
+    #title = f'{distance}m: {best_str}'
+    
+    #plt.title(title)
+    
     #matplotlib.axes.Axes.set_aspect(plt,'equal')
     
 #ac_df = analyse.route_data('AAMC2600')
 #best_stretch_map(ac_df,1600)
 
+#from analyse import paul_df
+
+#best_stretch_map(paul_df,1000) 
 
 
 #print(cm.tab10[1])
@@ -455,3 +469,115 @@ def best_stretch_map(gpx_df,distance):
 #pyplot_basic(ac_df)
 #plt.show()
 #plot_osm_map(output='test-speed-map.html', hr=None)
+
+import mplleaflet
+
+def mplleaflet_test(activity_df):
+
+    lons = activity_df['lon'].tolist()
+    
+    lats = activity_df['lat'].tolist()
+    #print(lats[0])
+    
+    #print(lons[0])
+    
+    plt.plot(lons,lats)
+    
+    mplleaflet.show()
+    
+    mplleaflet.save_html()
+    
+import smopy
+
+def smopy_test(activity_df):
+    lats = activity_df['lat'].tolist()
+    
+    
+    #print(lats[0])
+    lons = activity_df['lon'].tolist()
+    
+    lat_min = min(lats)
+    print(lat_min)
+    lon_min = min(lons)
+    print(lon_min)
+    lat_max = max(lats)
+    print(lat_max)
+    lon_max = max(lons)
+    print(lon_max)
+    
+    #map = smopy.Map((42., -1., 55., 3.), z=4)
+    map = smopy.Map((lat_min,lon_min,lat_max,lon_max))
+    
+    #fig,ax = plt.subplots()
+    
+    #x, y = map.to_pixels(48.86151, 2.33474)
+    ax = map.show_mpl(figsize=(8, 6))
+    #ax.plot(x, y, 'or', ms=10, mew=2);
+    ax.plot(lons, lats, color='blue')
+    
+    plt.savefig('check.png')
+    
+    #map.save_png('test.png')
+    
+import tilemapbase
+
+def tmb_test(activity_df):
+    lons = activity_df['lon'].tolist()
+    lats = activity_df['lat'].tolist()
+    
+    tilemapbase.start_logging()
+    tilemapbase.init(create=True)
+    t = tilemapbase.tiles.build_OSM()
+    
+    rang = 0.002
+    
+    print(max(lats))
+    
+    lat_min = min(lats) - rang
+    print(lat_min)
+    lon_min = min(lons) - rang
+    print(lon_min)
+    lat_max = max(lats) + rang
+    print(lat_max)
+    lon_max = max(lons) + rang
+    print(lon_max)
+    
+    extent = tilemapbase.Extent.from_lonlat(lon_min, lon_max,
+                  lat_min, lat_max)
+    #extent = extent.to_aspect(1.0)
+    
+    path = [tilemapbase.project(x,y) for x,y in zip(lons, lats)]
+    x, y = zip(*path)
+    
+    fig, ax = plt.subplots(figsize=(8,8))
+
+    plotter = tilemapbase.Plotter(extent, tilemapbase.tiles.build_OSM(), width=600)
+    plotter.plot(ax)
+    ax.plot(x, y)
+    
+    plt.axis('off')
+    
+    plt.savefig('maybe.png')
+    
+    #fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
+    #ax.xaxis.set_visible(False)
+    #ax.yaxis.set_visible(False)
+
+    #plotter = tilemapbase.Plotter(extent, t, width=600)
+    #plotter.plot(ax, t)
+
+    #x, y = tilemapbase.project(*my_office)
+    #ax.plot(lons,lats, color="black", linewidth=20)
+    
+    #print(lats[0])
+    
+    
+#ac_df = analyse.route_data('ABEF5856')
+#mplleaflet_test(ac_df)
+#tmb_test(ac_df)
+#plt.show()
+#pyplot_colourmap(ac_df)
+        
+    #plt.axis('off')
+    
+    #plt.gca().set_aspect('equal', adjustable='box')
