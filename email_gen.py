@@ -44,6 +44,8 @@ receiver_email = users_list[0]
 initials_list = users_df['Initials'].tolist()
 initials = initials_list[0]
 
+
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -84,23 +86,32 @@ def attach_chart_as_html(body):
     
 """List functions to send"""
 
-puf.plot_week_and_previous_distances(y_day_string,'Running')
+ac_df = dr.pull_data(initials)
+#puf.plot_week_and_previous_distances(y_day_string,'Running')
+puf.plot_week_previous_distances(ac_df,y_day_string,'Running')
 body = attach_chart_as_html(body)  
 #puf.plot_week_and_previous_distances(y_day_string,'Cycling')
 #body = attach_chart_as_html(body)
-ac_df = dr.pull_data(initials) 
+#ac_df = dr.pull_data(initials) 
 puf.plot_week_previous_durations(ac_df,y_day_string,'All')
 body = attach_chart_as_html(body) 
-puf.plot_month_distance(month,year,'Running')
+puf.plot_month_dists(month,year,'Running',ac_df)
 body = attach_chart_as_html(body)
-puf.plot_month_and_previous_distances(month,year,'Running')
+puf.plot_month_previous_distances(month,year,'Running',ac_df)
 body = attach_chart_as_html(body)
 puf.plot_month_and_previous_durations(month,year,'Running')
 body = attach_chart_as_html(body)
 
-user_df = dr.pull_data(initials)
-puf.plot_distances_equiv_month(user_df,month,year,'Running')
+#user_df = dr.pull_data(initials)
+puf.plot_distances_equiv_month(ac_df,month,year,'Running')
 body = attach_chart_as_html(body)
+
+if month > 9:
+    puf.plot_year_week_progress(ac_df,'Running',year)
+else:
+    puf.plot_rolling_year_week_progress(ac_df,'Running',today_string) 
+body = attach_chart_as_html(body)
+
 #puf.plot_month_and_previous_distances(month,year,'Cycling')
 #body = attach_chart_as_html(body)
 puf.plot_month_and_previous_distances(month,year,'Walking')
@@ -116,10 +127,10 @@ body = attach_chart_as_html(body)
 puf.plot_distances_all_previous(month,year,'Running')
 body = attach_chart_as_html(body)     
 
-muf.plot_month_distances(month,year,'Running')
-body = attach_chart_as_html(body)
-muf.plot_distances_this_week(y_day_string,'Running')
-body = attach_chart_as_html(body)
+#muf.plot_month_distances(month,year,'Running')
+#body = attach_chart_as_html(body)
+#muf.plot_distances_this_week(y_day_string,'Running')
+#body = attach_chart_as_html(body)
 
 outtro = puf.all_personal_bests_html()
 #message.attach(MIMEText(outtro, "html"))

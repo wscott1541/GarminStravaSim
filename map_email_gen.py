@@ -59,7 +59,7 @@ try:
     abbr_df = pd.DataFrame(abbr_data,columns=['abbr'])
     abbrs = abbr_df['abbr'].tolist()
     ac_abbr = abbrs[0]
-    add_animation = True
+    add_animation = False#turned off
 except:
     full = dr.pull_data(initials)
     acs = full['Activity number'].tolist()
@@ -117,7 +117,7 @@ def chart_as_html():
     return(img)
 
 def attach_chart_as_html(body):
-    plt.savefig('temp_image.jpg')
+    plt.savefig('temp_image.jpg')#bbox_inches = 'tight'
     
     encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
     
@@ -175,7 +175,8 @@ def attach_animation():
 if ac_type != 'Cardio':
     
     
-    mapper.pyplot_colourmap(ac_route)
+    #mapper.pyplot_colourmap(ac_route)
+    mapper.tmb_test(ac_route)
     body = chart_as_html()
     
     #body = add_animation()
@@ -191,6 +192,11 @@ if ac_type != 'Cardio':
     
     if ac_type == 'Running':
         mapper.best_stretch_map(ac_route,1000)
+        
+        if dr.activity_details(user_df,ac_abbr,'Distance') < 4:
+             body = attach_chart_as_html(body)
+             mapper.best_stretch_map(ac_route,1600)
+        
     else:
         try:        
             mapper.best_stretch_map(ac_route,5000)
@@ -205,6 +211,9 @@ if ac_type != 'Cardio':
         print('No HR')
     analyse.lap_bars(ac_route)
     body = attach_chart_as_html(body)
+    
+    #analyse.dist_dur_comp(ac_route)
+    #body = attach_chart_as_html(body)
     
     mapper.pyplot_basic(ac_route)
     body = attach_chart_as_html(body)
@@ -222,12 +231,17 @@ if ac_type != 'Cardio':
         body = body + analyse.hr_html(ac_route)
     except:
         print('No HR')
-    puf.plot_week_and_previous_distances(today_string,ac_type)
+    
+    puf.plot_rolling_year_week_progress(user_df,ac_type,date)  
     body = attach_chart_as_html(body)
-    ac_df = dr.pull_data(initials)
-    puf.plot_week_previous_durations(ac_df,date,ac_type)
+    
+    #ac_df = dr.pull_data(initials)
+    puf.plot_week_previous_distances(user_df,date,ac_type)
+    #puf.plot_week_and_previous_distances(today_string,ac_type)
     body = attach_chart_as_html(body)
-    puf.plot_month_and_previous_distances(month,year,ac_type)#would be nice to redo by date
+    puf.plot_week_previous_durations(user_df,date,ac_type)
+    body = attach_chart_as_html(body)
+    puf.plot_month_previous_distances(month,year,ac_type,user_df)#would be nice to redo by date
     body = attach_chart_as_html(body)
     
     if add_animation == True and ac_type == 'Running':
