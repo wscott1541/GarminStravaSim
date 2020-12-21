@@ -14,6 +14,10 @@ from datetime import datetime, timedelta
 
 import data_read as dr
 
+import mapper
+import os
+import base64
+
 initials = dr.initials_list[0]
 
 dates,distances,durations,types = dr.data_read(initials)
@@ -480,6 +484,19 @@ def plot_month_and_previous_durations(m,yyyy,activity):
     #plt.text(curr_month_dates[-2],curr_sum_durs[-1],curr_annot,horizontalalignment='right')
     ax.legend();
     plt.title(title)
+    
+    if prev_sum_durs[-1] > curr_sum_durs[-1]:
+        highest = prev_sum_durs
+    else:
+        highest = curr_sum_durs
+    
+    y_tags,y_ticks = minutes_axes_label(highest)
+    
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels(y_tags)
+    
+    ax.set_ylabel('Duration')
+    
     
 def plot_durations_all_previous(m,yyyy,activity):
     run_vals = []    
@@ -958,10 +975,10 @@ def plot_week_previous_distances(activities_df,date_string,activity):
     
     curr_days,curr_vals = week_distance_sum_list(activities_df,date_string,activity)
     curr_days = order_date_vals(curr_days)
-    curr_annot = 'This week: {}km'.format((curr_vals[-1]))
+    curr_annot = 'This week: {}km'.format(round(curr_vals[-1],2))
     prev_days,prev_vals = week_distance_sum_list(activities_df,prev_string,activity)
     prev_days = order_date_vals(prev_days)
-    prev_annot = 'Last week: {}km'.format((prev_vals[-1]))
+    prev_annot = 'Last week: {}km'.format(round(prev_vals[-1],2))
     
     fig,ax = plt.subplots()
     plt.plot(prev_days,prev_vals,color='blue',label=prev_annot)
@@ -1777,6 +1794,77 @@ def plot_rolling_year_week_progress(user_df,activity,date_string):
 
 #activity_comparisons(ws_df,'ABGG2939')
 #plot_distances_equiv_month(ws_df,10,2020,'All')
+
+def otd_list(date,user_df):
+    
+    dates = user_df['Date'].tolist()
+    activities = user_df['Activity number'].tolist()
+    
+    acs = []
+    
+    for i in range(0,len(dates)):
+        if str(date)[5:11] in str(dates[i]) and date[:11] not in str(dates[i]):
+           acs.append(activities[i])
+           
+    return(acs)       
+
+#ws_df = dr.pull_data('WS')
+
+#print(otd_list('2021-12-02',ws_df))
+           
+def otd_html(date,user_df,img = 'N'):
+    
+    otd_acs = otd_list(date,user_df)
+    
+    lines = ''
+    
+    for i in range(0,len(otd_acs)):
+        ac_no = otd_acs[i]
+        ac_date = dr.activity_details(user_df,ac_no,'Date')
+        ac_type = dr.activity_details(user_df,ac_no,'Type')
+        ac_dist = dr.activity_details(user_df,ac_no,'Distance')
+        ac_dur = dr.activity_details(user_df,ac_no,'Duration')
+        
+        line = f'{ac_date[:4]}: {ac_type}, {ac_dist}km in {ac_dur}'
+        
+        if len(lines) == 0:
+            lines = line
+        else:
+            lines = lines + f'''<br>
+{line}'''
+
+        if img != 'N' and ac_type != 'Cardio':
+            ac_df = analyse.route_data(ac_no)
+            mapper.tmb_test(ac_df,plot_size='small')
+            
+            plt.savefig('temp_image.jpg')
+    
+            encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
+    
+            html_img = f"""
+<br>
+<img src='data:image/jpg;base64,{encoded}'>
+"""
+    
+            os.remove('temp_image.jpg')
+    
+            plt.show()
+            
+            lines = lines + html_img
+                   
+            
+    html = f'''
+<body>
+<p>
+<u><b>On this day</b></u><br>
+{lines}
+</p>
+</body>'''
+
+    return(html)
+
+#print(otd_html('2020-12-02',ws_df,img='Y'))
+            
     
     
     

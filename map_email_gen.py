@@ -50,9 +50,9 @@ import data_read as dr
 
 initials = users_df['Initials'].tolist()[0]
 
-dates,distances,durations,types = dr.data_read(initials)
+#dates,distances,durations,types = dr.data_read(initials)
 
-date = dates[-1]
+#date = dates[-1] 
 
 try:
     abbr_data = pd.read_csv(r'temp-abbr.csv')
@@ -66,11 +66,17 @@ except:
     
     ac_abbr = acs[-1]
     
+    ac_abbr = 'AC2J3444'
+    
     add_animation = False
 
 user_df = dr.pull_data(initials)
 
 ac_type = dr.activity_details(user_df,ac_abbr,'Type')
+
+full_date = dr.activity_details(user_df,ac_abbr,'Date')
+
+date = str(full_date)[:10]
 
 import analyse
 
@@ -176,12 +182,15 @@ if ac_type != 'Cardio':
     
     
     #mapper.pyplot_colourmap(ac_route)
+    
     mapper.tmb_test(ac_route)
     body = chart_as_html()
     
     #body = add_animation()
     
     body = body + puf.html_assessment(user_df,ac_abbr)
+    # body +
+    
     
     puf.activity_comparisons(user_df,ac_abbr)
     body = attach_chart_as_html(body)
@@ -244,6 +253,10 @@ if ac_type != 'Cardio':
     puf.plot_month_previous_distances(month,year,ac_type,user_df)#would be nice to redo by date
     body = attach_chart_as_html(body)
     
+    otd_option = puf.otd_list(date,user_df)
+    if len(otd_option) > 0:
+        body = body + puf.otd_html(date,user_df,img='Y')
+    
     if add_animation == True and ac_type == 'Running':
         attach_animation()
     
@@ -260,6 +273,10 @@ else:
     ac_df = dr.pull_data(initials)
     puf.plot_week_previous_durations(ac_df,date,ac_type)
     body = attach_chart_as_html(body)
+    
+    otd_option = puf.otd_list(date,user_df)
+    if len(otd_option) > 0:
+        body = body + puf.otd_html(date,user_df,img='Y')
 
 reference = f"""<body><p>
 Ref: <i>{ac_abbr}</i></p></body>"""
