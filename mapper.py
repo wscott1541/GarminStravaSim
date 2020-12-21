@@ -11,7 +11,7 @@ https://www.earthdatascience.org/courses/scientists-guide-to-plotting-data-in-py
 
 import matplotlib
 import matplotlib.cm as cm
-import folium
+#import folium
 
 from datetime import datetime
 
@@ -521,7 +521,9 @@ def smopy_test(activity_df):
     
 import tilemapbase
 
-def tmb_test(activity_df):
+import haversine
+
+def tmb_test(activity_df,plot_size = 'reg'):
     lons = activity_df['lon'].tolist()
     lats = activity_df['lat'].tolist()
     
@@ -529,35 +531,80 @@ def tmb_test(activity_df):
     tilemapbase.init(create=True)
     t = tilemapbase.tiles.build_OSM()
     
-    rang = 0.002
+    rang = 0.001
     
-    print(max(lats))
+    #print(max(lats))
     
     lat_min = min(lats) - rang
-    print(lat_min)
+    #print(lat_min)
     lon_min = min(lons) - rang
-    print(lon_min)
+    #print(lon_min)
     lat_max = max(lats) + rang
-    print(lat_max)
+    #print(lat_max)
     lon_max = max(lons) + rang
-    print(lon_max)
+    #print(lon_max)
+    
+    lat_mean = sum(lats)/len(lats)
+    lon_mean = sum(lons)/len(lons)
+    
+    delta_x = lon_max-lon_min
+    #print(delta_x)
+    delta_y = lat_max-lat_min
+    #print(delta_y)
+    ratio=(delta_x)/(delta_y)
+    
+    dist_x = haversine.haversine((lat_mean,lon_min),(lat_mean,lon_max))
+    dist_y = haversine.haversine((lat_min,lon_mean),(lat_max,lon_mean))
+    
+    dist_ratio = dist_x/dist_y
+    #print(dist_ratio)
+    
+    #print(ratio)
+    ratio = dist_ratio
     
     extent = tilemapbase.Extent.from_lonlat(lon_min, lon_max,
                   lat_min, lat_max)
     #extent = extent.to_aspect(1.0)
+    extent = extent.to_aspect(ratio)
     
     path = [tilemapbase.project(x,y) for x,y in zip(lons, lats)]
     x, y = zip(*path)
     
-    fig, ax = plt.subplots(figsize=(8,8))
+    fig, ax = plt.subplots(figsize=(10*ratio,10))
 
     plotter = tilemapbase.Plotter(extent, tilemapbase.tiles.build_OSM(), width=600)
-    plotter.plot(ax)
-    ax.plot(x, y)
     
-    plt.axis('off')
+    if plot_size == 'reg':
+        plotter.plot(ax)
+        ax.plot(x, y)
     
-    plt.savefig('maybe.png')
+        ax.set_xticks([lon_mean])#in some way, removes all the padding.
+        ax.set_xticklabels(['-'])
+        ax.set_yticks([lat_mean])
+        ax.set_yticklabels(['1'])
+    
+        #plt.axis('off')
+        ax.set_axis_off()
+        
+    if plot_size == 'small':
+        
+        plotter.plot(plt.axes())#is the smaller map
+        plt.plot(x,y)
+        plt.axis('off')
+    
+    
+    #ax.set_xlim([lon_min,lon_max])
+    #ax.set_ylim([-90,90])
+    
+    #box = ax.get_position()
+    #ax.set_position([box.x0-0.2, box.y0, box.width, box.height])
+    
+    #plotter.plot(plt.axes())#is the smaller map
+    #plt.plot(x,y)
+    
+    #plt.axis('off')
+    
+    #plt.savefig('maybe.png',bbox_inches='tight')
     
     #fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
     #ax.xaxis.set_visible(False)
@@ -574,8 +621,11 @@ def tmb_test(activity_df):
     
 #ac_df = analyse.route_data('ABEF5856')
 #mplleaflet_test(ac_df)
-#tmb_test(ac_df)
+#tmb_test(ac_df,plot_size='small')
 #plt.show()
+
+
+
 #pyplot_colourmap(ac_df)
         
     #plt.axis('off')
