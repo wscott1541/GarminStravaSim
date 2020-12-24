@@ -12,11 +12,15 @@ from today_string import today_string, year, month, day, y_day_string
 
 from datetime import datetime, timedelta
 
+from math import pi
+
 import data_read as dr
 
 import mapper
 import os
 import base64
+
+import numpy as np
 
 initials = dr.initials_list[0]
 
@@ -248,6 +252,8 @@ def minutes_loop(final,multiple):
     tags.append(final_tag)
     points.append(final)
     
+    #print(points)
+    
     return(tags,points)
     
 #t,p = minutes_loop(48,5)
@@ -257,8 +263,10 @@ def minutes_loop(final,multiple):
 def minutes_axes_label(minutes):
     final = minutes[-1]
     
+    #print(final)
+    
     if final > 300:
-        tags,poitns = minutes_loop(final,60)
+        tags,points = minutes_loop(final,60)
     elif final > 180:
         tags,points = minutes_loop(final,45)
     elif final > 90:
@@ -489,6 +497,8 @@ def plot_month_and_previous_durations(m,yyyy,activity):
         highest = prev_sum_durs
     else:
         highest = curr_sum_durs
+        
+    #print(highest)
     
     y_tags,y_ticks = minutes_axes_label(highest)
     
@@ -1769,8 +1779,12 @@ def plot_rolling_year_week_progress(user_df,activity,date_string):
     dists = []
     avgs = []
     
+    ticks = []
+    labels = []
+    
     for i in range(0,52):
         sta = end - timedelta(days=7*(i+1))
+        #print(sta)
         dist = week_dist_sum(user_df,activity,sta)
         dists.append(dist)
         xs.append(51.5 - i)
@@ -1778,6 +1792,17 @@ def plot_rolling_year_week_progress(user_df,activity,date_string):
         fin = end - timedelta(days=7*(i))
         avg = prev_four_week_avg(user_df,activity,fin)
         avgs.append(avg)
+        
+        week_end = end - timedelta(days=7*(i))
+        week_end_day = round(float(datetime.strftime(week_end,'%d')))
+        
+        if week_end_day <= 7:
+            point = (51.5 - i) - 0.8 * (week_end_day - 4)/7
+            month_sta = datetime.strftime(week_end,'%b')
+            
+            ticks.append(point)
+            labels.append(month_sta)
+            
     
     fig,ax = plt.subplots()
     
@@ -1788,12 +1813,56 @@ def plot_rolling_year_week_progress(user_df,activity,date_string):
     
     ax.set_ylabel('Distance (km)')
     
+    plt.xticks(ticks,labels)
+    
     plt.title(f'Weekly {activity} distances till {date_string}')
 
 #plot_rolling_year_week_progress(ws_df,'Running',today_string)
 
 #activity_comparisons(ws_df,'ABGG2939')
 #plot_distances_equiv_month(ws_df,10,2020,'All')
+
+def plot_rolling_year_week_day_progress(user_df,activity,date_string):
+    
+    end = datetime.strptime(date_string,'%Y-%m-%d')
+    
+    sta = end - timedelta(days=7*52)
+    #print(sta)
+    
+    bar_xs = []
+    dists = []
+    line_xs = []
+    avgs = []
+    
+    
+    for i in range(0,52):
+        week_sta = sta + timedelta(days=7*(i))
+        dist = week_dist_sum(user_df,activity,week_sta)
+        dists.append(dist)
+        bar_xs.append(0.5+i)
+        
+        for n in range(0,7):
+            month_fin = week_sta + timedelta(days=n)
+            avg = prev_four_week_avg(user_df,activity,month_fin)
+            avgs.append(avg)
+            point = i + (n/7)
+            line_xs.append(point)
+    
+    fig,ax = plt.subplots()
+    
+    plt.bar(bar_xs,dists,width=1)
+    plt.plot(line_xs,avgs,color='red')
+    
+    plt.xlim([0,52])
+    
+    ax.set_ylabel('Distance (km)')
+    
+    plt.title(f'Weekly {activity} distances till {date_string}')
+    
+
+#plot_rolling_year_week_day_progress(ws_df,'Running','2020-12-24')
+#plt.show()
+#plot_rolling_year_week_progress(ws_df,'Running','2020-12-24')
 
 def otd_list(date,user_df):
     
@@ -1864,7 +1933,175 @@ def otd_html(date,user_df,img = 'N'):
     return(html)
 
 #print(otd_html('2020-12-02',ws_df,img='Y'))
-            
+
+def activities_in_week_for_wheel(user_df,activity_type,start_date):
+    dates = user_df['Date'].tolist()
+    types = user_df['Activity Type'].tolist()
     
+    
+    week = []
+    
+    for n in range(0,7):
+        day = start_date + timedelta(days=n)
+        day_string = datetime.strftime(day,'%Y-%m-%d')
+        
+        for i in range(0,len(dates)):
+            if day_string in dates[i] and activity_type in types[i]:
+                week.append(0.3+(n+1)/7)
+                
+    return(week)
+            
+def year_activity_wheel(user_df,activity,date_string,labels_on='N'):
+    
+    end = datetime.strptime(date_string,'%Y-%m-%d')
+    
+    sta = end - timedelta(days=7*52)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='polar')
+    
+    x_ticks = []
+    x_labels = []
+    
+    for i in range(0,52):
+        week_sta = sta + timedelta(days=7*i)
+        week = activities_in_week_for_wheel(user_df, activity, week_sta)
+        
+        if labels_on != 'N':
+            val = - pi/2
+        else:
+            val = 0
+        
+        angle = 2 * pi * (i/52) + pi/2 + val
+        angles = []
+        
+        for n in range(0,len(week)):
+            angles.append(angle)
+        
+        if len(week) > 0:
+            ax.scatter(angles, week,s=15)
+            
+        if i%8 == 0 and labels_on != 'N':
+            date_label = f'''w/c
+{str(week_sta)[:10]}'''
+            x_ticks.append(angle)
+            x_labels.append(date_label)
+    
+    #ax.set_yticks([1/7,2/7,3/7,4/7,5/7,6/7,1])        
+    
+    #plt.xticks(x_ticks,labels)
+    
+    #ax.set_xticks(x_ticks)
+    #ax.set_xticklabels(labels)
+    if labels_on != 'N':
+        plt.yticks([1/7,2/7,3/7,4/7,5/7,6/7,1],'')
+        plt.xticks(x_ticks,x_labels)
+    
+        ax.set_thetamin(0)
+        ax.set_thetamax(360)
+    else:
+        plt.axis('off')
+    
+    title_date = datetime.strftime(sta,'%Y-%m-%d')
+    
+    plt.title(f'{activity}, {title_date} to {date_string}')
+    
+def activities_in_week_null(user_df,activity_type,start_date):
+    dates = user_df['Date'].tolist()
+    types = user_df['Activity Type'].tolist()
+    
+    week = []
+    null = []
+    
+    for n in range(0,7):
+        day = start_date + timedelta(days=n)
+        day_string = datetime.strftime(day,'%Y-%m-%d')
+        
+        found = False
+        
+        for i in range(0,len(dates)):
+            
+            if day_string in dates[i] and activity_type in types[i]:
+                week.append(0.5+(n+1)/7)
+                found = True
+                
+        if found == False:
+            null.append(0.5+(n+1)/7)
+                
+    return(week, null)
+    
+def year_activity_wheel_null(user_df,activity,date_string,labels_on='N'):
+    
+    end = datetime.strptime(date_string,'%Y-%m-%d')
+    
+    sta = end - timedelta(days=7*52)
+    
+    title_date = datetime.strftime(sta,'%Y-%m-%d')
+    
+    title = f'{activity}, {title_date} to {date_string}'
+    
+    if activity == 'All':
+        activity = 'i'
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='polar')
+    
+    x_ticks = []
+    x_labels = []
+    
+    for i in range(0,52):
+        week_sta = sta + timedelta(days=7*i)
+        week,null = activities_in_week_null(user_df, activity, week_sta)
+        
+        if labels_on != 'N':
+            val = - pi/2
+        else:
+            val = 0
+        
+        angle = 2 * pi * (i/52) + pi/2 + val
+        angles = []
+        nangles = []
+        
+        for n in range(0,len(week)):
+            angles.append(angle)
+            
+        for n in range(0,len(null)):
+            nangles.append(angle)
+        
+        if len(week) > 0:
+            ax.scatter(angles, week, s=15,color='red')
+            
+        if len(null) > 0:
+            ax.scatter(nangles, null, s=5,color='black')
+            
+        if i%8 == 0 and labels_on != 'N':
+            date_label = f'''w/c
+{str(week_sta)[:10]}'''
+            x_ticks.append(angle)
+            x_labels.append(date_label)
+    
+    #ax.set_yticks([1/7,2/7,3/7,4/7,5/7,6/7,1])        
+    
+    #plt.xticks(x_ticks,labels)
+    
+    #ax.set_xticks(x_ticks)
+    #ax.set_xticklabels(labels)
+    if labels_on != 'N':
+        plt.yticks([1/7,2/7,3/7,4/7,5/7,6/7,1],'')
+        plt.xticks(x_ticks,x_labels)
+    
+        ax.set_thetamin(0)
+        ax.set_thetamax(360)
+    else:
+        plt.axis('off')
+    
+    #title_date = datetime.strftime(sta,'%Y-%m-%d')
+    
+    plt.title(title)
+
+#ws_df = dr.pull_data('WS')    
+#year_activity_wheel_null(ws_df,'All','2020-12-24')
+#plt.show()
+#year_activity_wheel(ws_df,'Walking','2020-12-24')
     
     
