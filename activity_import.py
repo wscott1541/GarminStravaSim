@@ -32,10 +32,10 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
     #set-up
     initials = dr.pull_initials()
     
-    if 'FIT' not in FIT:
+    if ('FIT' not in FIT) and (FIT != 'NONE'):
         FIT = FIT + '.FIT'
     
-    if 'gpx' not in gpx:
+    if ('gpx' not in gpx) and (gpx != 'NONE'):
         gpx = gpx + '.gpx'
         
     if gpx == 'NONE' or (FIT != 'NONE' and gpx != 'NONE'):
