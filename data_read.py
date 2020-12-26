@@ -13,11 +13,29 @@ from datetime import datetime, timedelta
 
 import os
 
-user_data = pd.read_csv (r'users.csv')  
- 
-users = pd.DataFrame(user_data, columns= ['Initials'])
+cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
-initials_list = users['Initials'].tolist()
+def pull_initials():
+    user_data = pd.read_csv (r'users.csv')  
+ 
+    users = pd.DataFrame(user_data, columns= ['Initials'])
+
+    initials_list = users['Initials'].tolist()
+    
+    initials = initials_list[0]
+    
+    return(initials)
+
+def pull_gpx_status(initials):
+    user_data = pd.read_csv (r'users.csv')  
+ 
+    users = pd.DataFrame(user_data, columns= ['GPX'])
+
+    gpx_statii = users['GPX'].tolist()
+    
+    gpx_status = gpx_statii[0]
+    
+    return(gpx_status)    
 
 def stringtime_to_floatminute(time_string):
         hours = float(time_string[:2])
@@ -27,8 +45,6 @@ def stringtime_to_floatminute(time_string):
         time = hours * 60 + minutes + seconds/60
     
         return(time)
-
-cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
 def pull_data(initials):
     file_name = "{}activities.csv".format(initials)
@@ -208,7 +224,8 @@ def latest_activity(initials):
 
     latest = ac_numbers[-1]
     
-    return(latest) 
+    return(latest)
+
 
 
     
