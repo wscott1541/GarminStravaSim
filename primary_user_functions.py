@@ -22,7 +22,7 @@ import base64
 
 import numpy as np
 
-initials = dr.initials_list[0]
+initials = dr.pull_initials()
 
 dates,distances,durations,types = dr.data_read(initials)
 

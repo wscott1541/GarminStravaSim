@@ -38,7 +38,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
     if ('gpx' not in gpx) and (gpx != 'NONE'):
         gpx = gpx + '.gpx'
         
-    if gpx == 'NONE' or (FIT != 'NONE' and gpx != 'NONE'):
+    if gpx != 'NONE':
         
         name_options = 'ABCDE'
         
@@ -47,8 +47,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
         latest_name = dr.latest_activity(initials)
         
         for i in range(0,len(name_options)):
-            if  f'{name_options}{year}{month}{day}' != latest_name:
-                available_options.append(f'{name_options}{year}{month}{day}')
+            if  f'{name_options[i]}{year}{month}{day}' != latest_name:
+                available_options.append(f'{name_options[i]}{year}{month}{day}')
         
         ac_abbr = available_options[0]
     else:
@@ -109,7 +109,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
                         lat_breaks = [latitudes[i-1] * conversion]
                         lat_break_checks.append(i)
         
-                lat = lat_breaks[0]
+                    lat = lat_breaks[0]
 
                 try:
                     lon = longitudes[i] * conversion
@@ -122,7 +122,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
                         lon_breaks = [longitudes[i-1] * conversion]
                         lon_break_checks.append(i)    
         
-                lon = lon_breaks[0]
+                    lon = lon_breaks[0]
                 
             else:
                 lat = 'NONE'
@@ -377,3 +377,4 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
     except:
         print('Complete!')  
         
+activity_import(FIT='ACRB1018')
