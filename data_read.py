@@ -216,6 +216,52 @@ def split_count(user_df,split):
             n += 1           
                 
     return(n)
+
+def split_extremes(user_df,distance,extreme):
+    
+    splits = user_df[distance].tolist()
+    
+    filter_splits = []
+    
+    for i in range(0,len(splits)):
+        if 'NONE' not in splits[i]:
+            filter_splits.append(splits[i])
+    
+    if 'ax' in extreme:
+        output = max(filter_splits)
+    
+    if 'in' in extreme:
+        output = min(filter_splits)
+        
+    return(output)
+
+def split_percentile(user_df,distance,percentile):
+    
+    splits = user_df[distance].tolist()
+    
+    filter_splits = []
+    
+    for i in range(0,len(splits)):
+        if 'NONE' not in splits[i]:
+            filter_splits.append(splits[i])
+            
+    filter_splits.sort()
+    
+    if percentile > 1:
+        percentile = percentile /100
+    
+    val = round(percentile * len(filter_splits))
+    
+    if val == len(filter_splits):
+        val = val - 1
+    
+    output = filter_splits[val]
+    
+    return(output)
+    
+ws_df = pull_data('WS')
+split_percentile(ws_df,'1km',95)
+    
     
 def latest_activity(initials):
     df = pull_data(initials)

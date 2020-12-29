@@ -1934,6 +1934,41 @@ def otd_html(date,user_df,img = 'N'):
 
 #print(otd_html('2020-12-02',ws_df,img='Y'))
 
+def reorder_polar_labels(unordered_ticks,unordered_labels):
+    new_ticks = []
+    new_labels = []
+    
+    for i in range(0,len(unordered_ticks)):
+        if unordered_ticks[i] > 2 * pi:
+            tick = unordered_ticks[i] - 2 * pi
+        else:
+            tick = unordered_ticks[i]
+            
+        if len(new_ticks) == 0:
+            new_ticks.append(tick)
+            new_labels.append(unordered_labels[i])
+        elif tick > new_ticks[-1]:
+            new_ticks.append(tick)
+            new_labels.append(unordered_labels[i])
+        elif tick < new_ticks[0]:
+            new_ticks.insert(0,tick)
+            new_labels.insert(0,unordered_labels[i])
+        else:
+            insert = False
+            n = 1
+            
+            while insert == False:
+                
+                if tick < new_ticks[n]:
+                    new_ticks.insert(n,tick)
+                    new_labels.insert(n,unordered_labels[i])
+                    insert = True
+                
+                n += 1
+                
+    return(new_ticks,new_labels)
+            
+
 def activities_in_week_for_wheel(user_df,activity_type,start_date):
     dates = user_df['Date'].tolist()
     types = user_df['Activity Type'].tolist()
@@ -2103,5 +2138,128 @@ def year_activity_wheel_null(user_df,activity,date_string,labels_on='N'):
 #year_activity_wheel_null(ws_df,'All','2020-12-24')
 #plt.show()
 #year_activity_wheel(ws_df,'Walking','2020-12-24')
+
+def times_radar(user_df,activity_number):
+    
+    maxs = []
+    mins = []
+    
+    times = []
+    
+    dist = dr.activity_details(user_df,activity_number,'Distance') * 1000
+    
+    #print(dist)
+    
+    times.append(dr.activity_splits(user_df,activity_number,'1km'))
+    times.append(dr.activity_splits(user_df,activity_number,'1 mile'))             
+    times.append(dr.activity_splits(user_df,activity_number,'1.5 mile'))
+    
+    maxs.append(dr.split_percentile(user_df,'1km',0.95))
+    mins.append(dr.split_extremes(user_df,'1km','min'))
+    maxs.append(dr.split_percentile(user_df,'1 mile',0.95))
+    mins.append(dr.split_extremes(user_df,'1 mile','min'))
+    maxs.append(dr.split_percentile(user_df,'1.5 mile',0.95))
+    mins.append(dr.split_extremes(user_df,'1.5 mile','min'))
+    
+    if dist >= 4828.03:
+        times.append(dr.activity_splits(user_df,activity_number,'3 mile'))
+        maxs.append(dr.split_percentile(user_df,'3 mile',0.95))
+        mins.append(dr.split_extremes(user_df,'3 mile','min'))
+    
+    if dist >= 5000:
+        times.append(dr.activity_splits(user_df,activity_number,'5km'))
+        maxs.append(dr.split_percentile(user_df,'5km',0.95))
+        mins.append(dr.split_extremes(user_df,'5km','min'))
+        
+    if dist >= 10000:
+        times.append(dr.activity_splits(user_df,activity_number,'10km'))
+        maxs.append(dr.split_percentile(user_df,'10km',0.95))
+        mins.append(dr.split_extremes(user_df,'10km','min'))
+        
+    if dist >= 20000:
+        times.append(dr.activity_splits(user_df,activity_number,'20km'))
+        maxs.append(dr.split_percentile(user_df,'20km',0.95))
+        mins.append(dr.split_extremes(user_df,'20km','min'))
+        
+    if dist >= 21097.7:
+        times.append(dr.activity_splits(user_df,activity_number,'Half'))
+        maxs.append(dr.split_percentile(user_df,'Half',0.95))
+        mins.append(dr.split_extremes(user_df,'Half','min'))
+
+    if dist >= 42195:
+        times.append(dr.activity_splits(user_df,activity_number,'Full'))
+        maxs.append(dr.split_percentile(user_df,'Full',0.95))
+        mins.append(dr.split_extremes(user_df,'Full','min'))
+    
+    angles = []
+    points = []
+    outers = []    
+    
+    label_options = ['1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full']
+    x_labels = []
+    x_ticks = []
+    
+    for i in range(0,len(times)):
+        
+        base = maxs[i]
+        outer = mins[i]
+        split = times[i]
+        
+        #print(base[-8:])
+        
+        base = datetime.strptime(base[-8:],'%H:%M:%S')
+        outer = datetime.strptime(outer[-8:],'%H:%M:%S')
+        split = datetime.strptime(split[-8:],'%H:%M:%S')
+        
+        full_diff = base - outer
+        full_diff = full_diff.total_seconds()
+        this_diff = split - outer
+        this_diff = this_diff.total_seconds()
+        
+        fraction = this_diff/full_diff
+        
+        point = 1 - fraction
+        points.append(point)
+        
+        angle = 2 * pi * (i/len(times)) + pi/2
+        angles.append(angle)
+        
+        outers.append(1)
+        
+        x_labels.append(label_options[i])
+        x_ticks.append(angle)
+        
+    angles.append(angles[0])
+    points.append(points[0])
+    outers.append(1)
+    
+    print(x_labels)
+    print(x_ticks)
+    
+    new_ticks = []
+    
+    for t in range(0,len(x_ticks)):
+        if x_ticks[i] > pi * 2:
+            new_ticks.append(x_ticks[i] - pi*2)
+        else:
+            new_ticks.append(x_ticks[i])
+        
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='polar')
+    
+    ax.plot(angles,points)
+    ax.plot(angles,outers,':', color='red')
+    
+    new_x,new_lab = reorder_polar_labels(x_ticks, x_labels)
+    #print(new_x)
+    #print(new_lab)
+    
+    plt.xticks(new_x,new_lab)
+    
+    ax.set_thetamin(0)
+    ax.set_thetamax(360)
     
     
+#ws_df = dr.pull_data('WS')
+#print('df pulled')
+#times_radar(ws_df,'4632607330')

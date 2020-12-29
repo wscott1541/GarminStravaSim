@@ -200,6 +200,11 @@ if ac_type != 'Cardio':
     body = attach_chart_as_html(body)
     
     if ac_type == 'Running':
+        
+        if dr.activity_details(user_df,ac_abbr,'Distance') > 2414.02:
+            puf.times_radar(user_df,ac_abbr)
+            body = attach_chart_as_html(body)
+        
         mapper.best_stretch_map(ac_route,1000)
         
         if dr.activity_details(user_df,ac_abbr,'Distance') < 4:
