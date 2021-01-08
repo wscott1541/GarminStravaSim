@@ -20,7 +20,8 @@ from time import time
 
 import os
 
-import primary_user_functions as puf
+#import primary_user_functions as puf
+from primary_user_functions import minutes_axes_label
 
 def simple_gpx_pull(filename):
     
@@ -185,7 +186,7 @@ def route_data(activity_number):
         
     return(df)
     
-#print(route_data('A81A2327'))
+#print(route_data('A95G0437'))
 
 def best_time(distance,gpx_df):
     times = gpx_df['time'].tolist()    
@@ -1086,7 +1087,7 @@ def dist_dur_comp(df):
             
         plt.plot(xs,ys,color=colour)
         
-    tags,points = puf.minutes_axes_label(minutes)
+    tags,points = minutes_axes_label(minutes)
     
     new_points = []
     for i in range(0,len(points)):
@@ -1137,8 +1138,8 @@ def dur_dist_comp(df):
     
 #ac_no = dr.latest_activity('WS')
 #print(ac_no)
-route = route_data('M20201111')
-dist_dur_comp(route) 
+#route = route_data('M20201111')
+#dist_dur_comp(route) 
 #plt.show()
 #dur_dist_comp(route)
    

@@ -66,7 +66,7 @@ except:
     
     ac_abbr = acs[-1]
     
-    ac_abbr = 'AC2J3444'
+    #ac_abbr = 'A95G0437'
     
     add_animation = False
 
@@ -201,7 +201,7 @@ if ac_type != 'Cardio':
     
     if ac_type == 'Running':
         
-        if dr.activity_details(user_df,ac_abbr,'Distance') > 2414.02:
+        if dr.activity_details(user_df,ac_abbr,'Distance') > 2414.02/1000:
             puf.times_radar(user_df,ac_abbr)
             body = attach_chart_as_html(body)
         
@@ -275,8 +275,11 @@ else:
     analyse.hr_distribution(ac_route)
     body = attach_chart_as_html(body)
     body = body + analyse.hr_html(ac_route)
-    ac_df = dr.pull_data(initials)
-    puf.plot_week_previous_durations(ac_df,date,ac_type)
+    
+    puf.plot_week_previous_durations(user_df,date,ac_type)
+    body = attach_chart_as_html(body)
+    
+    puf.plot_month_and_previous_durations(month,year,ac_type,user_df)
     body = attach_chart_as_html(body)
     
     otd_option = puf.otd_list(date,user_df)

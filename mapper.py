@@ -15,6 +15,8 @@ import matplotlib.cm as cm
 
 from datetime import datetime
 
+from data_read import pull_data
+
 import pandas as pd
 
 import os
@@ -137,7 +139,7 @@ def osm_map_to_email(hr=None):
 """
 import matplotlib.pyplot as plt
 
-import analyse
+from data_read import route_data, activity_details
     
 def pyplot_heatmap(activity_df):
     #print(len(activity_number))
@@ -619,12 +621,74 @@ def tmb_test(activity_df,plot_size = 'reg'):
     #print(lats[0])
     
     
-#ac_df = analyse.route_data('ABEF5856')
+#ac_df = route_data('AB3A3807')
 #mplleaflet_test(ac_df)
-#tmb_test(ac_df,plot_size='small')
+#tmb_test(ac_df)
 #plt.show()
 
+def average_route(user_df,activity):
+    #types = user_df['Activity Type'].tolist()
+    
+    runs = ['ACRB1018','AB4H2007','AB3A3807','AAS92129','AA3D0046','AA3F3504']
+    
+    lengths = []
+    
+    for i in range(0,len(runs)):
+        length = activity_details(user_df,runs[i],'Time')
+        lengths.append(length)
+        
+    total_seconds = 55*60
+    
+    new_lat = []
+    new_lon = []
+    
+    for s in range(0,total_seconds):
+        new_lat.append([])
+        new_lon.append([])
+    
+    for i in range(0,len(runs)):
+        print(f'Assessing run {i}')
+        
+        route = route_data(runs[i])
+        
+        times = route['time'].tolist()
+        lons = route['lon'].tolist()
+        lats = route['lat'].tolist()
+        
+        for s in range(0,len(times)):
+            pos = int((times[s] - times[0]).total_seconds())
+            
+            if pos < len(new_lat):
+                new_lat[pos].append(lats[s])
+                new_lon[pos].append(lons[s])
+                
+    avg_lats = []
+    avg_lons = []
+    
+    print('Calculating averages')
+    
+    for i in range(0,len(new_lat)):
+        if len(new_lat[i]) > 0:
+            avg_lats.append(sum(new_lat[i])/len(new_lat[i]))
+        if len(new_lon[i]) > 0:
+            avg_lons.append(sum(new_lon[i])/len(new_lon[i]))
+            
+    avg_df = pd.DataFrame(columns=['lon','lat'])
+    
+    for i in range(0,len(avg_lats)):
+        row = [avg_lons[i],avg_lats[i]]
+        a_row = pd.Series(row,index=avg_df.columns)
+        avg_df = avg_df.append(a_row,ignore_index=True)
+        
+    return(avg_df)
 
+#ws_df = pull_data('WS')
+#avg_route = average_route(ws_df,'Running')
+
+#print(avg_route)
+
+#tmb_test(avg_route)
+#plt.savefig('avg_walk_test.jpg')
 
 #pyplot_colourmap(ac_df)
         

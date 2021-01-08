@@ -377,4 +377,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
     except:
         print('Complete!')  
         
-activity_import(FIT='ACRB1018')
+#activity_import(FIT='ACRB1018')
+#activity_import(FIT='ACTG2250',activity='Cardio')
+#activity_import(FIT='ACVH5024',activity='Cardio')
+#activity_import(FIT='B14H1013',activity='Cardio')
+#activity_import(FIT='B16H2648',activity='Cardio')
+#activity_import(FIT='B18H3619',activity='Cardio')

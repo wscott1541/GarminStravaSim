@@ -11,6 +11,10 @@ import pandas as pd
 from today_string import y_day_string
 from datetime import datetime, timedelta
 
+import haversine
+import gpxpy
+from math import sqrt
+
 import os
 
 cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
@@ -272,7 +276,170 @@ def latest_activity(initials):
     
     return(latest)
 
+""""ROUTE DATA PULL"""
 
+def simple_gpx_pull(filename):
+    
+    #fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    #filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
+    
+    try:
+        gpx_file = open(filename)
+        gpx = gpxpy.parse(gpx_file)
+
+        data = gpx.tracks[0].segments[0].points
+        
+        stop = 0
+    except:
+        stop = 1
+        
+    #time_str = str(data[0].time)[:19]
+    #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+
+
+    df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
+    #df = pd.DataFrame(columns=['lon','lat','alt'])
+
+    dist = [0]
+
+    if stop == 0:
+        for i in range(0,len(data)):
+            lon = data[i].longitude
+            lat = data[i].latitude
+            alt = data[i].elevation
+            try:
+                ext = data.extensions[0].getchildren()[0]
+                hr = int(ext.text)
+            except:
+                hr = 'N/A'
+        
+            time_str = str(data[i].time)[:19]
+            time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+    
+            if i > 0:
+                prev_lon = data[i-1].longitude
+                prev_lat = data[i-1].latitude
+                prev_alt = data[i-1].elevation
+                
+                delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
+                
+                delta_alt = alt - prev_alt
+                
+                distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
+                
+                new = dist[-1] + distance_3D
+        
+                dist.append(new)
+                
+            distance = dist[-1]
+
+            a_row = [lon,lat,alt,time_dt,distance,hr]
+            row = pd.Series(a_row,index=df.columns)
+            df = df.append(row,ignore_index = True)
+
+    return(df)
+
+def pull_gpx(activity_number):
+    
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
+    
+    try:
+        gpx_file = open(filename)
+        gpx = gpxpy.parse(gpx_file)
+
+        data = gpx.tracks[0].segments[0].points
+        
+        stop = 0
+    except:
+        stop = 1
+        
+    #time_str = str(data[0].time)[:19]
+    #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+
+
+    df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
+    #df = pd.DataFrame(columns=['lon','lat','alt'])
+
+    dist = [0]
+
+    if stop == 0:
+        for i in range(0,len(data)):
+            lon = data[i].longitude
+            lat = data[i].latitude
+            alt = data[i].elevation
+            try:
+                ext = data.extensions[0].getchildren()[0]
+                hr = int(ext.text)
+            except:
+                hr = 'N/A'
+        
+            time_str = str(data[i].time)[:19]
+            time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+    
+            if i > 0:
+                prev_lon = data[i-1].longitude
+                prev_lat = data[i-1].latitude
+                prev_alt = data[i-1].elevation
+                
+                delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
+                
+                delta_alt = alt - prev_alt
+                
+                distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
+                
+                new = dist[-1] + distance_3D
+        
+                dist.append(new)
+                
+            distance = dist[-1]
+
+            a_row = [lon,lat,alt,time_dt,distance,hr]
+            row = pd.Series(a_row,index=df.columns)
+            df = df.append(row,ignore_index = True)
+
+    return(df)
+    
+#print(pull_gpx(5221284558))
+    
+def pull_csv(activity_number):
+    
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
+    
+    #I think I only need distance and time
+    
+    data = pd.read_csv(r'{}'.format(filename))
+    old_df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
+    
+    lats = old_df['lat'].tolist()
+    lons = old_df['lon'].tolist()
+    dists_un = old_df['distance'].tolist()
+    times_un = old_df['time'].tolist()
+    hrs = old_df['HR'].tolist()
+    
+    df = pd.DataFrame(columns=['lon','lat','time','distance','HR'])
+    
+    for i in range(0,len(times_un)):
+        
+        time_dt = datetime.strptime(times_un[i],'%Y-%m-%d %H:%M:%S')
+        
+        row = [lons[i],lats[i],time_dt,dists_un[i],hrs[i]]
+        a_row = pd.Series(row,index=df.columns)
+        df = df.append(a_row,ignore_index=True)
+
+    return(df)
+    
+def route_data(activity_number):
+    if len(activity_number) == 10:
+        df = pull_gpx(activity_number)
+    if len(activity_number) == 8 or len(activity_number) == 9:
+        df = pull_csv(activity_number)
+        
+    return(df)
 
     
     
