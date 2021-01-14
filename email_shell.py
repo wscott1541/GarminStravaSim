@@ -8,6 +8,10 @@ Created on Sun Jun 21 17:44:06 2020
 
 import pandas as pd
 
+import email_functions
+
+import data_read as dr
+
 email_data = pd.read_csv (r'email_dates.csv')
 
 dates_df = pd.DataFrame(email_data, columns= ['Email sent'])
@@ -15,13 +19,16 @@ dates_df = pd.DataFrame(email_data, columns= ['Email sent'])
 dates_list = dates_df['Email sent'].tolist()
 latest_date = dates_list[-1]
 
-import update
+#import update
 
 from today_string import today_string
 
 if latest_date != today_string:
     
-    import email_gen
+    settings = email_functions.load_settings()
+    initials = dr.pull_initials()
+    
+    email_functions.summary_email(settings,initials)
     
     today = [today_string]
     row = pd.Series(today,index=dates_df.columns)

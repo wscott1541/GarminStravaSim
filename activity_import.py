@@ -63,6 +63,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 
     if FIT != 'NONE' and gpx == 'NONE':
         
+        print('Loading FIT')
+        
         fitfile = FitFile(FIT)
         
         heart_rates = []
@@ -136,6 +138,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 
     if FIT != 'NONE' and gpx != 'NONE':
         
+        print('Loading FIT')
+        
         fitfile = FitFile(FIT)
         
         fit_ts = []
@@ -152,6 +156,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
                     fit_ts.append(record_data.value)
                 if record_data.name == 'heart_rate':
                     fit_hr.append(record_data.value)
+        
+        print('Loading gpx')
         
         try:
             gpx_file = open(gpx)
@@ -170,6 +176,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
         distances.append(0)
 
         hrs = []
+        
+        print('Matching FIT to gpx')
 
         if stop == 0:
             for i in range(0,len(data)):
@@ -222,6 +230,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
                 df = df.append(row,ignore_index = True)
     
     if FIT == 'NONE' and gpx != 'NONE':
+        
+        print('Loading gpx')
+        
         try:
             gpx_file = open(gpx)
             gpx_unpacked = gpxpy.parse(gpx_file)
@@ -358,17 +369,31 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
     else:
         temp_df.to_csv(r'{}'.format(file_name))
 
-    print('Processing email...')
+    #print('Processing email...')
 
-    import map_email_gen
+    #try:
+    #    import map_email_gen
+    #    print('Sent on 1st attempt')
+    #except:
+    #    import map_email_gen
+
+    #import map_email_gen
+    
+    import email_functions
+    
+    settings = email_functions.load_settings()
+    
+    email_functions.activity_email(settings,ac_abbr,initials)
 
     try:
         os.remove(FIT)
+        print('FIT removed')
     except:
         print('No FIT file')
         
     try:
         os.remove(gpx)
+        print('gpx removed')
     except:
         print('No gpx file')
 
@@ -383,3 +408,5 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 #activity_import(FIT='B14H1013',activity='Cardio')
 #activity_import(FIT='B16H2648',activity='Cardio')
 #activity_import(FIT='B18H3619',activity='Cardio')
+#activity_import(FIT='B1BH0531',activity='Cardio')
+activity_import(FIT='B1EB0152')
