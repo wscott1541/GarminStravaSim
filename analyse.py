@@ -15,6 +15,7 @@ import pandas as pd
 from datetime import datetime
 import haversine
 from math import sqrt
+from numpy import NaN
 
 from time import time
 
@@ -146,6 +147,70 @@ def pull_gpx(activity_number):
             df = df.append(row,ignore_index = True)
 
     return(df)
+
+def pull_gpx_pd(activity_number):
+    ###Unfinished
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.gpx'.format(activity_number))
+    
+    try:
+        gpx_file = open(filename)
+        gpx = gpxpy.parse(gpx_file)
+
+        data = gpx.tracks[0].segments[0].points
+        
+        stop = 0
+    except:
+        stop = 1
+        
+    #time_str = str(data[0].time)[:19]
+    #time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+
+
+    df = pd.DataFrame(columns=['lon','lat','alt','time','HR'])
+    #df = pd.DataFrame(columns=['lon','lat','alt'])
+
+    dist = [0]
+
+    if stop == 0:
+        for i in range(0,len(data)):
+            lon = data[i].longitude
+            lat = data[i].latitude
+            alt = data[i].elevation
+            try:
+                ext = data.extensions[0].getchildren()[0]
+                hr = int(ext.text)
+            except:
+                hr = 'NaN'
+        
+            time_str = str(data[i].time)[:19]
+            time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
+    
+            #if i > 0:
+            #    prev_lon = data[i-1].longitude
+            #    prev_lat = data[i-1].latitude
+            #    prev_alt = data[i-1].elevation
+                
+            #    delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
+                
+            #    delta_alt = alt - prev_alt
+                
+            #    distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
+                
+            #    new = dist[-1] + distance_3D
+        
+            #    dist.append(new)
+                
+            #distance = dist[-1]
+
+            a_row = [lon,lat,alt,time_dt,hr]
+            row = pd.Series(a_row,index=df.columns)
+            df = df.append(row,ignore_index = True)
+            
+    
+
+    return(df)
     
 #print(pull_gpx(5221284558))
     
@@ -164,29 +229,69 @@ def pull_csv(activity_number):
     lons = old_df['lon'].tolist()
     dists_un = old_df['distance'].tolist()
     times_un = old_df['time'].tolist()
+    print(times_un[0])
+    print(type(times_un[0]))
     hrs = old_df['HR'].tolist()
-    
+
     df = pd.DataFrame(columns=['lon','lat','time','distance','HR'])
     
     for i in range(0,len(times_un)):
         
         time_dt = datetime.strptime(times_un[i],'%Y-%m-%d %H:%M:%S')
-        
         row = [lons[i],lats[i],time_dt,dists_un[i],hrs[i]]
         a_row = pd.Series(row,index=df.columns)
         df = df.append(a_row,ignore_index=True)
 
     return(df)
+
+def pull_csv_pd(activity_number):
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
+    
+    #I think I only need distance and time
+    
+    data = pd.read_csv(r'{}'.format(filename))
+    df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
+    
+    df['time'] = df['time'].apply(lambda x : datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
+    
+    return(df)
+    
+        
+                                  
+    #lats = old_df['lat'].tolist()
+    #lons = old_df['lon'].tolist()
+    #dists_un = old_df['distance'].tolist()
+    #times_un = old_df['time'].tolist()
+    #hrs = old_df['HR'].tolist()
+    
+    #df = pd.DataFrame(columns=['lon','lat','time','distance','HR'])
+    
+    #for i in range(0,len(times_un)):
+    #    
+    #    time_dt = datetime.strptime(times_un[i],'%Y-%m-%d %H:%M:%S')
+    #    row = [lons[i],lats[i],time_dt,dists_un[i],hrs[i]]
+    #    a_row = pd.Series(row,index=df.columns)
+    #    df = df.append(a_row,ignore_index=True)
+
+    #return(df)
     
 def route_data(activity_number):
     if len(activity_number) == 10:
         df = pull_gpx(activity_number)
     if len(activity_number) == 8 or len(activity_number) == 9:
-        df = pull_csv(activity_number)
+        df = pull_csv_pd(activity_number)
         
     return(df)
     
 #print(route_data('A95G0437'))
+
+def time_check():
+    today = time()
+    today_dt = datetime.fromtimestamp(today)
+    time_string = datetime.strftime(today_dt,'%H:%M:%S')
+    print(time_string)
 
 def best_time(distance,gpx_df):
     times = gpx_df['time'].tolist()    
@@ -197,14 +302,14 @@ def best_time(distance,gpx_df):
     first = [0]
     
     if len(distances) > 0 and distance < full:
-        for i in range(0,len(distances)):
+        for i in range(0,len(distances)):#could crop out by initially selecting df with d > distance
             
             if distances[i] > distance - 1:
                 if len(first) == 1:
-                    first.append(i)
+                    first.append(i)#I'm not totally sure what this is useful for?
                 
                 for v in range(0,i):
-                    if (distances[i] - distances[v]) > (distance - 1) and (distances[i] - distances[v]) < (distance + 100):
+                    if (distances[i] - distances[v]) < (distance + 100) and (distances[i] - distances[v]) > (distance - 1):
                         delta = times[i] - times[v]
                         distance_times.append(delta)
             
@@ -239,7 +344,157 @@ def best_time(distance,gpx_df):
         best = 'NONE'
 
     return(best)
+
+def create_nans(x):
+    if str(x)[-8] == '00:00:00':
+        x = NaN
+    return(x)
+
+def best_time_wm(distance,gpx_df):
+    distances = gpx_df['distance'].tolist()
+    times = gpx_df['time'].tolist()
     
+    indexes = []
+    
+    for i in range(0,len(gpx_df)):
+        
+        i_s = []
+        
+        for v in range(0,i):
+            if len(i_s) < 1 and (distances[i] - distances[i-v]) > distance:
+                i_s.append(i-v)
+                
+        if len(i_s) > 0:
+            indexes.append(i_s[0])
+        else:
+            indexes.append(i)#was NaN
+    
+    index_df = pd.DataFrame({'time': times,
+                             f'{distance} indexes': indexes})
+    gpx_df = pd.merge(gpx_df,index_df,on='time')
+    
+    print(gpx_df)
+    
+    gpx_df[f'{distance} indexes'] = gpx_df[f'{distance} indexes'].apply(lambda x: int(x)) 
+    
+    print(gpx_df[f'{distance} indexes'])
+    
+    #gpx_df = gpx_df.reset_index()
+    
+    gpx_df[f'{distance} time'] = gpx_df['time'] - gpx_df.iloc[(gpx_df[f'{distance} indexes'])]['time']
+    
+    gpx_df[f'{distance} time'] = gpx_df[f'{distance} time'].apply(create_nans)
+    
+    print(gpx_df)
+    
+    #print(len(indexes))
+    #print(len(gpx_df))
+    
+    #b_times = []
+    #dist_times = []
+    #for i in range(0,len(gpx_df)):
+    #    try:
+    #        t = gpx_df.iloc[i]['time'] - gpx_df.iloc[int(indexes[i])]['time']
+    #        b_times.append(t)
+    #    except:
+    #        t = NaN
+    #    dist_times.append(t)
+    #print(len(dist_times))
+    
+    #times_df = pd.DataFrame(dist_times,columns=[f'{distance} times'])
+    
+    #print(times_df[f'{distance} times'].min())
+    
+    
+    #gpx_df = pd.concat([gpx_df,index_df],axis = 1)
+    
+    #print(gpx_df[f'{distance} indexes'][600])
+    #print(type(gpx_df[f'{distance} indexes'][0]))
+    
+    #gpx_df[f'{distance} indexes'] = gpx_df[f'{distance} indexes'].apply(lambda x: int(x)) 
+    
+    #gpx_df[f'{distance} time'] = gpx_df['time'].apply(lambda x : x - gpx_df.iloc[(gpx_df[f'{distance} indexes'])]['time'])
+    
+    #gpx_df[f'{distance} time'] = gpx_df['time'] - gpx_df.iloc[int(gpx_df[f'{distance} indexes'])]['time']
+    
+    #print(gpx_df)    
+                
+    
+    
+def best_time_pandas(distance,gpx_df):
+    #times = gpx_df['time'].tolist()    
+    #distances = gpx_df['distance'].tolist()
+    full = gpx_df.iloc[-1]['distance']
+    
+    d_t = []
+    first = [0]
+    
+    t_df = gpx_df[['time','distance']]
+    #t_df = t_df.loc[t_df['distance'] <= distance]]
+    
+    zero_td = gpx_df.iloc[0]['time'] - gpx_df.iloc[0]['time']
+    
+    for i in range(0,len(t_df)):
+        dist = t_df.iloc[i]['distance']
+        time = t_df.iloc[i]['time']
+        
+        print(i,'/',len(t_df))
+        time_check()
+        
+        b_t = []
+        
+        if dist >= distance:
+            for v in range(0,i):
+                print('a')
+                time_check()
+                v_dist = t_df.iloc[v]['distance']
+                if (dist - v_dist < distance + 100) and (dist - v_dist >= distance):
+                    print('b')
+                    time_check()
+                    delta = time - t_df.iloc[v]['time']
+                    print('c')
+                    time_check()
+                    b_t.append(delta)
+                    #and (distances[i] - distances[v]) < (distance + 100):
+                     #   delta = times[i] - times[v]
+                      #  distance_times.append(delta)
+        
+        print('d')
+        time_check()
+        
+        
+        if len(b_t) > 0:
+            b_t.sort()
+            d_t.append(b_t[0])
+        else:
+            d_t.append(NaN)
+    
+    #d_t.sort()
+    b_times = []
+    for i in range(0,len(d_t)):
+        if d_t[i] != NaN:
+            b_times.append(d_t)
+    best = min(b_times)               
+
+    #if len(distance_times) > 0:
+    #    distance_times.sort()
+    #    best = distance_times[0]
+    #else:
+    #    best = 'NONE'
+
+    return(best)
+
+
+#time_check()
+#route = route_data('B23I1958')
+#time_check()
+#print('loaded')
+#print(route)
+#time_check()
+#check = best_time_wm(500,route)
+#time_check()
+#print(check)
+
 def remove_padding(time):
     if time[0] == '0':
         time = time[1]
