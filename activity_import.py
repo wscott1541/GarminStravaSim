@@ -25,9 +25,145 @@ import data_read as dr
 
 import analyse
 
+from numpy import NaN
+
 conversion = 180 / (2 ** 31)
 
-def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
+def create_nans(x):
+    if str(x)[-8:] == '00:00:00':
+        x = NaN
+    return(x)
+
+def best_time_ws(distance,gpx_df,pull_time=False):
+    
+    distance_numeral = dr.dist_dict[distance]
+    
+    #print('start')
+    #time_check()
+    distances = gpx_df['distance'].tolist()
+    #times = gpx_df['time'].tolist()
+    
+    indexes = []
+    
+    if distances[-1] > distance_numeral:
+    
+        for i in range(0,len(gpx_df)):
+        
+            i_s = []
+            v = 1
+        
+            while len(i_s) < 1 and distances[i] > distance_numeral and i > v:
+                #print(i,v)
+                if (distances[i] - distances[i-v]) > distance_numeral and (distances[i] - distances[i-v] < distance_numeral + 100):
+                    i_s.append(i-v)
+                v += 1
+        
+        # for v in range(0,i):
+            #
+                #if len(i_s) < 1 and (distances[i] - distances[i-v]) > distance_numeral and (distances[i] - distances[i-v] < distance_numeral + 100):
+                    #   i_s.append(i-v)
+                
+            if len(i_s) > 0:
+                indexes.append(i_s[0])
+            else:
+                indexes.append(i)#was NaN
+    
+    #gpx_df = gpx_df.index[gpx_df['distance'] < (distance - 1000)].tolist()[-1:]
+    
+   # print('first loop')
+    #time_check()
+    
+        gpx_df[f'{distance} indexes'] = indexes
+    
+    #print(gpx_df)
+    
+    #print(type(gpx_df['time'][0]))
+        if str(type(gpx_df['time'][0])) == 'str':#only if full loop
+            gpx_df['time'] = gpx_df['time'].apply(lambda x : datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
+    #print(type(gpx_df['time'][0]))
+        gpx_df[f'{distance} indexes'] = gpx_df[f'{distance} indexes'].apply(lambda x: int(x)) 
+    
+    #print(gpx_df[f'{distance} indexes'])
+    #gpx_df = gpx_df.reset_index()
+    #gpx_df['ref time'] = gpx_df['time'][gpx_df[f'{distance} indexes']]
+    
+        ref_times = []
+        for i in range(0,len(gpx_df)):
+            ref_time = gpx_df['time'][gpx_df[f'{distance} indexes'][i]]
+            ref_times.append(ref_time)
+    #print(len(ref_times))
+        gpx_df['ref_times'] = ref_times
+    
+        gpx_df[f'{distance} time'] = gpx_df['time'] - gpx_df['ref_times']
+        gpx_df[f'{distance} time'] = gpx_df[f'{distance} time'].apply(create_nans)
+        best_time = (gpx_df[f'{distance} time'].min())
+        idx_end = gpx_df[f'{distance} time'].idxmin()
+        idx_sta = gpx_df[f'{distance} indexes'][idx_end]
+    #print(gpx_df[f'{distance} indexes'][idx_min])
+    #print(gpx_df['time'][idx_min])
+    #print(gpx_df['time'][1238])
+    
+        best = []
+        for i in range(0,len(gpx_df)):
+            if i < idx_sta:
+                best.append(0)
+            elif i > idx_end:
+                best.append(2)
+            else:
+                best.append(1)
+    
+        gpx_df[f'{distance}'] = best
+    
+        gpx_df = gpx_df.drop(['ref_times',f'{distance} time',f'{distance} indexes'],axis=1)
+    #gpx_df[['lon','lat','time','distance','alt','HR',f'{distance}']]#better with drop
+    
+    #print(gpx_df)
+    
+        print(distance, 'complete')
+        print(best_time)
+    else:
+        best_time = 'NONE'
+        print(distance,'not found')
+    
+    if pull_time == True:
+        return(best_time)
+    else:     
+        return(gpx_df)
+
+def assess_main(main_df,gpx_df,ac_details,main_df_name):
+    df = main_df
+
+    ac_abbr,activity,date, dist,full_string,shoes
+
+    print('Loading activity {}'.format(len(df)))
+    row = []
+    if ac_details['type'] == 'Running':
+        
+        for i in range(0,len(dr.dist_list)):
+            best_time = best_time_ws(dist_list[i],gpx_df,pull_time=True)
+            row.append(best_time)
+        for i in range(0,6):
+            row.append('NONE')
+        status = 'CSV'
+    else:
+        for i in range(0,15):
+            row.append('NONE')
+        status = 'NONE'
+
+    series = [ac_no,types[i],dates[i],dists[i],times[i],shoes[i]] 
+    
+    for i in range(0,len(row)):
+        series.append(row[i])
+    series.append(status)
+    
+    
+    a_row = pd.Series(series,index=main_df.columns)#this should be done with a replace if the activity exists, else append
+    main_df = main_df.append(a_row,ignore_index = True)
+    main_df = main_df.sort_values(by='Date')
+    main_df.to_csv(r'{}'.format(main_df_name),index=False) 
+
+
+def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_option=True):
 
     #set-up
     initials = dr.pull_initials()
@@ -346,6 +482,12 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
         if activity == 'Walking':
             shoes = 'Merrell Vego 2019'
     
+    if activity == 'Running':
+        for i in range(0,len(dr.dist_list)):
+            #print(i)
+            df = best_time_ws(dr.dist_list[i], df)
+        
+            df.to_csv(filename)
     
     abbr_df = pd.DataFrame(columns=['abbr','type'])
     abbr_row = pd.Series([ac_abbr,activity],index=abbr_df.columns)
@@ -354,7 +496,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 
     temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes'])
 
-    row = [ac_abbr,activity,date, dist,full_string,shoes]
+    row = [ac_abbr,activity,date, dist,full_string,shoes]#convert to details
     a_row = pd.Series(row,index=temp_df.columns)
     temp_df = temp_df.append(a_row,ignore_index=True)
 
@@ -379,17 +521,18 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 
     #import map_email_gen
     
-    import email_functions
+    if email_option == True:
+        import email_functions
     
-    settings = email_functions.load_settings()
+        settings = email_functions.load_settings()
     
-    email_functions.activity_email(settings,ac_abbr,initials)
+        email_functions.activity_email(settings,ac_abbr,initials)
 
-    try:
-        os.remove(FIT)
-        print('FIT removed')
-    except:
-        print('No FIT file')
+    #try:
+    #    os.remove(FIT)
+    #    print('FIT removed')
+    #except:
+    #    print('No FIT file')
         
     try:
         os.remove(gpx)
@@ -409,4 +552,11 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default'):
 #activity_import(FIT='B16H2648',activity='Cardio')
 #activity_import(FIT='B18H3619',activity='Cardio')
 #activity_import(FIT='B1BH0531',activity='Cardio')
-activity_import(FIT='B1EB0152')
+#activity_import(FIT='B1FE3840')
+#activity_import(FIT='B1GB2515',shoes='Hoka One One Clifton 5')
+#activity_import(FIT='B1GC0317',shoes='Hoka One One Clifton 5')
+#activity_import(FIT='B1OI1525',activity='Cardio')
+#activity_import(FIT='B1PI2453',activity='Cardio')
+#activity_import(FIT='B1QF3648')
+#activity_import(FIT='B1SB0727',email_option=False)
+activity_import(FIT='B29F4706')

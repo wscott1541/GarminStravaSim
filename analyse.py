@@ -490,16 +490,16 @@ def best_time_pandas(distance,gpx_df):
 
 #time_check()
 #activity_5187172776
-route = route_data('5187172776')
+#route = route_data('5187172776')
 #time_check()
 #print('loaded')
 #print(route)
-print('start')
-time_check()
-check = best_time_wm(1000,route)
-time_check()
-print('finish')
-print(check)
+#print('start')
+#time_check()
+#check = best_time_wm(1000,route)
+#time_check()
+#print('finish')
+#print(check)
 
 def remove_padding(time):
     if time[0] == '0':

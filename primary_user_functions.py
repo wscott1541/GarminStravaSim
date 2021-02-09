@@ -10,13 +10,15 @@ import matplotlib.pyplot as plt
 
 from today_string import today_string, year, month, day, y_day_string
 
+#print(day)
+
 from datetime import datetime, timedelta
 
 from math import pi
 
 import data_read as dr
 
-import mapper
+from mapper import tmb_test
 import os
 import base64
 
@@ -288,8 +290,9 @@ def add_times(a,b):
     
     return(time)
 """
-        
-def duration_sum(m,yyyy,activity):
+'''     
+def duration_sum(m,yyyy,activity,user_df):
+    
     plot_mins = [0]
     month_dates = [0]
     
@@ -306,6 +309,43 @@ def duration_sum(m,yyyy,activity):
     
     #error message?
     return(month_dates,plot_mins)
+'''
+def duration_sum(m,yyyy,activity,user_df):
+    dates = user_df['Date'].tolist()
+    times = user_df['Time'].tolist()
+    types = user_df['Activity Type'].tolist()
+    
+    mins = []
+    
+    for i in range(0,len(times)):
+        time_string = str(times[i])
+        minutes = stringtime_to_floatminute(time_string)
+        mins.append(minutes)
+    
+    plot_mins = [0]
+    month_dates = [0]
+    
+    if activity == 'All':
+        activity = 'i'
+    
+    for i in range(0,len(dates)):
+        if date_string(m,yyyy) in str(dates[i]) and activity in types[i]:
+            times = plot_mins[-1] + mins[i]
+            plot_mins.append(times)
+            day_strf = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
+            day_strp = datetime.strftime(day_strf,'%d')
+            month_dates.append(float(day_strp))
+            #month_dates.append(float(dates[i][-2:]))
+            
+    populate_arrays(m,yyyy,month_dates,plot_mins)
+    
+    #error message?
+    return(month_dates,plot_mins)
+
+#ws_df = dr.pull_data('WS')
+
+#md,pm = duration_sum(1,2021,'Running',ws_df)
+#print(md)
         
 def month_diff(m1,yyyy1,m2,yyyy2):
     mon1 = yyyy1 * 12 + m1
@@ -353,12 +393,12 @@ def weekly_rolling_average(today_string,activity):
 Complete Functions
 """
 
-def plot_month_distance(m,yyyy,activity):
+def plot_month_distance(m,yyyy,activity,user_df):
     curr_month_dates, curr_sum_distances = distance_sum(m,yyyy,activity)
     
     title = '{} distances in {} {}'.format(activity,month_caller(m),yyyy)
     
-    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
+    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity,user_df)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
     
     fig,ax = plt.subplots()
@@ -370,7 +410,7 @@ def plot_month_distance(m,yyyy,activity):
     
 #plot_month_distance(11,2020,'Running')
     
-def plot_month_and_previous_distances(m,yyyy,activity):
+def plot_month_and_previous_distances(m,yyyy,activity,user_df):
     curr_month_dates, curr_sum_distances = distance_sum(m,yyyy,activity)
     
     if activity == 'All':
@@ -387,10 +427,10 @@ def plot_month_and_previous_distances(m,yyyy,activity):
         prev_month = m - 1
     prev_month_dates, prev_sum_distances = distance_sum(prev_month,new_year,activity)
     
-    junk_month_dates,prev_mins = duration_sum(m-1,yyyy,activity)
-    prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
+    junk_month_dates,prev_mins = duration_sum(prev_month,new_year,activity,user_df)
+    prev_annot = '{} {}: {}km in {} '.format(month_caller(prev_month),new_year,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
     
-    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
+    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity,user_df)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
     
     title = '{} distances in {} {} and {} {}'.format(title_activity, month_caller(prev_month),new_year,month_caller(m),yyyy)
@@ -408,7 +448,7 @@ def plot_month_dists(m,yyyy,activity,user_df):
     
     title = '{} distances in {} {}'.format(activity,month_caller(m),yyyy)
     
-    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
+    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity,user_df)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
     
     fig,ax = plt.subplots()
@@ -435,11 +475,15 @@ def plot_month_previous_distances(m,yyyy,activity,user_df):
         prev_month = m - 1
     prev_month_dates, prev_sum_distances = month_dist_sum(prev_month,new_year,activity,user_df)
     
-    junk_month_dates,prev_mins = duration_sum(m-1,yyyy,activity)
-    prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_sum_distances[-1]),floatminute_to_stringtime(prev_mins[-1]))
+    junk_month_dates,prev_mins = duration_sum(prev_month,new_year,activity,user_df)
+    prev_annot = '{} {}: {}km in {} '.format(month_caller(prev_month),new_year,round(prev_sum_distances[-1],2),floatminute_to_stringtime(prev_mins[-1]))
     
-    junk_month_dates,curr_mins = duration_sum(m,yyyy,activity)
-    curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1]),floatminute_to_stringtime(curr_mins[-1]))
+    try:
+        junk_month_dates_two,curr_mins = duration_sum(m,yyyy,activity,user_df)
+        cm_string = floatminute_to_stringtime(curr_mins[-1])
+    except:
+        cm_string = 'NOT FOUND'
+    curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_sum_distances[-1],2),cm_string)
     
     title = '{} distances in {} {} and {} {}'.format(title_activity, month_caller(prev_month),new_year,month_caller(m),yyyy)
     
@@ -452,15 +496,16 @@ def plot_month_previous_distances(m,yyyy,activity,user_df):
     plt.title(title)
     
 #ws_df = dr.pull_data('WS')
-#plot_month_dists(11,2020,'Running',ws_df)
-#plot_month_previous_distances(11,2020,'Running',ws_df)
+#plot_month_dists(1,2021,'Walking',ws_df)
+#plt.show()
+#plot_month_previous_distances(1,2021,'Running',ws_df)
 
 #plt.show()
     
 #plt.show()
 #plot_month_and_previous_distances(11,2020,'Running')
     
-def plot_month_and_previous_durations(m,yyyy,activity):
+def plot_month_and_previous_durations(m,yyyy,activity,user_df):
     
     if activity == 'All':
         activity = 'i'
@@ -468,17 +513,19 @@ def plot_month_and_previous_durations(m,yyyy,activity):
     else:
         title_activity = activity
     
-    curr_month_dates, curr_sum_durs = duration_sum(m,yyyy,activity)
+    curr_month_dates, curr_sum_durs = duration_sum(m,yyyy,activity,user_df)
+    #print(curr_sum_durs)
     if m == 1:
         new_year = yyyy - 1
         prev_month = 12
     else:
         new_year = yyyy
         prev_month = m - 1
-    prev_month_dates, prev_sum_durs = duration_sum(prev_month,new_year,activity)
+    prev_month_dates, prev_sum_durs = duration_sum(prev_month,new_year,activity,user_df)
+    #print(prev_month_dates)
     
-    junk_month_dates,prev_dists = distance_sum(m-1,yyyy,activity)
-    prev_annot = '{} {}: {}km in {} '.format(month_caller(m-1),yyyy,round(prev_dists[-1]),floatminute_to_stringtime(prev_sum_durs[-1]))
+    junk_month_dates,prev_dists = distance_sum(prev_month,new_year,activity)
+    prev_annot = '{} {}: {}km in {} '.format(month_caller(prev_month),new_year,round(prev_dists[-1]),floatminute_to_stringtime(prev_sum_durs[-1]))
     
     junk_month_dates,curr_dists = distance_sum(m,yyyy,activity)
     curr_annot = '{} {}: {}km in {} '.format(month_caller(m),yyyy,round(curr_dists[-1]),floatminute_to_stringtime(curr_sum_durs[-1]))
@@ -507,8 +554,11 @@ def plot_month_and_previous_durations(m,yyyy,activity):
     
     ax.set_ylabel('Duration')
     
+#ws_df = dr.pull_data('WS')
+#plot_month_and_previous_durations(1,2021,'Cardio',ws_df)
     
-def plot_durations_all_previous(m,yyyy,activity):
+    
+def plot_durations_all_previous(m,yyyy,activity,user_df):
     run_vals = []    
     
     title = '{} durations each month'.format(activity)
@@ -529,7 +579,7 @@ def plot_durations_all_previous(m,yyyy,activity):
     for i in range(earl_month,pick_month+1):
         temp_datestring = floatmonth_to_datestring(i)
         m_val,yyyy_val = pull_month_and_year(temp_datestring)
-        temp_dates,temp_sum = duration_sum(m_val,yyyy_val,activity)
+        temp_dates,temp_sum = duration_sum(m_val,yyyy_val,activity,user_df)
         plt.plot(temp_dates,temp_sum,label=temp_datestring)
     #if pick_month - earl_month > 6:    
     #    box = ax.get_position()
@@ -1774,6 +1824,7 @@ def plot_year_week_progress(user_df,activity,year):
 def plot_rolling_year_week_progress(user_df,activity,date_string):
     
     end = datetime.strptime(date_string,'%Y-%m-%d')
+    end = end + timedelta(days=1)
     
     xs = []
     dists = []
@@ -1817,7 +1868,8 @@ def plot_rolling_year_week_progress(user_df,activity,date_string):
     
     plt.title(f'Weekly {activity} distances till {date_string}')
 
-#plot_rolling_year_week_progress(ws_df,'Running',today_string)
+#ws_df = dr.pull_data('WS')
+#plot_rolling_year_week_progress(ws_df,'Walking',today_string)
 
 #activity_comparisons(ws_df,'ABGG2939')
 #plot_distances_equiv_month(ws_df,10,2020,'All')
@@ -1903,23 +1955,26 @@ def otd_html(date,user_df,img = 'N'):
 {line}'''
 
         if img != 'N' and ac_type != 'Cardio':
-            ac_df = analyse.route_data(ac_no)
-            mapper.tmb_test(ac_df,plot_size='small')
+            try:
+                ac_df = analyse.route_data(ac_no)
+                tmb_test(ac_df,plot_size='small')
             
-            plt.savefig('temp_image.jpg')
+                plt.savefig('temp_image.jpg')
     
-            encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
+                encoded = base64.b64encode(open('temp_image.jpg','rb').read()).decode()
     
-            html_img = f"""
+                html_img = f"""
 <br>
 <img src='data:image/jpg;base64,{encoded}'>
 """
     
-            os.remove('temp_image.jpg')
+                os.remove('temp_image.jpg')
     
-            plt.show()
+                plt.show()
             
-            lines = lines + html_img
+                lines = lines + html_img
+            except:
+                print('broken data',ac_no,ac_date)
                    
             
     html = f'''
@@ -2068,6 +2123,7 @@ def activities_in_week_null(user_df,activity_type,start_date):
 def year_activity_wheel_null(user_df,activity,date_string,labels_on='N'):
     
     end = datetime.strptime(date_string,'%Y-%m-%d')
+    end = end + timedelta(days=1)
     
     sta = end - timedelta(days=7*52)
     
@@ -2135,7 +2191,7 @@ def year_activity_wheel_null(user_df,activity,date_string,labels_on='N'):
     plt.title(title)
 
 #ws_df = dr.pull_data('WS')    
-#year_activity_wheel_null(ws_df,'All','2020-12-24')
+#year_activity_wheel_null(ws_df,'All','2021-01-06')
 #plt.show()
 #year_activity_wheel(ws_df,'Walking','2020-12-24')
 
@@ -2143,6 +2199,9 @@ def times_radar(user_df,activity_number):
     
     maxs = []
     mins = []
+    
+    qs = []#25th percentile - actually 33rd
+    hs = []#50th percentile - actually 67th
     
     times = []
     
@@ -2155,45 +2214,66 @@ def times_radar(user_df,activity_number):
     times.append(dr.activity_splits(user_df,activity_number,'1.5 mile'))
     
     maxs.append(dr.split_percentile(user_df,'1km',0.95))
+    qs.append(dr.split_percentile(user_df,'1km',0.33))
+    hs.append(dr.split_percentile(user_df,'1km',0.67))
     mins.append(dr.split_extremes(user_df,'1km','min'))
     maxs.append(dr.split_percentile(user_df,'1 mile',0.95))
+    qs.append(dr.split_percentile(user_df,'1 mile',0.33))
+    hs.append(dr.split_percentile(user_df,'1 mile',0.67))
     mins.append(dr.split_extremes(user_df,'1 mile','min'))
     maxs.append(dr.split_percentile(user_df,'1.5 mile',0.95))
+    qs.append(dr.split_percentile(user_df,'1.5 mile',0.33))
+    hs.append(dr.split_percentile(user_df,'1.5 mile',0.67))
     mins.append(dr.split_extremes(user_df,'1.5 mile','min'))
     
     if dist >= 4828.03:
         times.append(dr.activity_splits(user_df,activity_number,'3 mile'))
+        qs.append(dr.split_percentile(user_df,'3 mile',0.33))
+        hs.append(dr.split_percentile(user_df,'3 mile',0.67))
         maxs.append(dr.split_percentile(user_df,'3 mile',0.95))
         mins.append(dr.split_extremes(user_df,'3 mile','min'))
     
     if dist >= 5000:
         times.append(dr.activity_splits(user_df,activity_number,'5km'))
+        qs.append(dr.split_percentile(user_df,'5km',0.33))
+        hs.append(dr.split_percentile(user_df,'5km',0.67))
         maxs.append(dr.split_percentile(user_df,'5km',0.95))
         mins.append(dr.split_extremes(user_df,'5km','min'))
         
     if dist >= 10000:
         times.append(dr.activity_splits(user_df,activity_number,'10km'))
+        qs.append(dr.split_percentile(user_df,'10km',0.33))
+        hs.append(dr.split_percentile(user_df,'10km',0.67))
         maxs.append(dr.split_percentile(user_df,'10km',0.95))
         mins.append(dr.split_extremes(user_df,'10km','min'))
         
     if dist >= 20000:
         times.append(dr.activity_splits(user_df,activity_number,'20km'))
+        qs.append(dr.split_percentile(user_df,'20km',0.33))
+        hs.append(dr.split_percentile(user_df,'20km',0.67))
         maxs.append(dr.split_percentile(user_df,'20km',0.95))
         mins.append(dr.split_extremes(user_df,'20km','min'))
         
     if dist >= 21097.7:
         times.append(dr.activity_splits(user_df,activity_number,'Half'))
+        qs.append(dr.split_percentile(user_df,'Half',0.33))
+        hs.append(dr.split_percentile(user_df,'Half',0.67))
         maxs.append(dr.split_percentile(user_df,'Half',0.95))
         mins.append(dr.split_extremes(user_df,'Half','min'))
 
     if dist >= 42195:
         times.append(dr.activity_splits(user_df,activity_number,'Full'))
+        qs.append(dr.split_percentile(user_df,'Full',0.33))
+        hs.append(dr.split_percentile(user_df,'Full',0.67))
         maxs.append(dr.split_percentile(user_df,'Full',0.95))
         mins.append(dr.split_extremes(user_df,'Full','min'))
     
     angles = []
     points = []
-    outers = []    
+    outers = []
+
+    quarters = []
+    halfs = []    
     
     label_options = ['1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full']
     x_labels = []
@@ -2205,18 +2285,33 @@ def times_radar(user_df,activity_number):
         outer = mins[i]
         split = times[i]
         
+        quart = qs[i]
+        half = hs[i]
+        
         #print(base[-8:])
         
         base = datetime.strptime(base[-8:],'%H:%M:%S')
         outer = datetime.strptime(outer[-8:],'%H:%M:%S')
         split = datetime.strptime(split[-8:],'%H:%M:%S')
         
+        quart = datetime.strptime(quart[-8:],'%H:%M:%S')
+        half = datetime.strptime(half[-8:],'%H:%M:%S')
+         
         full_diff = base - outer
         full_diff = full_diff.total_seconds()
+        
         this_diff = split - outer
         this_diff = this_diff.total_seconds()
         
         fraction = this_diff/full_diff
+        
+        q_diff = quart - outer
+        q_diff = q_diff.total_seconds()
+        q_frac = 1 - q_diff/full_diff
+        
+        h_diff = half - outer
+        h_diff = h_diff.total_seconds()
+        h_frac = 1 - h_diff/full_diff
         
         point = 1 - fraction
         points.append(point)
@@ -2226,6 +2321,9 @@ def times_radar(user_df,activity_number):
         
         outers.append(1)
         
+        quarters.append(q_frac)
+        halfs.append(h_frac)
+        
         x_labels.append(label_options[i])
         x_ticks.append(angle)
         
@@ -2233,8 +2331,11 @@ def times_radar(user_df,activity_number):
     points.append(points[0])
     outers.append(1)
     
-    print(x_labels)
-    print(x_ticks)
+    quarters.append(quarters[0])
+    halfs.append(halfs[0])
+    
+    #print(x_labels)
+    #print(x_ticks)
     
     new_ticks = []
     
@@ -2249,6 +2350,9 @@ def times_radar(user_df,activity_number):
     
     ax.plot(angles,points)
     ax.plot(angles,outers,':', color='red')
+    ax.plot(angles,quarters,':', color='red')
+    ax.plot(angles,halfs,':', color='red')
+    
     
     new_x,new_lab = reorder_polar_labels(x_ticks, x_labels)
     #print(new_x)
@@ -2258,8 +2362,77 @@ def times_radar(user_df,activity_number):
     
     ax.set_thetamin(0)
     ax.set_thetamax(360)
+        
+#ws_df = dr.pull_data('WS')
+#print('df pulled')s
+#times_radar(ws_df,'4632607330')
+
+def activity_tf(date_string,activity_type,user_df):
+    dates = user_df['Date'].tolist()
+    types = user_df['Activity Type'].tolist()
     
+    found = False
     
+    for i in range(0,len(dates)):
+        if date_string in str(dates[i]) and activity_type in types[i]:
+            found = True
+            
+    return(found)
+
+def month_calendar(month,year,activity_type,user_df):
+    title_activity = activity_type
+    
+    if activity_type == 'All':
+        activity_type = 'i'
+    
+    first_day_string = f'{year}-{add_zeros(month)}-01'
+    f_d_strp = datetime.strptime(first_day_string,'%Y-%m-%d')
+    f_d_deci = int(datetime.strftime(f_d_strp,'%u'))
+    
+    week_days = []
+    temp_week_vals = []
+    day_check = []
+    
+    for i in range(1,month_length(month,year)+1):
+        day_string = f'{year}-{add_zeros(month)}-{add_zeros(i)}'
+        day_strp = datetime.strptime(day_string,'%Y-%m-%d')
+        day_deci = int(datetime.strftime(day_strp,'%u'))
+        week_days.append(day_deci)
+        week = (i + f_d_deci - 2) // 7
+        temp_week_vals.append(week)
+        
+        day_check.append(i)
+    
+    week_vals = []
+    
+    for i in range(0,len(temp_week_vals)):
+        week_val = temp_week_vals[-1] - temp_week_vals[i]
+        week_vals.append(week_val)   
+    
+    #print(month_length(month,year))
+    #print(len(week_days))
+    #print(day_check)
+    
+    for i in range(1,month_length(month,year)+1):
+        day_string = f'{year}-{add_zeros(month)}-{add_zeros(i)}'
+        plot_val = activity_tf(day_string,activity_type,user_df)
+        
+        if plot_val == True:
+            plt.scatter(week_days[i-1],week_vals[i-1],s=150,color='red')
+        else:
+            plt.scatter(week_days[i-1],week_vals[i-1],s=5,color='black')
+            
+        #print(week_days[i-1],week_vals[i-1])
+        
+    week_ticks = [1,2,3,4,5,6,7]
+    week_labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    plt.xticks(week_ticks,week_labels)
+    plt.ylim([-0.25,max(week_vals)+0.25])
+    plt.yticks([-0.5],[''])
+    
+    plt.title(f'{title_activity}, {month_caller(month)} {year}')
+    
+            
 #ws_df = dr.pull_data('WS')
 #print('df pulled')
-#times_radar(ws_df,'4632607330')
+#month_calendar(12,2020,'All',ws_df)

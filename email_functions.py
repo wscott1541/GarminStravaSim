@@ -220,9 +220,10 @@ def activity_email(settings,ac_abbr,initials):
                 puf.times_radar(user_df,ac_abbr)
                 body = attach_chart_as_html(body)
         
-            mapper.best_stretch_map(ac_route,1000)
+            if dr.activity_details(user_df,ac_abbr,'Distance') > 1:
+                mapper.best_stretch_map_c(ac_abbr,'1km')
         
-            if dr.activity_details(user_df,ac_abbr,'Distance') < 4:
+            if dr.activity_details(user_df,ac_abbr,'Distance') < 4 and dr.activity_details(user_df,ac_abbr,'Distance') > 1:
                 body = attach_chart_as_html(body)
                 mapper.best_stretch_map(ac_route,1600)
         
@@ -278,6 +279,10 @@ def activity_email(settings,ac_abbr,initials):
     
         puf.plot_distances_equiv_month(user_df,month,year,ac_type)
         body = attach_chart_as_html(body)
+        
+        if day > 13:###Refers to the wrong Day/Month/Year
+            puf.month_calendar(month,year,ac_type,user_df)
+            body = attach_chart_as_html(body)
     
         otd_option = puf.otd_list(date,user_df)
         if len(otd_option) > 0:
@@ -359,7 +364,11 @@ def summary_email(settings,initials):
     #body = attach_chart_as_html(body)
     #ac_df = dr.pull_data(initials) 
     puf.plot_week_previous_durations(ac_df,y_day_string,'All')
-    body = attach_chart_as_html(body) 
+    body = attach_chart_as_html(body)
+    
+    if day > 13:
+        puf.month_calendar(month,year,'All',ac_df)
+    
     puf.plot_month_dists(month,year,'Running',ac_df)
     body = attach_chart_as_html(body)
     puf.plot_month_previous_distances(month,year,'Running',ac_df)
@@ -397,6 +406,9 @@ def summary_email(settings,initials):
     body = attach_chart_as_html(body)
     puf.plot_distances_all_previous(month,year,'Running')
     body = attach_chart_as_html(body)   
+    
+    puf.month_calendar(month,year,'All',ac_df)
+    body = attach_chart_as_html(body)
 
     #muf.plot_month_distances(month,year,'Running')
     #body = attach_chart_as_html(body)
@@ -420,9 +432,11 @@ def summary_email(settings,initials):
     
     send_email(settings,text)
 
-#ac = dr.latest_activity('WS')
+ac = dr.latest_activity('WS')
 
-#settings = load_settings()
+settings = load_settings()
 
-#activity_email(settings, ac, 'WS')
+activity_email(settings, ac, 'WS')
+
+#summary_email(settings, 'WS')
 
