@@ -244,15 +244,19 @@ def pull_csv(activity_number):
 
     return(df)
 
-def pull_csv_pd(activity_number):
+def pull_csv_pd(activity_number,option='column_name'):
     fileDir = os.path.dirname(os.path.realpath('__file__'))
 
     filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
     
     #I think I only need distance and time
     
-    data = pd.read_csv(r'{}'.format(filename))
-    df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
+    if option == 'column_name':
+        data = pd.read_csv(r'{}'.format(filename))
+        df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
+    else:
+        data = pd.read_csv(r'{}'.format(filename))
+        df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR',option])
     
     df['time'] = df['time'].apply(lambda x : datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
     
@@ -277,11 +281,11 @@ def pull_csv_pd(activity_number):
 
     #return(df)
     
-def route_data(activity_number):
-    if len(activity_number) == 10:
-        df = pull_gpx(activity_number)
-    if len(activity_number) == 8 or len(activity_number) == 9:
-        df = pull_csv_pd(activity_number)
+def route_data(activity_number,option='column_name'):
+    #if len(activity_number) == 10:
+    #    df = pull_gpx(activity_number)
+    #if len(activity_number) == 8 or len(activity_number) == 9:
+    df = pull_csv_pd(activity_number,option)
         
     return(df)
     
@@ -419,8 +423,7 @@ def best_time_wm(distance,gpx_df):
     
     #print(gpx_df)    
                 
-    
-    
+       
 def best_time_pandas(distance,gpx_df):
     #times = gpx_df['time'].tolist()    
     #distances = gpx_df['distance'].tolist()
@@ -486,14 +489,17 @@ def best_time_pandas(distance,gpx_df):
 
 
 #time_check()
-#route = route_data('B23I1958')
+#activity_5187172776
+route = route_data('5187172776')
 #time_check()
 #print('loaded')
 #print(route)
-#time_check()
-#check = best_time_wm(500,route)
-#time_check()
-#print(check)
+print('start')
+time_check()
+check = best_time_wm(1000,route)
+time_check()
+print('finish')
+print(check)
 
 def remove_padding(time):
     if time[0] == '0':

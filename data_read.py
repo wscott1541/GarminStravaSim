@@ -19,6 +19,17 @@ import os
 
 cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
+dist_list = ['1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full']
+dist_dict = {'1km': 1000,
+              '1 mile': 1609.34,
+              '1.5 mile': 2414.02,
+              '3 mile': 4828.03,
+              '5km': 5000,
+              '10km': 10000,
+              '20km': 20000,
+              'Half': 21097.7,
+              'Full': 42195}
+
 def pull_initials():
     user_data = pd.read_csv (r'users.csv')  
  
@@ -403,7 +414,7 @@ def pull_gpx(activity_number):
     return(df)
     
 #print(pull_gpx(5221284558))
-    
+'''    
 def pull_csv(activity_number):
     
     fileDir = os.path.dirname(os.path.realpath('__file__'))
@@ -440,6 +451,31 @@ def route_data(activity_number):
         df = pull_csv(activity_number)
         
     return(df)
+'''
 
+def pull_csv_pd(activity_number,option='column_name'):
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
     
+    #I think I only need distance and time
+    
+    if option == 'column_name':
+        data = pd.read_csv(r'{}'.format(filename))
+        df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR'])
+    else:
+        data = pd.read_csv(r'{}'.format(filename))
+        df = pd.DataFrame(data,columns=['lon','lat','time','distance','HR',option])
+    
+    df['time'] = df['time'].apply(lambda x : datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
+    
+    return(df)
+
+def route_data(activity_number,option='column_name'):
+    #if len(activity_number) == 10:
+    #    df = pull_gpx(activity_number)
+    #if len(activity_number) == 8 or len(activity_number) == 9:
+    df = pull_csv_pd(activity_number,option)
+        
+    return(df)    
     

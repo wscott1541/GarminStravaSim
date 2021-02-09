@@ -15,7 +15,11 @@ import matplotlib.cm as cm
 
 from datetime import datetime
 
-from data_read import pull_data
+from data_read import pull_data, dist_dict
+import matplotlib.pyplot as plt
+
+from data_read import route_data, activity_details
+#from analyse import route_data
 
 import pandas as pd
 
@@ -137,9 +141,7 @@ def osm_map_to_email(hr=None):
     
     return(m)
 """
-import matplotlib.pyplot as plt
 
-from data_read import route_data, activity_details
     
 def pyplot_heatmap(activity_df):
     #print(len(activity_number))
@@ -371,8 +373,8 @@ def best_stretch_map(gpx_df,distance):
                     first.append(i)
                 
                 for v in range(0,i):
-                    if (distances[i] - distances[v]) > (distance - 1) and (distances[i] - distances[v]) < (distance + 100):
-                        delta = times[i] - times[v]
+                    if (distances[i] - distances[v-i]) > (distance - 1) and (distances[i] - distances[v-i]) < (distance + 100):
+                        delta = times[i] - times[v-i]
                         distance_times.append(delta)
                         ends.append(distances[i])
     #print(distance_times)
@@ -455,6 +457,32 @@ def best_stretch_map(gpx_df,distance):
     
     #matplotlib.axes.Axes.set_aspect(plt,'equal')
     
+def best_stretch_map_c(ac_number,distance_word):
+    gpx_df = route_data(ac_number,distance_word)
+    #distance = dist_dict[distance_word]
+    
+    pre_section = gpx_df.loc[gpx_df[distance_word] == 0]
+    section = gpx_df.loc[gpx_df[distance_word] == 1]
+    post_section = gpx_df.loc[gpx_df[distance_word] == 2]
+    
+    plt.plot(pre_section['lon'],pre_section['lat'],':',color='grey')
+    plt.plot(post_section['lon'],post_section['lat'],':',color='grey')
+    plt.plot(section['lon'],section['lat'],color='red')
+    
+    plt.axis('off')
+    
+    plt.gca().set_aspect('equal', adjustable='box')
+    
+    #best_str = str(best_out[0])[-8:]
+    
+    #title = f'{distance}m: {best_str}'
+    
+    #plt.title(title)
+    
+    #matplotlib.axes.Axes.set_aspect(plt,'equal')
+    
+#best_stretch_map_c('B25C2227','1 mile')    
+
 #ac_df = analyse.route_data('AAMC2600')
 #best_stretch_map(ac_df,1600)
 
@@ -526,8 +554,8 @@ import tilemapbase
 import haversine
 
 def tmb_test(activity_df,plot_size = 'reg'):
-    lons = activity_df['lon'].tolist()
-    lats = activity_df['lat'].tolist()
+    #lons = activity_df['lon'].tolist()
+    #lats = activity_df['lat'].tolist()
     
     tilemapbase.start_logging()
     tilemapbase.init(create=True)
@@ -537,17 +565,17 @@ def tmb_test(activity_df,plot_size = 'reg'):
     
     #print(max(lats))
     
-    lat_min = min(lats) - rang
+    lat_min = activity_df['lat'].min() - rang#min(lats) - rang
     #print(lat_min)
-    lon_min = min(lons) - rang
+    lon_min = activity_df['lon'].min() - rang#min(lons) - rang
     #print(lon_min)
-    lat_max = max(lats) + rang
+    lat_max = activity_df['lat'].max() + rang#max(lats) + rang
     #print(lat_max)
-    lon_max = max(lons) + rang
+    lon_max = activity_df['lon'].max() + rang
     #print(lon_max)
     
-    lat_mean = sum(lats)/len(lats)
-    lon_mean = sum(lons)/len(lons)
+    lat_mean = activity_df['lat'].mean()#sum(lats)/len(lats)
+    lon_mean = activity_df['lon'].mean()#sum(lons)/len(lons)
     
     delta_x = lon_max-lon_min
     #print(delta_x)
@@ -569,7 +597,7 @@ def tmb_test(activity_df,plot_size = 'reg'):
     #extent = extent.to_aspect(1.0)
     extent = extent.to_aspect(ratio)
     
-    path = [tilemapbase.project(x,y) for x,y in zip(lons, lats)]
+    path = [tilemapbase.project(x,y) for x,y in zip(activity_df['lon'],activity_df['lat'])]#zip(lons, lats)]
     x, y = zip(*path)
     
     fig, ax = plt.subplots(figsize=(10*ratio,10))
@@ -621,7 +649,7 @@ def tmb_test(activity_df,plot_size = 'reg'):
     #print(lats[0])
     
     
-#ac_df = route_data('AB3A3807')
+#ac_df = route_data('B25C2227')
 #mplleaflet_test(ac_df)
 #tmb_test(ac_df)
 #plt.show()
