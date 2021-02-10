@@ -66,7 +66,7 @@ def pull_data(initials):
     
     data = pd.read_csv(r'{}'.format(file_name))
     df = pd.DataFrame(data, columns= cols)
-    df = df.sort_values(by='Date')#sort_values is deprecated Python
+    #df = df.sort_values(by='Date')#sort_values is deprecated Python
     return(df)
 
 def data_read(initials):

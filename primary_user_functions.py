@@ -6,6 +6,8 @@ Created on Thu Jun 18 18:22:17 2020
 @author: WS
 """
 
+
+
 import matplotlib.pyplot as plt
 
 from today_string import today_string, year, month, day, y_day_string
@@ -23,6 +25,14 @@ import os
 import base64
 
 import numpy as np
+
+from time import time
+
+def time_check():
+    today = time()
+    today_dt = datetime.fromtimestamp(today)
+    time_string = datetime.strftime(today_dt,'%H:%M:%S.%f')
+    print(time_string)
 
 initials = dr.pull_initials()
 
@@ -1686,8 +1696,13 @@ def plot_distances_equiv_month(user_df,m,yyyy,activity):
         ax.legend();
     
     plt.title(title)
+
+#df = dr.pull_data('WS')    
+#time_check()
+#plot_distances_equiv_month(df,2,2021,'Running')
+#time_check()
     
-def activity_comparisons(user_df,activity_number):
+def activity_comparisons_ex(user_df,activity_number):
     ac_type = dr.activity_details(user_df,activity_number,'Type')
     dist = dr.activity_details(user_df,activity_number,'Distance')
     dur = dr.activity_details(user_df,activity_number,'Duration')
@@ -1707,6 +1722,45 @@ def activity_comparisons(user_df,activity_number):
     
     plt.xlabel("Distance (km)")
     plt.ylabel('Duration (mins)')
+    
+def activity_comparisons(user_df,activity_number):
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    dist = dr.activity_details(user_df,activity_number,'Distance')
+    dur = dr.activity_details(user_df,activity_number,'Duration')
+    dur = stringtime_to_floatminute(dur)
+    
+    #ac_nos = user_df['Activity number'].tolist()
+    #ac_types = user_df['Activity Type'].tolist()
+    #dists = user_df['Distance'].tolist()
+    #durs = user_df['Time'].tolist()
+    
+    #plot_df = user_df.loc(user_df['Activity Type'] == ac_type)
+    plot_df = user_df[user_df['Activity Type'].isin([ac_type])]
+    plot_df = plot_df.loc[plot_df['Distance'] < 25]
+    plot_df = plot_df.loc[plot_df['Activity number'] != activity_number]
+    plot_df['Time'] = plot_df['Time'].apply(stringtime_to_floatminute)
+    
+    #for i in range(0,len(ac_nos)):
+    #    if ac_types[i] == ac_type and ac_nos[i] != activity_number and dists[i]<25:
+    #        i_dur = stringtime_to_floatminute(durs[i])
+    #        plt.scatter(dists[i],i_dur,s=15,color='blue')
+     
+    plt.scatter(plot_df['Distance'],plot_df['Time'],s=15,color = 'blue')
+       
+    plt.scatter(dist,dur,color='red')
+    
+    plt.xlabel("Distance (km)")
+    plt.ylabel('Duration (mins)')
+
+#print('start')
+#time_check()    
+#df = dr.pull_data('WS')
+#time_check()
+#activity_comparisons_ex(df,'B2AE1701')
+#time_check()
+#activity_comparisons(df,'B2AE1701')
+#time_check()
+#print('done')
     
 def shoes_distance(user_df,pair_of_shoes):
     
@@ -1744,27 +1798,44 @@ def shoes_distance_html(user_df,activity_number):
     
     return(html)
 
+def convert_time(x):
+    if str(type(x))  == "<class 'str'>":
+        x = datetime.strptime(x,'%Y-%m-%d %H:%M:%S')
+    return(x)
+
 def week_dist_sum(user_df,activity,start):
-    dists = user_df['Distance'].tolist()
-    dates = user_df['Date'].tolist()
-    activities = user_df['Activity Type'].tolist()
+#    dists = user_df['Distance'].tolist()
+#    dates = user_df['Date'].tolist()
+#    activities = user_df['Activity Type'].tolist()
     
-    stamps = []
+#    stamps = []##
     
-    for i in range(0,len(dates)):
-        stamp = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
-        stamps.append(stamp)
+#    for i in range(0,len(dates)):
+#        stamp = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
+#        stamps.append(stamp)
+    
+#    fin = start + timedelta(days=7)
+#    
+#    dist = [0]
+   
+#    for i in range(0,len(dists)):
+#        if activity in activities[i]:
+#            if stamps[i] >= start and stamps[i] < fin:
+#                dist.append(dist[-1] + dists[i])
+                
+#    final = dist[-1]
+    
+    ###
     
     fin = start + timedelta(days=7)
+    #user_df['Date'] = user_df['Date'].apply(convert_time)
+    #print(type('strt'))
+
+#    plot_df = user_df.loc[user_df['Activity Type'] == activity]
+    plot_df = user_df.loc[user_df['Date'] >= start]
+    plot_df = plot_df.loc[plot_df['Date'] < fin]
     
-    dist = [0]
-    
-    for i in range(0,len(dists)):
-        if activity in activities[i]:
-            if stamps[i] >= start and stamps[i] < fin:
-                dist.append(dist[-1] + dists[i])
-                
-    final = dist[-1]
+    final = plot_df['Distance'].sum()
     
     return(final)
     
@@ -1822,6 +1893,8 @@ def plot_year_week_progress(user_df,activity,year):
 #print(shoes_distance_html(ws_df,'4854330057'))
 
 def plot_rolling_year_week_progress(user_df,activity,date_string):
+    user_df['Date'] = user_df['Date'].apply(convert_time)
+    user_df = user_df.loc[user_df['Activity Type'] == activity]
     
     end = datetime.strptime(date_string,'%Y-%m-%d')
     end = end + timedelta(days=1)
@@ -1911,10 +1984,12 @@ def plot_rolling_year_week_day_progress(user_df,activity,date_string):
     
     plt.title(f'Weekly {activity} distances till {date_string}')
     
-
+ws_df = dr.pull_data('WS')
 #plot_rolling_year_week_day_progress(ws_df,'Running','2020-12-24')
 #plt.show()
-#plot_rolling_year_week_progress(ws_df,'Running','2020-12-24')
+time_check()
+plot_rolling_year_week_progress(ws_df,'Running','2021-02-10')
+time_check()
 
 def otd_list(date,user_df):
     

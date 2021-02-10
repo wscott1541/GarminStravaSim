@@ -133,14 +133,14 @@ def best_time_ws(distance,gpx_df,pull_time=False):
 def assess_main(main_df,gpx_df,ac_details,main_df_name):
     df = main_df
 
-    ac_abbr,activity,date, dist,full_string,shoes
+    #ac_abbr,activity,date, dist,full_string,shoes
 
     print('Loading activity {}'.format(len(df)))
     row = []
     if ac_details['type'] == 'Running':
         
         for i in range(0,len(dr.dist_list)):
-            best_time = best_time_ws(dist_list[i],gpx_df,pull_time=True)
+            best_time = best_time_ws(dr.dist_list[i],gpx_df,pull_time=True)
             row.append(best_time)
         for i in range(0,6):
             row.append('NONE')
@@ -150,7 +150,7 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
             row.append('NONE')
         status = 'NONE'
 
-    series = [ac_no,types[i],dates[i],dists[i],times[i],shoes[i]] 
+    series = [ac_details['no'],ac_details['type'],ac_details['date'],ac_details['dist'],ac_details['time'],ac_details['shoes']] 
     
     for i in range(0,len(row)):
         series.append(row[i])
@@ -159,7 +159,7 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
     
     a_row = pd.Series(series,index=main_df.columns)#this should be done with a replace if the activity exists, else append
     main_df = main_df.append(a_row,ignore_index = True)
-    main_df = main_df.sort_values(by='Date')
+    #main_df = main_df.sort_values(by='Date')
     main_df.to_csv(r'{}'.format(main_df_name),index=False) 
 
 
@@ -489,27 +489,39 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         
             df.to_csv(filename)
     
-    abbr_df = pd.DataFrame(columns=['abbr','type'])
-    abbr_row = pd.Series([ac_abbr,activity],index=abbr_df.columns)
-    mod_abbr = abbr_df.append(abbr_row,ignore_index=True)
-    mod_abbr.to_csv(r'temp-abbr.csv',index = False)
+    #[ac_details['no'],ac_details['type'],ac_details['date'],ac_details['dist'],ac_details['time'],ac_details['shoes']] 
+    ac_details = {'no': ac_abbr,
+                  'type': activity,
+                  'date':date,
+                  'dist': dist,
+                  'time': full_string,
+                  'shoes': shoes}
+    
+    main_df = pd.DataFrame(data,columns=dr.cols)
+    
+    assess_main(main_df,df,ac_details,file_name)
+    
+    #abbr_df = pd.DataFrame(columns=['abbr','type'])
+    #abbr_row = pd.Series([ac_abbr,activity],index=abbr_df.columns)
+    #mod_abbr = abbr_df.append(abbr_row,ignore_index=True)
+    #mod_abbr.to_csv(r'temp-abbr.csv',index = False)
 
-    temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes'])
+    #temp_df = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time','Shoes'])
 
-    row = [ac_abbr,activity,date, dist,full_string,shoes]#convert to details
-    a_row = pd.Series(row,index=temp_df.columns)
-    temp_df = temp_df.append(a_row,ignore_index=True)
+    #row = [ac_abbr,activity,date, dist,full_string,shoes]#convert to details
+    #a_row = pd.Series(row,index=temp_df.columns)
+    #temp_df = temp_df.append(a_row,ignore_index=True)
 
-    if gpx_status == 'Y':
-        temp_df.to_csv(r'temp-activities.csv',index=False)
+    #if gpx_status == 'Y':
+    #    temp_df.to_csv(r'temp-activities.csv',index=False)
     
         #print('pre_assess')    
-        analyse.assess('temp-activities.csv',file_name)
+    #    analyse.assess('temp-activities.csv',file_name)
         
-        os.remove('temp-activities.csv')
+    #    os.remove('temp-activities.csv')
     
-    else:
-        temp_df.to_csv(r'{}'.format(file_name))
+    #else:
+    #    temp_df.to_csv(r'{}'.format(file_name))
 
     #print('Processing email...')
 
@@ -559,4 +571,4 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 #activity_import(FIT='B1PI2453',activity='Cardio')
 #activity_import(FIT='B1QF3648')
 #activity_import(FIT='B1SB0727',email_option=False)
-activity_import(FIT='B29F4706')
+activity_import(FIT='B2AE1701',shoes='Kalenji Run Support Red')
