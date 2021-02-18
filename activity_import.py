@@ -34,6 +34,11 @@ def create_nans(x):
         x = NaN
     return(x)
 
+def convert_time(x):
+    if str(type(x))  == "<class 'str'>":
+        x = datetime.strptime(x,'%Y-%m-%d %H:%M:%S')
+    return(x)
+
 def best_time_ws(distance,gpx_df,pull_time=False):
     
     distance_numeral = dr.dist_dict[distance]
@@ -309,9 +314,11 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
         #df = pd.DataFrame(columns=['lon','lat','alt'])
 
-        distances.append(0)
+        #distances.append(0)
 
         hrs = []
+        fit_s = convert_time(fit_ts[0])
+        fit_f = convert_time(fit_ts[-1])
         
         print('Matching FIT to gpx')
 
@@ -324,7 +331,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         
                 time_str = str(data[i].time)[:19]
                 time_dt = datetime.strptime(time_str,'%Y-%m-%d %H:%M:%S')
-                timestamps.append(time_dt)
+                
+                if time_dt >= fit_s and time_dt <= fit_f:
+                    timestamps.append(time_dt)
         
                 hr_found = False
         
@@ -335,16 +344,10 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                         hrs.append(fit_hr[n])
                         #print(f'{i}/{len(fit_ts)}',fit_hr[n])
                         hr_found = True
-                #if n == len(fit_ts) - 1:
-                #    hr_found = True
-                #    hrs.append(hrs[-1])
-                #    print(f'HR {i} not found')
-                
-                    #print('HR found: ',time_dt)
-
+               
                 hr = hrs[-1]
 
-                if i > 0:
+                if len(distances) > 0:
                     prev_lon = data[i-1].longitude
                     prev_lat = data[i-1].latitude
                     prev_alt = data[i-1].elevation
@@ -356,14 +359,24 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
                 
                     new = distances[-1] + distance_3D
-        
-                    distances.append(new)
-                
+                    
+                    if time_dt >= fit_s and time_dt <= fit_f:
+                        distances.append(new)
+                else:
+                    if time_dt >= fit_s and time_dt <= fit_f:
+                        distances.append(0)
+                    
                 distance = distances[-1]
 
-                a_row = [lon,lat,alt,time_dt,distance,hr]
-                row = pd.Series(a_row,index=df.columns)
-                df = df.append(row,ignore_index = True)
+                if time_dt >= fit_s and time_dt <= fit_f:
+                    a_row = [lon,lat,alt,time_dt,distance,hr]
+                    row = pd.Series(a_row,index=df.columns)
+                    df = df.append(row,ignore_index = True)
+                
+        #df['time'] = df['time'].apply(convert_time)
+        
+        #df = df.loc[df['time'] >= fit_s]
+        #df = df.loc[df['time'] <= fit_f]
     
     if FIT == 'NONE' and gpx != 'NONE':
         
@@ -425,7 +438,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(ac_abbr))
     
     df.to_csv(r'{}'.format(filename))
-        
+    
     #end of activity imports
 
     file_name = "{}activities.csv".format(initials)
@@ -546,11 +559,11 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     #except:
     #    print('No FIT file')
         
-    try:
-        os.remove(gpx)
-        print('gpx removed')
-    except:
-        print('No gpx file')
+   #try:
+   #     os.remove(gpx)
+   #     print('gpx removed')
+   # except:
+   #     print('No gpx file')
 
     try:
         os.remove('temp-abbr.csv')
@@ -570,5 +583,151 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 #activity_import(FIT='B1OI1525',activity='Cardio')
 #activity_import(FIT='B1PI2453',activity='Cardio')
 #activity_import(FIT='B1QF3648')
-#activity_import(FIT='B1SB0727',email_option=False)
-activity_import(FIT='B2AE1701',shoes='Kalenji Run Support Red')
+#activity_import(FIT='B1SB0727',email_option=False)activity_import(FIT='B2GH0144')
+#input('Cont? ')
+#activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)
+
+
+import urllib.request, json
+#from bs4 import BeautifulSoup
+
+#from geopy.geocoders import Nominatim
+
+def pull_alt_json(pulls_string):
+    
+    lats = []
+    lons = []
+    alts = []
+    
+    link = f'https://api.opentopodata.org/v1/eudem25m?locations={pulls_string}'
+
+    with urllib.request.urlopen(link) as url:
+        data = json.loads(url.read().decode())
+        
+    results = data['results']
+    
+    for i in range(0,len(results)):
+        result = results[i]
+        alts.append(result['elevation'])
+        lats.append(result['location']['lat'])
+        lons.append(result['location']['lng'])
+    
+    df = pd.DataFrame({'lat': lats,
+          'lon': lons,
+          'alt': alts})
+    
+    alt_data = pd.read_csv('alt_list.csv')
+    alt_list = pd.DataFrame(alt_data,columns=['lat','lon','alt'])
+    
+    alt_list = alt_list.append(df)
+    
+    alt_list = alt_list.drop_duplicates(subset=['lat', 'lon'], keep='first')
+    
+    alt_list.to_csv('alt_list.csv')
+    
+def save_alts(ac_df):
+    
+    alt_data = pd.read_csv('alt_list.csv')
+    alt_list = pd.DataFrame(alt_data)
+    alt_list['lat'] = alt_list['lat'].apply(lambda x: round(x,5))
+    alt_list['lon'] = alt_list['lon'].apply(lambda x: round(x,5))
+    alt_list = alt_list.drop_duplicates(subset=['lat', 'lon'], keep='first')
+
+    lats = ac_df['lat'].tolist()
+    lons = ac_df['lon'].tolist()
+    alts = []
+    
+    for i in range(0,len(lats)):
+        
+        if i % 25 == 0:
+            print('save',i,'/',len(lats))
+        
+        spot = alt_list.loc[alt_list['lat'] == round(lats[i],5)]
+        spot = spot.loc[spot['lon'] == round(lons[i],5)]
+        
+        alt = spot['alt'].tolist()[0]
+        alts.append(alt)
+        
+    ac_df['alt'] = alts
+        
+    ac_df.to_csv(r'test_activity_fin.csv')
+    
+
+def pull_alts(ac_df):
+    
+    lats = ac_df['lat'].tolist()
+    lons = ac_df['lon'].tolist()
+    
+    alt_data = pd.read_csv('alt_list.csv')
+    alt_list = pd.DataFrame(alt_data)
+    
+    alt_list['lat'] = alt_list['lat'].apply(lambda x: round(x,5))
+    alt_list['lon'] = alt_list['lon'].apply(lambda x: round(x,5))
+    
+    alt_list = alt_list.drop_duplicates(subset=['lat', 'lon'], keep='first')
+    
+    #round to 5dp    
+    
+    pulls = ''
+    reqs = 0
+    
+    for i in range(0,len(lats)):
+        spot = alt_list.loc[alt_list['lat'] == round(lats[i],5)]
+        spot = spot.loc[spot['lon'] == round(lons[i],5)]
+        
+        if i % 25 == 0:
+            print('pull',i,'/',len(lats))
+            print('req',reqs)
+        
+        if len(spot) == 0:
+            
+            if len(pulls) == 0:
+                
+                pulls = pulls + f'{round(lats[i],5)}' + ',' + f'{round(lons[i],5)}' 
+            
+            else:
+                
+                pulls = pulls + '|' + f'{round(lats[i],5)}' + ',' + f'{round(lons[i],5)}' 
+                
+            reqs += 1
+            
+        if reqs == 95:
+            
+            pull_alt_json(pulls)
+            
+            pulls = ''
+            reqs = 0
+            
+    if reqs > 0:
+        
+        pull_alt_json(pulls)
+            
+def process_alts():
+    
+
+    data = pd.read_csv('test_activity.csv')
+        
+    check = pd.DataFrame(data)
+        
+    print(check.columns)
+        
+    if 'alt' not in check.columns:
+        
+        print('testing pull')
+        
+        data = pd.read_csv('test_activity.csv')
+        
+        ac_df = pd.DataFrame(data)
+        
+        #print(ac_df)
+        
+        pull_alts(ac_df)
+    
+        save_alts(ac_df)
+        
+        print('alts pulled')
+    
+    #print('worked')
+ 
+process_alts()
+
