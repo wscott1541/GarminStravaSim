@@ -262,6 +262,59 @@ def save_alt_col(ac_df,alt_df,file_location):
     #input('cont?')
 
     ac_df.to_csv(file_location, index=False)
+    
+def rising(x):
+    
+    if x < 0:
+        x = 0
+        
+    return(x)
+
+def falling(x):
+    
+    if x > 0:
+        x = 0
+        
+    return(x)
+
+def ascent_descent(ac_df):
+    try:
+        
+        #ac_data = pd.read_csv(f'activity_{ac_numbs[i]}.csv')
+
+        alt_df = ac_df[['alt']]
+    
+        #alt_df['check'] = alt_df['alt'].apply(round_func)
+        
+        alt_df['alt'] = alt_df['alt'].rolling(60,min_periods=1).mean()
+        alt_df['alt'] = alt_df['alt'].apply(lambda x: round(x,1))
+    
+    
+        alt_df['diff'] = alt_df['alt'].diff()
+    
+        #print(alt_df['diff'].head())
+    
+        alt_df['rises'] = alt_df['diff'].apply(lambda x : rising(x))
+    
+        #print('here?')
+    
+        alt_df['falls'] = alt_df['diff'].apply(falling)
+            
+        rise = round(alt_df['rises'].sum(),1)
+        fall = round(alt_df['falls'].sum(),1)
+        
+        #print(rise)
+    
+        if rise == 0.0 and fall == 0.0:
+            rise = 'NONE'
+            fall = 'NONE'
+            #print('rbk')
+
+    except:
+        rise = 'NONE'
+        fall = 'NONE'
+        
+    return (rise, fall)
 
 def assess_main(main_df,gpx_df,ac_details,main_df_name):
     df = main_df
@@ -277,18 +330,23 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
             row.append(best_time)
         for i in range(0,6):
             row.append('NONE')
-        status = 'CSV'
+        #status = 'CSV'
     else:
         for i in range(0,15):
             row.append('NONE')
-        status = 'NONE'
+        #status = 'NONE'
 
     series = [ac_details['no'],ac_details['type'],ac_details['date'],ac_details['dist'],ac_details['time'],ac_details['shoes']] 
     
+    #ADD RISES AND FALLS
+    ascent, descent = ascent_descent(gpx_df)
+    series.append(ascent)
+    series.append(descent)
+    
     for i in range(0,len(row)):
         series.append(row[i])
-    series.append(status)
-    
+    series.append(ac_details['notes'])
+    series.append(ac_details[''])#admin notes - going to have to be modified by hand
     
     a_row = pd.Series(series,index=main_df.columns)#this should be done with a replace if the activity exists, else append
     main_df = main_df.append(a_row,ignore_index = True)
@@ -296,7 +354,7 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
     main_df.to_csv(r'{}'.format(main_df_name),index=False) 
 
 
-def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_option=True,alt_option=True):
+def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_option=True,alt_option=True,notes=''):
 
     #set-up
     initials = dr.pull_initials()
@@ -712,7 +770,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                   'date':date,
                   'dist': dist,
                   'time': full_string,
-                  'shoes': shoes}
+                  'shoes': shoes,
+                  'notes': notes}
     
     main_df = pd.DataFrame(data,columns=dr.cols)
     
@@ -758,7 +817,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 #activity_import(FIT='B1QF3648')
 #activity_import(FIT='B1SB0727',email_option=False)activity_import(FIT='B2GH0144')
 #input('Cont? ')
-#activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)
+#activity_import(FIT='B2 H80337',gpx='Morning_Run',email_option=False)
 
 #144 and 337/Morning Run are good tests
 #144 has not alt col
