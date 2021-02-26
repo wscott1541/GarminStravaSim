@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <style>
+          table,
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+          div { margin: 0;
+          padding: 0}
+        </style>
+      </head>
+    <body>
+        {{ plot|safe}}
+
+        <table>{{ rank_list|safe }}</table>
+        <p><a href={% url 'home' %}>Home</a> | <a href={% url 'index' %}>Index</a> | <a href={% url 'rankings' %}>Rankings</a></p>
+    </body>
+    
+</html>

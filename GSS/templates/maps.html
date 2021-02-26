@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <title>Activities - GSS</title>
+        <style>
+          table,
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+        </style>
+      </head>
+    <body>
+        <p>
+          {{ best_times|safe }}
+          <br>
+          <br><a href='../'>Back</a>
+          <br><a href={% url 'home' %}>Home</a> | <a href={% url 'index' %}>Index</a> | <a href={% url 'rankings' %}>Rankings</a></p>
+    </body>
+    
+</html>

@@ -11,7 +11,7 @@ import pandas as pd
 
 from fitparse import FitFile
 
-from today_string import today_string, day, month, year
+from GSS.GSSutils import today_string as ts
 
 from datetime import datetime, timedelta
 import time
@@ -21,9 +21,11 @@ import gpxpy
 import haversine
 from math import sqrt
 
-import data_read as dr
+#import data_read as dr
 
-import analyse
+from GSS.GSSutils import data_read as dr
+
+#import analyse
 
 from numpy import NaN
 
@@ -316,7 +318,7 @@ def ascent_descent(ac_df):
         
     return (rise, fall)
 
-def assess_main(main_df,gpx_df,ac_details,main_df_name):
+def assess_main(main_df,gpx_df,ac_details,main_df_name='activities.csv'):
     df = main_df
 
     #ac_abbr,activity,date, dist,full_string,shoes
@@ -346,7 +348,7 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
     for i in range(0,len(row)):
         series.append(row[i])
     series.append(ac_details['notes'])
-    series.append(ac_details[''])#admin notes - going to have to be modified by hand
+    series.append('')#admin notes - going to have to be modified by hand
     
     a_row = pd.Series(series,index=main_df.columns)#this should be done with a replace if the activity exists, else append
     main_df = main_df.append(a_row,ignore_index = True)
@@ -357,7 +359,7 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name):
 def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_option=True,alt_option=True,notes=''):
 
     #set-up
-    initials = dr.pull_initials()
+    #initials = dr.pull_initials()
     
     if ('FIT' not in FIT) and (FIT != 'NONE'):
         FIT = FIT + '.FIT'
@@ -371,11 +373,11 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         
         available_options = []
         
-        latest_name = dr.latest_activity(initials)
+        latest_name = dr.latest_activity()
         
         for i in range(0,len(name_options)):
-            if  f'{name_options[i]}{year}{month}{day}' != latest_name:
-                available_options.append(f'{name_options[i]}{year}{month}{day}')
+            if  f'{name_options[i]}{ts.year}{ts.month}{ts.day}' != latest_name:
+                available_options.append(f'{name_options[i]}{ts.year}{ts.month}{ts.day}')
         
         ac_abbr = available_options[0]
     else:
@@ -668,20 +670,20 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         print('Altitudes saved') 
     
 
-    file_name = "{}activities.csv".format(initials)
+    #file_name = "activities.csv".format(initials)
     
-    data = pd.read_csv(r'{}'.format(file_name))
+    data = pd.read_csv(r'activities.csv')
     
-    gpx_status = dr.pull_gpx_status(initials)
+    #gpx_status = dr.pull_gpx_status(initials)
     
-    if gpx_status == 'Y':
-        archive = pd.DataFrame(data, columns= dr.cols)
-    else:
-        archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
+    #if gpx_status == 'Y':
+    #    archive = pd.DataFrame(data, columns= dr.cols)
+    #else:
+    #    archive = pd.DataFrame(data, columns= ['Activity number','Activity Type','Date','Distance','Time'])    
 
     #initial archiving
     archive = pd.DataFrame(data)
-    archname = os.path.join(fileDir, 'Archive.gitignore/{}{}'.format(today_string,file_name))
+    archname = os.path.join(fileDir, 'Archive.gitignore/{}activities.csv'.format(ts.today_string))
     archive.to_csv(r'{}'.format(archname), index = False)
 
     date = timestamps[0]# + timedelta(hours=1)
@@ -763,8 +765,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 
     #import map_email_gen
     
-
-    
     ac_details = {'no': ac_abbr,
                   'type': activity,
                   'date':date,
@@ -775,33 +775,36 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
     main_df = pd.DataFrame(data,columns=dr.cols)
     
-    assess_main(main_df,df,ac_details,file_name)
+    assess_main(main_df,df,ac_details)
         
     
-    if email_option == True:
-        import email_functions
+    #if email_option == True:
+    #    import email_functions
     
-        settings = email_functions.load_settings()
+    #    settings = email_functions.load_settings()
     
-        email_functions.activity_email(settings,ac_abbr,initials)
-
-    #try:
-    #    os.remove(FIT)
-    #    print('FIT removed')
-    #except:
-    #    print('No FIT file')
-        
-   #try:
-   #     os.remove(gpx)
-   #     print('gpx removed')
-   # except:
-   #     print('No gpx file')
+    #    email_functions.activity_email(settings,ac_abbr,initials)
 
     try:
-        os.remove('temp-abbr.csv')
+        os.remove(FIT)
+        print('FIT removed')
     except:
-        print('Complete!')  
+        print('No FIT file')
         
+    try:
+        os.remove(gpx)
+        print('gpx removed')
+    except:
+        print('No gpx file')
+
+    #try:
+    #    os.remove('temp-abbr.csv')
+    #except:
+    #    print('Complete!')  
+    
+    print('Complete')
+    
+    
 #activity_import(FIT='ACRB1018')
 #activity_import(FIT='ACTG2250',activity='Cardio')
 #activity_import(FIT='ACVH5024',activity='Cardio')
@@ -825,6 +828,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 
 #activity_import(FIT='B2GH0144', email_option=False)#WORKS
 #activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)Strava works
-
-
+#activity_import(FIT='B2LB0214',notes='with Will Moss')
+#activity_import(FIT='B2MG0018',shoes='Kalenji Run Support Red')
+activity_import('B2PG5456',notes='with Will Moss')
 

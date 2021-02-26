@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>Edited</title>
+        <style>
+          table,
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+        </style>
+      </head>
+    <body>
+        <p>{{ edit_complete|safe }}<br>
+          <a href='../../../'>Return</a>  
+        </p>
+        <p><a href={% url 'home' %}>Home</a></p>
+    </body>
+    
+</html>

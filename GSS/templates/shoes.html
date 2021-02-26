@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <title>Shoes - GSS</title>
+        <style>
+          table,
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+        </style>
+      </head>
+
+      {{ shoes_plot|safe }}
+
+      <body>
+        <br>
+        <table>{{ shoes_table|safe }}</table>
+    </body>
+    <body>
+        <p><a href={% url 'home' %}>Home</a></p>
+    </body>
+    
+    
+</html>

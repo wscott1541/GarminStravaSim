@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>Activities - GSS</title>
+        <style>
+          table,
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+        </style>
+      </head>
+    <body>
+        <p><a href={% url 'home' %}>Home</a></p>
+    </body>
+    <body>
+        <table>{{ index_list|safe }}</table>
+    </body>
+    
+</html>
