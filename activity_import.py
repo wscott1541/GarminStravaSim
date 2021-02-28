@@ -536,7 +536,10 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                         #print(f'{i}/{len(fit_ts)}',fit_hr[n])
                         hr_found = True
                
-                hr = hrs[-1]
+                try:
+                    hr = hrs[-1]
+                except:
+                    hr = NaN
 
                 if len(distances) > 0:
                     prev_lon = data[i-1].longitude
@@ -557,7 +560,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     if time_dt >= fit_s and time_dt <= fit_f:
                         distances.append(0)
                     
-                distance = distances[-1]
+                if time_dt >= fit_s and time_dt <= fit_f:
+                    distance = distances[-1]
 
                 if time_dt >= fit_s and time_dt <= fit_f:
                     a_row = [lon,lat,alt,time_dt,distance,hr]
@@ -830,5 +834,5 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 #activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)Strava works
 #activity_import(FIT='B2LB0214',notes='with Will Moss')
 #activity_import(FIT='B2MG0018',shoes='Kalenji Run Support Red')
-activity_import('B2PG5456',notes='with Will Moss')
+activity_import('B2SG3533',gpx='Afternoon_Run')
 
