@@ -834,5 +834,84 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 #activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)Strava works
 #activity_import(FIT='B2LB0214',notes='with Will Moss')
 #activity_import(FIT='B2MG0018',shoes='Kalenji Run Support Red')
-activity_import('B2SG3533',gpx='Afternoon_Run')
+#activity_import('B31I0505',shoes='Kalenji Run Support Red',notes='With Will Moss')
+#activity_import('B3475420',notes='With Joe Cryer')
+
+def underscores_to_spaces(string):
+    
+    string = string.replace('_',' ')
+    
+    return(string)
+
+import argparse
+
+def import_from_args():
+    
+    parser = argparse.ArgumentParser()
+    
+    # Define the program description
+    text = 'Imports activity from FIT or gpx or both.'
+
+    parser = argparse.ArgumentParser(description=text)
+    
+    #define input options
+    parser.add_argument("--FIT", "-f", help="FIT file from Garmin, with or without .FIT")
+    
+    parser.add_argument("--gpx", "-g", help="gpx file (from Strava), with or without .gpx")
+    
+    parser.add_argument("--activity", "-a", help='Optional: defaults to Walking/Running/Cycling depending on pace')
+       
+    parser.add_argument('--shoes', '-s', help='Optional: use {_} not { }')
+    #have not added email option at this point
+    parser.add_argument('--elevation', '-e', help='True/False, default True: can take time to import if FIT')
+    
+    parser.add_argument('--notes', '-n', help='Optional: use {_} not { }')
+    
+    #convert input options to function inputs
+    args = parser.parse_args()
+    
+    if args.FIT:
+        FIT = args.FIT
+    else:
+        FIT = 'NONE'
+        
+    if args.gpx:
+        gpx = args.gpx
+    else:
+        gpx = 'NONE'
+        
+    if args.activity:
+        activity = args.activity
+    else:
+        activity = 'auto'
+    
+    if args.shoes:
+        shoes = underscores_to_spaces(args.shoes)
+    else:
+        shoes = 'default'
+    
+    if args.elevation:
+        if 'T' or 't' in parser.elevation:
+            alt_option = True
+        else:
+            alt_option = False
+    else:
+        alt_option = True
+        
+    if args.notes:
+        notes = underscores_to_spaces(parser.notes)
+    else:
+        notes = ''
+        
+    
+    if FIT == 'NONE' and gpx == 'NONE':
+        print('Requires a --FIT or a --gpx file to import')
+    else:
+        activity_import(FIT=FIT, gpx=gpx, activity=activity, shoes=shoes, alt_option=alt_option, notes=notes)
+    
+#alas, I now have to actually run the script...
+import_from_args()
+    
+    
+    
 
