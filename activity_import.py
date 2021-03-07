@@ -808,35 +808,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
     print('Complete')
     
-    
-#activity_import(FIT='ACRB1018')
-#activity_import(FIT='ACTG2250',activity='Cardio')
-#activity_import(FIT='ACVH5024',activity='Cardio')
-#activity_import(FIT='B14H1013',activity='Cardio')
-#activity_import(FIT='B16H2648',activity='Cardio')
-#activity_import(FIT='B18H3619',activity='Cardio')
-#activity_import(FIT='B1BH0531',activity='Cardio')
-#activity_import(FIT='B1FE3840')
-#activity_import(FIT='B1GB2515',shoes='Hoka One One Clifton 5')
-#activity_import(FIT='B1GC0317',shoes='Hoka One One Clifton 5')
-#activity_import(FIT='B1OI1525',activity='Cardio')
-#activity_import(FIT='B1PI2453',activity='Cardio')
-#activity_import(FIT='B1QF3648')
-#activity_import(FIT='B1SB0727',email_option=False)activity_import(FIT='B2GH0144')
-#input('Cont? ')
-#activity_import(FIT='B2 H80337',gpx='Morning_Run',email_option=False)
-
-#144 and 337/Morning Run are good tests
-#144 has not alt col
-#337 has not pulled the strava ones for some reason? Except it did?
-
-#activity_import(FIT='B2GH0144', email_option=False)#WORKS
-#activity_import(FIT='B2H80337',gpx='Morning_Run',email_option=False)Strava works
-#activity_import(FIT='B2LB0214',notes='with Will Moss')
-#activity_import(FIT='B2MG0018',shoes='Kalenji Run Support Red')
-#activity_import('B31I0505',shoes='Kalenji Run Support Red',notes='With Will Moss')
-#activity_import('B3475420',notes='With Joe Cryer')
-
 def underscores_to_spaces(string):
     
     string = string.replace('_',' ')
@@ -891,7 +862,7 @@ def import_from_args():
         shoes = 'default'
     
     if args.elevation:
-        if 'T' or 't' in parser.elevation:
+        if 'T' or 't' in args.elevation:
             alt_option = True
         else:
             alt_option = False
@@ -899,7 +870,7 @@ def import_from_args():
         alt_option = True
         
     if args.notes:
-        notes = underscores_to_spaces(parser.notes)
+        notes = underscores_to_spaces(args.notes)
     else:
         notes = ''
         
