@@ -385,7 +385,9 @@ def pace_alt_plotly(ac_no):
     
     ac_df = dr.route_data(ac_no)
     
-    div = af.pace_alt_distance_plotly(ac_df)
+    #div = af.pace_alt_distance_plotly(ac_df)
+    
+    div = af.distance_plotly(ac_df)
     
     return(div)
 

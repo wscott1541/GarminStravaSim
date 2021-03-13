@@ -189,6 +189,108 @@ def pace_alt_distance_plotly(df):
         div = div + '<p>Altitudes not found</p>'
     
     return(div)
+
+def distance_plotly(df):
+    #define the available information
+    try:
+        df['check'] = df['alt'].apply(lambda x: int(x))
+        alts = True
+    except:
+        alts = False
+        
+    try:
+        df['check'] = df['HR'].apply(lambda x: int(x))
+        hr = True
+    except:
+        hr = False
+        
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    #calculate pace
+    df['time'] = df['time'].apply(bf.convert_time)
+    df['td'] = df['time'] - df.iloc[0]['time']
+    df['minutes'] = df['td'].apply(lambda x: x.total_seconds())
+    df['minutes'] = df['minutes'].apply(lambda x: x/60)
+    df['delta_min'] = df['minutes'].diff(periods=5)
+    df['km'] = df['distance'] / 1000
+    df['delta_km'] = df['km'].diff(periods=5)
+        
+    df['pace'] = (df['delta_min'] / df['delta_km']).rolling(30,min_periods=1).mean()
+
+    df['pace'] = df['pace'].apply(lambda x: 1/x)
+       
+    fig.add_trace(
+            go.Scatter(x=df['distance'], 
+                       y=df['pace'], 
+                       name="Pace (misc. units)"),
+            secondary_y=True,
+            )
+    
+    if alts == True:
+        df['alt'] = df['alt'].apply(lambda x: round(x,1))#also breaks nan
+        df['alt'] = df['alt'].rolling(30,min_periods=1).mean()
+        #df['alt'] = df['alt'].apply(lambda x: round(x,1))    
+
+        fig.add_trace(
+            go.Scatter(x=df['distance'], 
+                   y=df['alt'], 
+                   name="Elevation",
+                   fill='tozeroy'),
+            secondary_y=False,
+            )
+        
+        if df['alt'].max() < 150 and df['alt'].min() > 0:
+            fig.update_layout(
+                yaxis=dict(
+                    range=[0, 150]
+                    ))
+        elif df['alt'].max() < 150 and df['alt'].min() < 0:
+            fig.update_layout(
+                yaxis=dict(
+                    range=[df['alt'].min() - 3, 150]
+                    ))
+        elif df['alt'].max() > 150 and df['alt'].min() > 0:
+            fig.update_layout(
+                yaxis=dict(
+                    range=[0, df['alt'].max()+3]
+                    ))
+        elif df['alt'].max() > 150 and df['alt'].min() < 0:
+            fig.update_layout(
+                yaxis=dict(
+                    range=[df['alt'].min() - 3, df['alt'].max()+3]
+                    ))
+    
+    if hr == True:
+        #if alts == True:
+        #    sec_y_hr =False
+        #    hr_vis = 'legendonly'
+            
+        max_bound = df['pace'].max() * 0.8
+
+        max_hr = df['HR'].max()
+        
+        df['hr_plot'] = (df['HR']/max_hr) * max_bound
+        df['hr_plot'] = df['hr_plot'].rolling(30,min_periods=1).mean()
+        df['hr_annot'] = (df['hr_plot'] * max_hr)/max_bound
+        df['hr_annot'] = df['hr_annot'].apply(lambda x: round(x))
+        
+        hover_t = '''Distance: %{x}m<br>
+HR: %{text}'''
+        
+        fig.add_trace(
+            go.Scatter(x=df['distance'], 
+                       y=df['hr_plot'], 
+                       name="HR",
+                       hovertemplate = hover_t,
+                       text = df['hr_annot'],
+                       visible='legendonly'),
+                secondary_y=True,
+                )
+         
+    div = pio.to_html(fig,auto_play=False,full_html=False)        
+    
+    return(div)
+
     
 
 def hr_plot_time(df):
