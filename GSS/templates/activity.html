@@ -2,7 +2,10 @@
     <head>
         <title>{{ title }}</title>
         <style>
-          table,
+          table {width: 100%;
+            border: 1px solid black;
+            border-collapse: collapse;
+            text-align: center;}
           th,
           td {
             padding: 10px;
@@ -20,15 +23,13 @@
           
           {{ shoes|safe }}</p>
         
-        <p>{{ map|safe }}</p>
-    </body>
-    
-
-    <body>
+      {{ map|safe }}
 
       {{ alt_distance_plotly|safe }}
-          
+        
+      <table>
         {{ times_table|safe }}
+      </table>
         
         <p>{{ times_radar_plot|safe }}</p>
 

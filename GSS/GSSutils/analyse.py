@@ -282,10 +282,10 @@ HR: %{text}'''
                        y=df['hr_plot'], 
                        name="HR",
                        hovertemplate = hover_t,
-                       text = df['hr_annot'],
-                       visible='legendonly'),
+                       text = df['hr_annot']),
+                       
                 secondary_y=True,
-                )
+                )#visible='legendonly'),
          
     div = pio.to_html(fig,auto_play=False,full_html=False)        
     

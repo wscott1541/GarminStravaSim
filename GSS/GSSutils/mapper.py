@@ -28,6 +28,7 @@ from . import basic_functions as bf
 #from analyse import route_data
 
 import pandas as pd
+import numpy as np
 
 import os
 
@@ -38,6 +39,13 @@ import haversine
 from bs4 import BeautifulSoup
 
 import folium
+
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.io as pio
+
+import planar
 
 def plot_osm_map(ac_df, width_input=75, height_input=75):
     
@@ -117,6 +125,194 @@ def plot_osm_map(ac_df, width_input=75, height_input=75):
     
     return (out)
 
+def zoom_func(ac_df):
+    
+    x1 = ac_df['lat'].max()   
+    x2 = ac_df['lat'].min() 
+    y1 = ac_df['lon'].max()
+    y2 = ac_df['lon'].min()
+    
+    max_bound = max(abs(x1-x2), abs(y1-y2)) * 111
+    zoom = 14.75 - np.log(max_bound)
+    
+    return(zoom)
+
+def get_plotting_zoom_level_and_center_coordinates_from_lonlat_tuples(
+        longitudes=None, latitudes=None, lonlat_pairs=None):
+    """Function documentation:\n
+    Basic framework adopted from Krichardson under the following thread:
+    https://community.plotly.com/t/dynamic-zoom-for-mapbox/32658/7
+
+    # NOTE:
+    # THIS IS A TEMPORARY SOLUTION UNTIL THE DASH TEAM IMPLEMENTS DYNAMIC ZOOM
+    # in their plotly-functions associated with mapbox, such as go.Densitymapbox() etc.
+
+    Returns the appropriate zoom-level for these plotly-mapbox-graphics along with
+    the center coordinate tuple of all provided coordinate tuples.
+    """
+
+    # Check whether the list hasn't already be prepared outside this function
+    if lonlat_pairs is None:
+        # Check whether both latitudes and longitudes have been passed,
+        # or if the list lenghts don't match
+        if ((latitudes is None or longitudes is None)
+                or (len(latitudes) != len(longitudes))):
+            # Otherwise, return the default values of 0 zoom and the coordinate origin as center point
+            return 0, (0, 0)
+
+        # Instantiate collator list for all coordinate-tuples
+        lonlat_pairs = [(longitudes[i], latitudes[i]) for i in range(len(longitudes))]
+
+    # Get the boundary-box via the planar-module
+    b_box = planar.BoundingBox(lonlat_pairs)
+
+    # In case the resulting b_box is empty, return the default 0-values as well
+    if b_box.is_empty:
+        return 0, (0, 0)
+
+    # Otherwise, get the area of the bounding box in order to calculate a zoom-level
+    area = b_box.height * b_box.width
+
+    # * 1D-linear interpolation with numpy:
+    # - Pass the area as the only x-value and not as a list, in order to return a scalar as well
+    # - The x-points "xp" should be in parts in comparable order of magnitude of the given area
+    # - The zpom-levels are adapted to the areas, i.e. start with the smallest area possible of 0
+    # which leads to the highest possible zoom value 20, and so forth decreasing with increasing areas
+    # as these variables are antiproportional
+    
+    zoom = np.interp(x=area,
+                     xp=[0, 5**-10, 4**-10, 3**-10, 2**-10, 1**-10, 1**-5],
+                     fp=[20, 17, 16, 15, 14, 7, 5])
+        
+    zoom = np.interp(x=area,
+                     xp=[0.00025, 0.0005, 0.001, 0.003, 0.005, 0.011, 0.022, 0.044, 0.088, 0.176, 0.352, 0.703, 1.406,
+                         2.813, 5.625,11.25, 22.5, 45],
+                     fp=[20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3])
+
+    #zoom = zoom - 0.5
+
+    # Finally, return the zoom level and the associated boundary-box center coordinates
+    return zoom, b_box.center
+
+def mapping_zoom(ac_df):
+    
+    z = ac_df['lat'].max() - ac_df['lat'].min()
+    z = z * 110.574
+    
+    if z > 1.52:
+        zoom = 13
+    else:
+        zoom = 14
+
+    return(zoom)
+
+def basic_plotly_osm_map(ac_df):
+    
+    output='map.html'
+    #for i in range(len(speeds)):
+    #    speeds[i] = speed_conversion(speeds[i])
+    #speeds = speeds
+    
+    lat_min = ac_df['lat'].min()
+    lon_min = ac_df['lon'].min()
+    lat_max = ac_df['lat'].max() 
+    lon_max = ac_df['lon'].max()
+    
+    lon_mid = (lon_max + lon_min)/2
+    lat_mid = (lat_max + lat_min)/2
+    
+    lat_mean = ac_df['lat'].mean()#sum(lats)/len(lats)
+    lon_mean = ac_df['lon'].mean()#sum(lons)/len(lons)
+    
+    dist_x = haversine.haversine((lat_mean,lon_min),(lat_mean,lon_max))
+    dist_y = haversine.haversine((lat_min,lon_mean),(lat_max,lon_mean))
+    
+    ratio = dist_y/dist_x
+
+    sw = ac_df[['lat', 'lon']].min().values.tolist()
+    ne = ac_df[['lat', 'lon']].max().values.tolist()
+
+    full_distance = round(ac_df.iloc[-1]['distance'] / 1000,2)
+    full_distance = f'{full_distance}km'
+
+    fig = go.Figure(go.Scattermapbox(
+    mode = "lines",
+    name = full_distance,
+    lon = ac_df['lon'],
+    lat = ac_df['lat'],
+    line = {'color':'#FF0000'},
+    hovertemplate = '%{text}m<extra></extra>',
+    text = ac_df['distance'],
+    marker = {'size': 10},
+    showlegend = True))
+    
+    fig.update_layout(mapbox_style="open-street-map")
+    
+    #zoom = zoom_func(ac_df)
+    
+    zoom = mapping_zoom(ac_df)
+    
+    fig.update_layout(
+        mapbox={'center':{'lon': lon_mid, 'lat': lat_mid},
+                'zoom': zoom})
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    return (div)
+
+def enhanced_plotly_osm_map(ac_df):
+        
+    lat_min = ac_df['lat'].min()
+    lon_min = ac_df['lon'].min()
+    lat_max = ac_df['lat'].max() 
+    lon_max = ac_df['lon'].max()
+    
+    lon_mid = (lon_max + lon_min)/2
+    lat_mid = (lat_max + lat_min)/2
+
+    full_distance = round(ac_df.iloc[-1]['distance'] / 1000,2)
+    full_distance = f'{full_distance}km'
+
+    fig = go.Figure(go.Scattermapbox(
+    mode = "lines",
+    name = full_distance,
+    lon = ac_df['lon'],
+    lat = ac_df['lat'],
+    line = {'color':'#FF0000'},
+    hovertemplate = '%{text}m<extra></extra>',
+    text = ac_df['distance'],
+    marker = {'size': 10},
+    showlegend = True))
+    
+    #visible='legendonly')
+    lap_df = ac_df[ac_df['distance'] < 1000]
+    lap_name = '1km'
+    
+    fig.add_trace(go.Scattermapbox(
+        mode='lines',
+        name=lap_name,
+        lon=lap_df['lon'],
+        lat=lap_df['lat'],
+        line={'color': '#000000'},
+        hovertemplate='<extra></extra>',
+        marker={'size': 10},
+        visible='legendonly'
+        ))
+    
+    fig.update_layout(mapbox_style="open-street-map")
+    
+    #zoom = zoom_func(ac_df)
+    
+    zoom = mapping_zoom(ac_df)
+    
+    fig.update_layout(
+        mapbox={'center':{'lon': lon_mid, 'lat': lat_mid},
+                'zoom': zoom})
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    return (div)
+
 def stretch_osm_map(ac_df, distance, width_input=75, height_input=75):
     
     output='map.html'
@@ -141,8 +337,9 @@ def stretch_osm_map(ac_df, distance, width_input=75, height_input=75):
             c = 'red'
         else:
             c = 'black'
-    
-        folium.PolyLine(points, color=c, weight=2.5, opacity=1).add_to(m)
+        
+        if len(points) > 0:
+            folium.PolyLine(points, color=c, weight=2.5, opacity=1).add_to(m)
     
     #HTML(m._repr_html_())
     

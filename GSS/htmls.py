@@ -99,7 +99,9 @@ def generate_map(activity,map_size='reg'):
     
     #chart = chart_as_html()
     
-    chart = mapper.plot_osm_map(activity_df)
+    chart = mapper.enhanced_plotly_osm_map(activity_df)
+    
+    #chart = mapper.plot_osm_map(activity_df)
         
     return(chart)
 

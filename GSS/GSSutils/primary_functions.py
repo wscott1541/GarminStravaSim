@@ -403,7 +403,7 @@ def greatest_rank(user_df,activity_number,dist_dur,kind='all'):
     user_df = user_df.loc[user_df['Activity Type'] == ac_type]
     
     if kind == 'then':
-        user_df = user_df.loc[user_df['Date'] <= ac_date]
+        user_df = user_df[user_df['Date'] <= ac_date]
     
     #if dist_dur == 'Time':
     #    user_df[dist_dur] = user_df[dist_dur].apply(bf.stringtime_to_floatminute)
@@ -607,6 +607,79 @@ def greatest_since(user_df,activity_number,dist_dur):
     
     return(out)
 
+def greatest_since_two(user_df,activity_number,dist_dur):
+    
+    if dist_dur == 'Duration':
+        dist_dur = 'Time'
+        
+    user_df['Date'] = user_df['Date'].apply(bf.convert_time)
+    
+    
+    SPLIT = dr.activity_splits(user_df,activity_number,dist_dur)
+    DATE = dr.activity_splits(user_df,activity_number,'Date')
+    DATE = bf.convert_time(DATE)
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    
+    df = user_df[user_df['Activity Type'] == ac_type]
+    df = df[df['Date'] < DATE]
+    
+    full_length = len(df)
+    
+    df = df[df[dist_dur] >= SPLIT]
+    
+    df = df.sort_values(by=['Date'],ascending=True).reset_index()
+    
+    if len(df) == 1:
+        if 'Time' in dist_dur:
+            out = 'longest ever!'
+        if 'Dist' in dist_dur:
+            out = 'further ever!'
+    elif len(df) == full_length:
+        out = 'shortest ever!'
+    else:
+        date = df.iloc[-1]['Date']
+        ac_no = df.iloc[-1]['Activity number']
+        if 'Time' in dist_dur:
+            out = f"longest since <a href='../{ac_no}'>{str(date)[:10]}</a>"
+        if 'Dist' in dist_dur:
+            out = f"furthest since <a href='../{ac_no}'>{str(date)[:10]}</a>"
+
+    return(out)
+
+def greatest_until(user_df,activity_number,dist_dur):
+    
+    if dist_dur == 'Duration':
+        dist_dur = 'Time'
+        
+    user_df['Date'] = user_df['Date'].apply(bf.convert_time)
+    
+    
+    SPLIT = dr.activity_splits(user_df,activity_number,dist_dur)
+    DATE = dr.activity_splits(user_df,activity_number,'Date')
+    DATE = bf.convert_time(DATE)
+    ac_type = dr.activity_details(user_df,activity_number,'Type')
+    
+    df = user_df[user_df['Activity Type'] == ac_type]
+    df = df[df['Date'] > DATE]
+    
+    if len(df) == 0:
+        out = 'no run since'
+    else:
+        df = df[df[dist_dur] >= SPLIT]
+        if len(df) == 0:
+            out = 'not beaten since'
+        else:
+            df = df.sort_values(by=['Date'],ascending=True).reset_index()            
+        
+            date = df.iloc[0]['Date']
+            ac_no = df.iloc[0]['Activity number']
+            if 'Time' in dist_dur:
+                out = f"longest until <a href='../{ac_no}'>{str(date)[:10]}</a>"
+            if 'Dist' in dist_dur:
+                out = f"furthest until <a href='../{ac_no}'>{str(date)[:10]}</a>"
+
+    return(out)
+
 
 #AB5G2247.FIT
 
@@ -677,7 +750,25 @@ def pace_as_string(user_df,ac_no,distance_tag):
         pace = bf.floatminute_to_stringtime(pace)
     except:
         pace= 'NONE'
+    
+    if distance == 'Distance':
+        t = dr.activity_details(user_df,ac_no,'Time')
+        t = bf.split_to_floatminute(t)
+        d = dr.activity_details(user_df,ac_no,'Distance')
+        p = t/d
+        pace = bf.floatminute_to_stringtime(p)
+    
     return(pace)
+
+def speed_as_string(user_df,ac_number):
+    
+    t = dr.activity_details(user_df,ac_number,'Time')
+    t = bf.split_to_floatminute(t)
+    d = dr.activity_details(user_df,ac_number,'Distance')
+    speed = round(d/t * 60,1)
+    speed = str(speed)+'km/h'
+    return(speed)
+    
 
 
 def html_activity_row(distance, user_df, ac_number,html_option=False):
@@ -728,25 +819,25 @@ def html_activity_rows(user_df, ac_number,html_option=False):
     text = text + f'''<tr>
 <td>Distance</td>
 <td>{dr.activity_details(user_df,ac_number,'Distance')}km</td>
-<td>--TODO---</td>
+<td>{pace_as_string(user_df, ac_number, 'Distance')}</td>
 <td>{greatest_rank(user_df,ac_number,'Distance',kind='then')}</td>
 <td>{count(user_df,ac_number,'Distance',kind='then')}</td>
 <td>{greatest_rank(user_df,ac_number,'Distance',kind='all')}</td>
 <td>{count(user_df,ac_number,'Distance',kind='all')}</td>  
-<td>{greatest_since(user_df,ac_number,'Distance')}</td>   
-<td>---TODO---</td> 
+<td>{greatest_since_two(user_df,ac_number,'Distance')}</td>   
+<td>{greatest_until(user_df,ac_number,'Distance')}</td> 
 </tr>
 
 <tr>
 <td>Duration</td>
 <td>{dr.activity_details(user_df,ac_number,'Time')}</td>
-<td>---TODO---</td>
+<td>{speed_as_string(user_df,ac_number)}</td>
 <td>{greatest_rank(user_df,ac_number,'Duration',kind='then')}</td>
 <td>{count(user_df,ac_number,'Duration',kind='then')}</td>
 <td>{greatest_rank(user_df,ac_number,'Duration',kind='all')}</td>
 <td>{count(user_df,ac_number,'Duration',kind='all')}</td>  
-<td>{greatest_since(user_df,ac_number,'Time')}</td>  
-<td>---TODO---</td>   
+<td>{greatest_since_two(user_df,ac_number,'Time')}</td>  
+<td>{greatest_until(user_df,ac_number,'Time')}</td>   
 </tr>
 '''
     
@@ -762,7 +853,7 @@ def cropped_activity_table(user_df,ac_number):
     
     #html = html_activity_lines(user_df,ac_number,html_option=True)[3:-4]
     
-    html = f'''<table>
+    html = f'''
     
 <th>Distance</th>
 <th>Time</th>
@@ -774,7 +865,7 @@ def cropped_activity_table(user_df,ac_number):
     
 {html_activity_rows(user_df,ac_number,html_option=True)}
 
-</table>'''
+'''
     
     return(html)
 
