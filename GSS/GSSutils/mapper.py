@@ -241,8 +241,8 @@ def basic_plotly_osm_map(ac_df):
     lon = ac_df['lon'],
     lat = ac_df['lat'],
     line = {'color':'#FF0000'},
-    hovertemplate = '%{text}m<extra></extra>',
-    text = ac_df['distance'],
+    hovertemplate = '%{text}km<extra></extra>',
+    text = round(ac_df['distance']/1000,2),
     marker = {'size': 10},
     showlegend = True))
     
@@ -270,7 +270,8 @@ def enhanced_plotly_osm_map(ac_df):
     lon_mid = (lon_max + lon_min)/2
     lat_mid = (lat_max + lat_min)/2
 
-    full_distance = round(ac_df.iloc[-1]['distance'] / 1000,2)
+    full_d = ac_df.iloc[-1]['distance'] 
+    full_distance = round(full_d/1000,2)
     full_distance = f'{full_distance}km'
 
     fig = go.Figure(go.Scattermapbox(
@@ -279,16 +280,33 @@ def enhanced_plotly_osm_map(ac_df):
     lon = ac_df['lon'],
     lat = ac_df['lat'],
     line = {'color':'#FF0000'},
-    hovertemplate = '%{text}m<extra></extra>',
-    text = ac_df['distance'],
+    hovertemplate = '%{text}km<extra></extra>',
+    text = ac_df['distance'].apply(lambda x: round(x/1000,2)),
     marker = {'size': 10},
     showlegend = True))
     
     #visible='legendonly')
-    lap_df = ac_df[ac_df['distance'] < 1000]
-    lap_name = '1km'
     
-    fig.add_trace(go.Scattermapbox(
+    for i in range(0,int(full_d/1000)+1):
+    
+        lap_df = ac_df[ac_df['distance'] < ((i+1)*1000)]
+        lap_df = lap_df[lap_df['distance'] > (i*1000)]
+        
+        lap_df = lap_df.reset_index()
+        
+        t_0 = lap_df.iloc[0]['time']
+        t_1 = lap_df.iloc[-1]['time']
+        
+        time = t_1 - t_0
+        time = str(time)
+        time = time[11:]
+        
+        if i == int(full_d/1000):
+            lap_name = f'{int(i)}-{full_distance}: {time}'
+        else:
+            lap_name = f'{int(i)}-{int(i+1)}km: {time}'
+    
+        fig.add_trace(go.Scattermapbox(
         mode='lines',
         name=lap_name,
         lon=lap_df['lon'],

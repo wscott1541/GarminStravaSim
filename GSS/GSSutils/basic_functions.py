@@ -198,6 +198,9 @@ def convert_time(x):
         x = datetime.strptime(x,'%Y-%m-%d %H:%M:%S')
     return(x)
 
+
+
+
 def durl_to_dtag(durl):
 
     if durl == '1mile':
