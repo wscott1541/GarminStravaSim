@@ -430,30 +430,34 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
             if activity != 'Cardio':
                 try:
+                    #print(i,latitudes[i])
                     lat = latitudes[i] * conversion
+                    if len(lat_breaks) > 0:
+                        lat_breaks = []
                 except:
                     if len(lat_breaks) == 0:
                         lat_breaks.append(latitudes[i-1] * conversion)
-                    elif lat_break_checks[-1] == i - 1:
-                        here = 'junk'
-                    else:
-                        lat_breaks = [latitudes[i-1] * conversion]
-                        lat_break_checks.append(i)
-        
-                    lat = lat_breaks[0]
+                    #elif lat_break_checks[-1] == i - 1:
+                    #    here = 'junk'
+                    #else:
+                    #    lat_breaks.append(lat_break)
+                        
+                    lat = lat_breaks[-1]
 
                 try:
                     lon = longitudes[i] * conversion
+                    if len(lat_breaks) > 0:
+                        lat_breaks = []
                 except:
                     if len(lon_breaks) == 0:
                         lon_breaks.append(longitudes[i-1] * conversion)
-                    elif lon_break_checks[-1] == i - 1:
-                        here = 'junk'
-                    else:
-                        lon_breaks = [longitudes[i-1] * conversion]
-                        lon_break_checks.append(i)    
+                    #elif lon_break_checks[-1] == i - 1:
+                    #    here = 'junk'
+                    #else:
+                    #    lon_breaks = [longitudes[i-1] * conversion]
+                    #    lon_break_checks.append(i)    
         
-                    lon = lon_breaks[0]
+                    lon = lon_breaks[-1]
                 
             else:
                 lat = 'NONE'
@@ -883,6 +887,5 @@ def import_from_args():
 #alas, I now have to actually run the script...
 import_from_args()
     
-    
-    
+   
 
