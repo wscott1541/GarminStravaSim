@@ -141,6 +141,19 @@ def floatminute_to_stringtime(time):
     
     return(string)
 
+def cropped_floatminute_to_stringtime(time):
+    
+    string = floatminute_to_stringtime(time)
+    
+    if '00' in string[:2]:
+        string = string[3:]
+        
+    if string[0] == '0':
+        string = string[1:]
+    
+    return(string)
+    
+
 def minutes_crop(string):
     if string[:2] == '00':
         new = string[3:]

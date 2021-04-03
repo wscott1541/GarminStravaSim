@@ -196,13 +196,19 @@ def get_plotting_zoom_level_and_center_coordinates_from_lonlat_tuples(
 
 def mapping_zoom(ac_df):
     
-    z = ac_df['lat'].max() - ac_df['lat'].min()
-    z = z * 110.574
+    z_y = ac_df['lat'].max() - ac_df['lat'].min()
+    z_y = z_y * 110.574
     
-    if z > 1.52:
+    if z_y > 1.52:
         zoom = 13
     else:
         zoom = 14
+        
+    z_x = ac_df['lon'].max() - ac_df['lon'].min()
+    z_x = z_x * 110.574
+
+    if z_x > 2.8:#and zoom <...
+        zoom = 13
 
     return(zoom)
 
@@ -274,14 +280,25 @@ def enhanced_plotly_osm_map(ac_df):
     full_distance = round(full_d/1000,2)
     full_distance = f'{full_distance}km'
 
+    ac_df['time'] = ac_df['time'].apply(bf.convert_time)
+    ac_df['td'] = ac_df['time'] - ac_df.iloc[0]['time']
+    ac_df['time_annot'] = ac_df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
+    ac_df['time_annot'] = ac_df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
+    
+    ac_df['dist_annot'] = ac_df['distance'].apply(lambda x: round(x/1000,2))
+    
+    hover_t = '''Distance: %{customdata[0]}km
+<br>Time: %{customdata[1]}<extra></extra>'''
+
     fig = go.Figure(go.Scattermapbox(
     mode = "lines",
     name = full_distance,
     lon = ac_df['lon'],
     lat = ac_df['lat'],
     line = {'color':'#FF0000'},
-    hovertemplate = '%{text}km<extra></extra>',
-    text = ac_df['distance'].apply(lambda x: round(x/1000,2)),
+    customdata = ac_df[['dist_annot','time_annot']],
+    hovertemplate = hover_t,#'%{text}km<extra></extra>',
+    #text = ac_df['distance'].apply(lambda x: round(x/1000,2)),
     marker = {'size': 10},
     showlegend = True))
     
@@ -298,13 +315,23 @@ def enhanced_plotly_osm_map(ac_df):
         t_1 = lap_df.iloc[-1]['time']
         
         time = t_1 - t_0
-        time = str(time)
-        time = time[11:]
+        #time = str(time)
+        #time = time[11:]
+        time = datetime.strptime(str(time)[7:],'%H:%M:%S')
+        if datetime.strftime(time,'%H') == '00':
+            time = datetime.strftime(time,'%M:%S')
+        else:
+            time = datetime.strftime(time, '%H:%M:%S')
+
         
         if i == int(full_d/1000):
             lap_name = f'{int(i)}-{full_distance}: {time}'
         else:
             lap_name = f'{int(i)}-{int(i+1)}km: {time}'
+            
+        hover_t = '''Distance: %{customdata[0]}km
+<br>Time: %{customdata[1]}<extra></extra>'''
+        
     
         fig.add_trace(go.Scattermapbox(
         mode='lines',
@@ -312,10 +339,61 @@ def enhanced_plotly_osm_map(ac_df):
         lon=lap_df['lon'],
         lat=lap_df['lat'],
         line={'color': '#000000'},
-        hovertemplate='<extra></extra>',
+        customdata=lap_df[['dist_annot','time_annot']],
+        hovertemplate=hover_t,#'<extra></extra>',
         marker={'size': 10},
         visible='legendonly'
         ))
+        
+    for i in dr.dist_list:
+        if i in ac_df.columns:
+            dist_df = ac_df[ac_df[i] == 1]
+            dist_df = dist_df.reset_index()
+            
+            t_0 = dist_df.iloc[0]['time']
+            t_1 = dist_df.iloc[-1]['time']
+        
+            time = t_1 - t_0
+            time = datetime.strptime(str(time)[7:],'%H:%M:%S')
+            if datetime.strftime(time,'%H') == '00':
+                time = datetime.strftime(time,'%M:%S')
+            else:
+                time = datetime.strftime(time, '%H:%M:%S')
+                
+            dist_df['td'] = dist_df['time'] - ac_df.iloc[0]['time']
+            dist_df['time_annot'] = dist_df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
+            dist_df['time_annot'] = dist_df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
+    
+            dist_df['dist_annot'] = dist_df['distance'].apply(lambda x: round(x/1000,2))
+        
+            dist_df['interval_time_annot'] = dist_df['time'] - dist_df.iloc[0]['time']
+            dist_df['interval_time_annot'] = dist_df['interval_time_annot'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
+            dist_df['interval_time_annot'] = dist_df['interval_time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
+        
+            dist_df['interval_dist_annot'] = dist_df['distance'] - dist_df.iloc[0]['distance']
+            interval_distance = str(round(dr.dist_dict[i]))
+            dist_df['interval_dist_annot'] = dist_df['interval_dist_annot'].apply(lambda x: str(round(x)) + '/' + interval_distance + 'm')
+        
+            dist_df['interval'] = [i] * len(dist_df)
+        
+            hover_t = '''Total: %{customdata[0]}km - %{customdata[1]}
+<br>%{customdata[2]}: %{customdata[3]} - %{customdata[4]}<extra></extra>'''
+                
+            dist_name = f'{i}: {time}'
+            
+            fig.add_trace(go.Scattermapbox(
+        mode='lines',
+        name=dist_name,
+        lon=dist_df['lon'],
+        lat=dist_df['lat'],
+        line={'color': '#000000'},
+        customdata=dist_df[['dist_annot','time_annot','interval','interval_dist_annot','interval_time_annot']],
+        hovertemplate=hover_t,#'<extra></extra>',
+        marker={'size': 10},
+        visible='legendonly'
+        ))
+            
+            
     
     fig.update_layout(mapbox_style="open-street-map")
     

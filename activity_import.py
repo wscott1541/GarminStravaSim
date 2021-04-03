@@ -694,7 +694,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     archname = os.path.join(fileDir, 'Archive.gitignore/{}activities.csv'.format(ts.today_string))
     archive.to_csv(r'{}'.format(archname), index = False)
 
-    date = timestamps[0]# + timedelta(hours=1)
+    date = timestamps[0] + timedelta(hours=1)
     dist = round((distances[-1]/1000),2)
     full_td = timestamps[-1] - timestamps[0]
     full_secs = full_td.total_seconds()

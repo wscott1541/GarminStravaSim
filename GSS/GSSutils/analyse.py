@@ -211,18 +211,29 @@ def distance_plotly(df):
     df['td'] = df['time'] - df.iloc[0]['time']
     df['minutes'] = df['td'].apply(lambda x: x.total_seconds())
     df['minutes'] = df['minutes'].apply(lambda x: x/60)
-    df['delta_min'] = df['minutes'].diff(periods=5)
+    df['delta_min'] = df['minutes'].diff(periods=5).fillna(0)
+    
     df['km'] = df['distance'] / 1000
-    df['delta_km'] = df['km'].diff(periods=5)
+    df['delta_km'] = df['km'].diff(periods=5).fillna(0)
+    
         
     df['pace'] = (df['delta_min'] / df['delta_km']).rolling(30,min_periods=1).mean()
-
+    df['pace_annot'] = df['pace'].fillna(0).apply(bf.cropped_floatminute_to_stringtime)
     df['pace'] = df['pace'].apply(lambda x: 1/x)
-       
+    
+    df['time_annot'] = df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
+    df['time_annot'] = df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
+    
+    hover_t = '''Distance: %{x}m
+<br>Time: %{customdata[0]}
+<br>Pace: %{customdata[1]}/km<extra></extra>'''
+    
     fig.add_trace(
             go.Scatter(x=df['distance'], 
                        y=df['pace'], 
-                       name="Pace (misc. units)"),
+                       name="Pace (misc. units)",
+                       customdata = df[['time_annot','pace_annot']],
+                       hovertemplate = hover_t),
             secondary_y=True,
             )
     
@@ -231,11 +242,19 @@ def distance_plotly(df):
         df['alt'] = df['alt'].rolling(30,min_periods=1).mean()
         #df['alt'] = df['alt'].apply(lambda x: round(x,1))    
 
+        df['alt_annot'] = df['alt'].apply(lambda x: round(x))
+
+        hover_t = '''Distance: %{x}m
+<br>Time: %{customdata[0]}
+<br>Elevation: %{customdata[1]}m<extra></extra>'''
+
         fig.add_trace(
             go.Scatter(x=df['distance'], 
                    y=df['alt'], 
                    name="Elevation",
-                   fill='tozeroy'),
+                   fill='tozeroy',
+                   customdata = df[['time_annot','alt_annot']],
+                   hovertemplate = hover_t),
             secondary_y=False,
             )
         
@@ -272,17 +291,28 @@ def distance_plotly(df):
         df['hr_plot'] = (df['HR']/max_hr) * max_bound
         df['hr_plot'] = df['hr_plot'].rolling(30,min_periods=1).mean()
         df['hr_annot'] = (df['hr_plot'] * max_hr)/max_bound
-        df['hr_annot'] = df['hr_annot'].apply(lambda x: round(x))
+        df['hr_annot'] = df['hr_annot'].apply(lambda x: 'HR: ' + str(round(x)))
+        df['annot'] = 'Time: ' + str(df['time']) + '''
+HR: ''' + str(df['hr_annot'])   
+        df['t_annot'] = df['time'].apply(lambda x: 'Time: ' + str(x))
+        df['annot'] = df['t_annot'] + '''
         
-        hover_t = '''Distance: %{x}m<br>
-HR: %{text}'''
+''' + df['hr_annot']
+
+        
+        hover_t = '''Distance: %{x}m
+<br>%{customdata[0]}
+<br>%{customdata[1]}<extra></extra>'''
+
+        #text_template = ['''Time: {}, {}'''.format(a,b) for a and b in df['time'].tolist() and df['hr_annot'].tolist()]
         
         fig.add_trace(
             go.Scatter(x=df['distance'], 
                        y=df['hr_plot'], 
                        name="HR",
-                       hovertemplate = hover_t,
-                       text = df['hr_annot']),
+                       customdata = df[['t_annot','hr_annot']],
+                       hovertemplate = hover_t),
+                       #text = df['annot']),#df['hr_annot']),
                        
                 secondary_y=True,
                 )#visible='legendonly'),
