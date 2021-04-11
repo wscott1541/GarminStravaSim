@@ -212,8 +212,6 @@ def convert_time(x):
     return(x)
 
 
-
-
 def durl_to_dtag(durl):
 
     if durl == '1mile':

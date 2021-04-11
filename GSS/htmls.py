@@ -26,6 +26,8 @@ from .GSSutils import basic_functions as bf
 
 from .GSSutils import mapper
 
+from .GSSutils import challenges
+
 #def chart_from_mpl():
     
 #    fig = plt.gcf()
@@ -416,3 +418,14 @@ def get_note(ac_no):
         out = ''
         
     return(out)
+
+def challenge_map(challenge,yyyy):
+    
+    user_df = dr.pull_data()
+    
+    if challenge == 'lejog':
+        div = challenges.lejog(yyyy, user_df)
+    else:
+        div = ''
+    
+    return(div)

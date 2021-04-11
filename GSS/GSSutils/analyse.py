@@ -220,7 +220,7 @@ def distance_plotly(df):
     df['pace'] = (df['delta_min'] / df['delta_km']).rolling(30,min_periods=1).mean()
     df['pace_annot'] = df['pace'].fillna(0).apply(bf.cropped_floatminute_to_stringtime)
     df['pace'] = df['pace'].apply(lambda x: 1/x)
-    
+        
     df['time_annot'] = df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
     df['time_annot'] = df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
     
@@ -271,12 +271,12 @@ def distance_plotly(df):
         elif df['alt'].max() > 150 and df['alt'].min() > 0:
             fig.update_layout(
                 yaxis=dict(
-                    range=[0, df['alt'].max()+3]
+                    range=[0, df['alt'].max()*1.1]
                     ))
         elif df['alt'].max() > 150 and df['alt'].min() < 0:
             fig.update_layout(
                 yaxis=dict(
-                    range=[df['alt'].min() - 3, df['alt'].max()+3]
+                    range=[df['alt'].min() - 3, df['alt'].max()*1.1]
                     ))
     
     if hr == True:

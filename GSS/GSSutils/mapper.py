@@ -282,7 +282,10 @@ def enhanced_plotly_osm_map(ac_df):
 
     ac_df['time'] = ac_df['time'].apply(bf.convert_time)
     ac_df['td'] = ac_df['time'] - ac_df.iloc[0]['time']
-    ac_df['time_annot'] = ac_df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
+    
+    ac_df['time_annot'] = ac_df['td'].apply(lambda x: str(x)[7:])    
+    #raise ValueError(ac_df['time'].tolist()[:3])
+    ac_df['time_annot'] = ac_df['time_annot'].apply(lambda x: datetime.strptime(x,'%H:%M:%S'))
     ac_df['time_annot'] = ac_df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))
     
     ac_df['dist_annot'] = ac_df['distance'].apply(lambda x: round(x/1000,2))
