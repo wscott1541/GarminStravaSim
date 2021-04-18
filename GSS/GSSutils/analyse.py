@@ -211,15 +211,18 @@ def distance_plotly(df):
     df['td'] = df['time'] - df.iloc[0]['time']
     df['minutes'] = df['td'].apply(lambda x: x.total_seconds())
     df['minutes'] = df['minutes'].apply(lambda x: x/60)
-    df['delta_min'] = df['minutes'].diff(periods=5).fillna(0)
+    df['delta_min'] = df['minutes'].diff(periods=30)#.fillna(0)
+    df['delta_min'] = df.apply(lambda row: row['delta_min'] if row['delta_min'] == row['delta_min'] else row['minutes'],axis=1)
     
     df['km'] = df['distance'] / 1000
-    df['delta_km'] = df['km'].diff(periods=5).fillna(0)
-    
+    df['delta_km'] = df['km'].diff(periods=30)#.fillna(0)
+    df['delta_km'] = df.apply(lambda row: row['delta_km'] if row['delta_km'] == row['delta_km'] else row['km'],axis=1)
         
-    df['pace'] = (df['delta_min'] / df['delta_km']).rolling(30,min_periods=1).mean()
+    df['pace'] = (df['delta_min'] / df['delta_km']).rolling(45,min_periods=1).mean()
+    
     df['pace_annot'] = df['pace'].fillna(0).apply(bf.cropped_floatminute_to_stringtime)
-    df['pace'] = df['pace'].apply(lambda x: 1/x)
+    df['pace'] = df['pace'].apply(lambda x: 1/x if x != 0 else 0.05)
+    df['pace'] = df['pace'].apply(lambda x: 0.05 if x < 0.05 else x)
         
     df['time_annot'] = df['td'].apply(lambda x: datetime.strptime(str(x)[7:],'%H:%M:%S'))
     df['time_annot'] = df['time_annot'].apply(lambda x: datetime.strftime(x,'%M:%S') if datetime.strftime(x,'%H') == '00' else datetime.strftime(x,'%H:%M:%S'))

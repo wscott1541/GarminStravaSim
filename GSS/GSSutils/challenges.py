@@ -15,6 +15,7 @@ import plotly.io as pio
 
 #from . import data_read as dr
 from . import basic_functions as bf
+from . import today_string as ts
 
 from datetime import datetime, timedelta
 
@@ -30,7 +31,7 @@ def import_challenge_csv(filename):
     
     return (df)
 
-def lejog(year,user_df):
+def lejog_one_year(fig,year,user_df,c_df):
     
     if 'str' not in str(type(year)):
         year = str(year)
@@ -47,19 +48,49 @@ def lejog(year,user_df):
     
     year_df = user_df[user_df['Date'] >= start]
     year_df = year_df[year_df['Date'] < end]
-    
-    year_df = year_df[year_df['Activity Type'].isin(['Walking','Running','Hiking'])]
-    
+        
     #year_df['cum_df'] = year_df['Distance'].cumsum()
     distance = year_df['Distance'].sum() * 1000
     
     #raise ValueError(distance)
     
+    y_df = c_df[c_df['distance'] <= distance]
+    
+    if year == str(ts.year):    
+        fig.add_trace(go.Scattermapbox(
+        mode='lines',
+        name='{}: {}km'.format(year,round(year_df['Distance'].sum(),2)),
+        lon=y_df['lon'],
+        lat=y_df['lat'],
+        line={'color': '#000000'},
+        #customdata=lap_df[['dist_annot','time_annot']],
+        #hovertemplate=hover_t,#'<extra></extra>',
+        marker={'size': 10}#,
+        #visible='legendonly'
+        ))
+    else:
+        fig.add_trace(go.Scattermapbox(
+        mode='lines',
+        name='{}: {}km'.format(year,round(year_df['Distance'].sum(),2)),
+        lon=y_df['lon'],
+        lat=y_df['lat'],
+        line={'color': '#000000'},
+        #customdata=lap_df[['dist_annot','time_annot']],
+        #hovertemplate=hover_t,#'<extra></extra>',
+        marker={'size': 10},
+        visible='legendonly'
+        ))
+    
+    return(fig)
+     
+
+def lejog(year,user_df):
+    
+    user_df = user_df[user_df['Activity Type'].isin(['Walking','Running','Hiking'])]
+    
     c_df = import_challenge_csv('lejog')
     
     lejog_dist = round(c_df.iloc[-1]['distance']/1000,2)
-    
-    y_df = c_df[c_df['distance'] <= distance]
     
     fig = go.Figure(go.Scattermapbox(
     mode = "lines",
@@ -73,18 +104,10 @@ def lejog(year,user_df):
     marker = {'size': 10},
     showlegend = True))
     
-    fig.add_trace(go.Scattermapbox(
-        mode='lines',
-        name='{}: {}km'.format(year,round(year_df['Distance'].sum(),2)),
-        lon=y_df['lon'],
-        lat=y_df['lat'],
-        line={'color': '#000000'},
-        #customdata=lap_df[['dist_annot','time_annot']],
-        #hovertemplate=hover_t,#'<extra></extra>',
-        marker={'size': 10}#,
-        #visible='legendonly'
-        ))
-    
+    for i in range(0,int(year)-2017+1):
+        y = round(float(year) - i)
+        fig = lejog_one_year(fig,y,user_df,c_df)
+        
     lat_min = c_df['lat'].min()
     lon_min = c_df['lon'].min()
     lat_max = c_df['lat'].max() 
@@ -101,4 +124,6 @@ def lejog(year,user_df):
     
     div = pio.to_html(fig,auto_play=False,full_html=False)
     
-    return (div)
+    return(div)
+        
+    

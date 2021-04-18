@@ -121,9 +121,9 @@ def edit_field(request,activity,field):
     
     return render(request, 'edit_field.html')
 
-def challenge_year(request,challenge,yyyy):
+def challenge_year(request,challenge):
     
-    dictionary = {'challenge_map': htmls.challenge_map(challenge,yyyy)}
+    dictionary = {'challenge_map': htmls.challenge_map(challenge)}
     
     return render(request, 'challenge.html',dictionary)
 

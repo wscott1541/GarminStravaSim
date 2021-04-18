@@ -419,9 +419,10 @@ def get_note(ac_no):
         
     return(out)
 
-def challenge_map(challenge,yyyy):
+def challenge_map(challenge):
     
     user_df = dr.pull_data()
+    yyyy = ts.year
     
     if challenge == 'lejog':
         div = challenges.lejog(yyyy, user_df)

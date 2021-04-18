@@ -422,9 +422,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         df = pd.DataFrame(columns=['time','lat','lon','HR','distance','cadence'])
 
         lat_breaks = []
-        lat_break_checks = []
+        #lat_break_checks = []
         lon_breaks = []
-        lon_break_checks = []
+        #lon_break_checks = []
 
         for i in range(0,len(timestamps)):
     
@@ -446,8 +446,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
 
                 try:
                     lon = longitudes[i] * conversion
-                    if len(lat_breaks) > 0:
-                        lat_breaks = []
+                    if len(lon_breaks) > 0:
+                        lon_breaks = []
                 except:
                     if len(lon_breaks) == 0:
                         lon_breaks.append(longitudes[i-1] * conversion)
@@ -703,23 +703,16 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     pace = full_secs/dist
 
     if activity == 'auto':
-        if pace < 181:
+        if pace < 240 and dist >= 15:
             activity = 'Cycling'
             #shoes = 'NONE'
-        if pace >= 181 and pace <= 570:
+        elif pace >= 181 and pace <= 570:
             activity = 'Running'
             #shoes = 'Kalenji Run Support Red'
             #shoes = 'Hoka One One Clifton 6'
-        if pace > 570:
+        elif pace > 570:
             activity = 'Walking'
             #shoes = 'Merrell Vego 2019'
-    if activity == 'auto':
-        if pace < 181:
-            activity = 'Cycling'
-        if pace >= 181 and pace <= 570:
-            activity = 'Running'
-        if pace > 570:
-            activity = 'Walking'
             
     if activity == 'Cardio':
         shoes = 'NONE'
