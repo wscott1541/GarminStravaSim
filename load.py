@@ -721,7 +721,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         if activity == 'Cycling':
             shoes = 'NONE'
         if activity == 'Running':
-            shoes = 'Hoka One One Clifton 6'
+            shoes = 'Hoka One One Clifton 7'
         if activity == 'Walking':
             shoes = 'Merrell Vego 2019'
     

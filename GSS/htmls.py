@@ -430,3 +430,11 @@ def challenge_map(challenge):
         div = ''
     
     return(div)
+
+def hr_pie(ac_no):
+    
+    ac_df = dr.route_data(ac_no)
+        
+    div = af.hr_zones_pie_plotly(ac_df)
+    
+    return(div)

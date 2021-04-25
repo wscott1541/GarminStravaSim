@@ -47,7 +47,6 @@ def activity(request,activity):
     otd = htmls.activity_otd(activity)
     
     
-    
     dictionary = {'ac_no': activity,
                   'map' : route_map,
                   'type': dr.ac_detail(activity, 'Activity Type'),
@@ -64,7 +63,8 @@ def activity(request,activity):
                   'prev_post': htmls.prev_post(activity),
                   'shoes': htmls.shoes_activity(activity),
                   'alt_distance_plotly': htmls.pace_alt_plotly(activity),
-                  'note': htmls.get_note(activity)}
+                  'note': htmls.get_note(activity),
+                  'hr_pie': htmls.hr_pie(activity)}
     
     return render(request, 'activity.html', dictionary)
 

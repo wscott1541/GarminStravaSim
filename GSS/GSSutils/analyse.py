@@ -511,6 +511,61 @@ def hr_dist_durs_plot(df):
     
     #ax2.plot(dists,paces)
     
+def assign_zones(x):
+    max_hr = 220 - 26
+    
+    if x < max_hr * 0.6:
+        z = 1
+    if x >= max_hr * 0.6 and x < max_hr * 0.7:
+        z = 2
+    if x >= max_hr * 0.7 and x < max_hr * 0.8:
+        z = 3
+    if x >= max_hr * 0.8 and x < max_hr * 0.9:
+        z = 4
+    if x >= max_hr * 0.9:
+        z = 5
+    
+    return(z)
+
+def hr_zones_pie_plotly(df):
+    #assumes equal timestep    
+    df['zone'] = df['HR'].apply(assign_zones)
+    
+    zones = {}
+    
+    for i in range(1,6):
+        zones[f'{i}'] = len(df[df['zone'] == i])
+        
+    t = df.iloc[-1]['time'] - df.iloc[0]['time']
+    t = str(t)[-8:]
+    #t = datetime.strptime(t,'%Y-%m-%d %H:%M:%S')
+    #t = datetime.strftime(t,'%H:%M:%S')
+    t = bf.stringtime_to_floatminute(t)
+    
+    labels = {}
+    
+    for i in range(1,6):
+        rel_t = (zones[f'{i}']/len(df)) * t #sum(zones.values())
+        labels[f'{i}'] = f'Zone {i}: ' + bf.cropped_floatminute_to_stringtime(rel_t)
+        #labels[f'{i}'] = rel_t
+        
+    #raise ValueError(t)
+    
+    pie_colors = ['#B6E880','#EECA3B','#FF9900','#E45756','#D62728']
+    
+    fig = go.Figure(
+        data=
+        [go.Pie(
+            labels=list(labels.values()), values=list(zones.values()),
+            direction ='clockwise',
+            marker_colors=pie_colors,
+            sort=False)])
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)   
+    
+    return(div)
+    
+    
 def hr_zones_pie(df):
     hrs = df['HR'].tolist()
     #times_un = df['time'].tolist()

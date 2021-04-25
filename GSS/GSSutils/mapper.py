@@ -207,7 +207,11 @@ def mapping_zoom(ac_df):
     z_x = ac_df['lon'].max() - ac_df['lon'].min()
     z_x = z_x * 110.574
 
-    if z_x > 2.8:#and zoom <...
+    if z_x > 11:
+        zoom = 11
+    elif z_x > 5:
+        zoom = 12
+    elif z_x > 2.8:#and zoom <...
         zoom = 13
 
     return(zoom)

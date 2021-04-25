@@ -614,7 +614,6 @@ def greatest_since_two(user_df,activity_number,dist_dur):
         
     user_df['Date'] = user_df['Date'].apply(bf.convert_time)
     
-    
     SPLIT = dr.activity_splits(user_df,activity_number,dist_dur)
     DATE = dr.activity_splits(user_df,activity_number,'Date')
     DATE = bf.convert_time(DATE)
@@ -629,7 +628,7 @@ def greatest_since_two(user_df,activity_number,dist_dur):
     
     df = df.sort_values(by=['Date'],ascending=True).reset_index()
     
-    if len(df) == 1:
+    if len(df) == 0:
         if 'Time' in dist_dur:
             out = 'longest ever!'
         if 'Dist' in dist_dur:
