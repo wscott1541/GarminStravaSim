@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 
-#from . import data_read as dr
+from . import data_read as dr
 from . import basic_functions as bf
 from . import today_string as ts
 
@@ -56,6 +56,9 @@ def lejog_one_year(fig,year,user_df,c_df):
     
     y_df = c_df[c_df['distance'] <= distance]
     
+    #hover_t = '%{text}km<extra></extra>',
+    #txt = round(y_df['distance']/1000,2)
+    
     if year == str(ts.year):    
         fig.add_trace(go.Scattermapbox(
         mode='lines',
@@ -64,7 +67,8 @@ def lejog_one_year(fig,year,user_df,c_df):
         lat=y_df['lat'],
         line={'color': '#000000'},
         #customdata=lap_df[['dist_annot','time_annot']],
-        #hovertemplate=hover_t,#'<extra></extra>',
+        hovertemplate='%{text}km<extra></extra>',#'<extra></extra>',
+        text=round(y_df['distance']/1000,2),
         marker={'size': 10}#,
         #visible='legendonly'
         ))
@@ -76,7 +80,8 @@ def lejog_one_year(fig,year,user_df,c_df):
         lat=y_df['lat'],
         line={'color': '#000000'},
         #customdata=lap_df[['dist_annot','time_annot']],
-        #hovertemplate=hover_t,#'<extra></extra>',
+        hovertemplate='%{text}km<extra></extra>',#'<extra></extra>',
+        text=round(y_df['distance']/1000,2),
         marker={'size': 10},
         visible='legendonly'
         ))
@@ -99,8 +104,8 @@ def lejog(year,user_df):
     lat = c_df['lat'],
     line = {'color':'#FF0000'},
     #customdata = ac_df[['dist_annot','time_annot']],
-    #hovertemplate = hover_t,#'%{text}km<extra></extra>',
-    #text = ac_df['distance'].apply(lambda x: round(x/1000,2)),
+    hovertemplate = '%{text}km<extra></extra>',
+    text = round(c_df['distance']/1000,2),
     marker = {'size': 10},
     showlegend = True))
     
@@ -126,4 +131,51 @@ def lejog(year,user_df):
     
     return(div)
         
+
+def lejog_update(ac_no,user_df):
+    
+    user_df = user_df[user_df['Activity Type'].isin(['Running','Walking'])]
+    
+    date = dr.ac_detail(ac_no,'Date')
+    
+    year = str(date[:4])
+    
+    if 'str' not in str(type(year)):
+        year = str(year)
+    
+    start = datetime.strptime(year,'%Y')
+    
+    user_df['Date'] = user_df['Date'].apply(lambda x: datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
+    
+    user_df = user_df[user_df['Date'] >= start]
+        
+    c_df = import_challenge_csv('lejog')
+    
+    c_df = c_df[c_df['waymark']==c_df['waymark']]
+    
+    pre_dist = 1000 * user_df[user_df['Date'] < date]['Distance'].sum()
+    post_dist = 1000 * user_df[user_df['Date'] <= date]['Distance'].sum()
+    
+    pre_loc = c_df[c_df['distance'] <= pre_dist]['waymark'].tolist()[-1]
+    post_loc = c_df[c_df['distance'] <= post_dist]['waymark'].tolist()[-1]
+    
+    place_distance = c_df[c_df['waymark']==post_loc]['distance'].tolist()[0]
+    next_place = c_df[c_df['distance']>place_distance]['waymark'].tolist()[0]
+    next_dist = c_df[c_df['waymark']==next_place]['distance'].tolist()[0]
+    
+    place_distance = round(place_distance/1000,1)
+    next_dist = round(next_dist/1000,1)
+    
+    if pre_loc != post_loc:
+        last_text = f'You reached <b>{post_loc}<b>!'
+    else:
+        last_text = f'Last waymark: {pre_loc},{place_distance}km'
+        
+    next_text = f'Next waymark: {next_place}, {next_dist}km'
+    
+    html = f"""<b>LEJOG</b>: {round(post_dist/1000,2)}km
+<br>{last_text}
+<br>{next_text}"""
+
+    return(html)
     

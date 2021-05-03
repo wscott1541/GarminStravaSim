@@ -64,9 +64,49 @@ def activity(request,activity):
                   'shoes': htmls.shoes_activity(activity),
                   'alt_distance_plotly': htmls.pace_alt_plotly(activity),
                   'note': htmls.get_note(activity),
-                  'hr_pie': htmls.hr_pie(activity)}
+                  'hr_pie': htmls.hr_pie(activity),
+                  'hr_dist': htmls.hr_dist(activity),
+                  '3D_map': htmls.ThreeD_map(activity),
+                  'challenge_update': htmls.challenge_update(activity)}
     
     return render(request, 'activity.html', dictionary)
+
+def activity_two(request,activity):
+    
+    route_map = htmls.generate_map(activity,'reg')
+    
+    radar_plot = htmls.times_radar(activity)
+    
+    times_table = htmls.times_table(activity)
+    
+    title = htmls.activity_page_title(activity)
+    
+    otd = htmls.activity_otd(activity)
+    
+    
+    dictionary = {'ac_no': activity,
+                  'map' : route_map,
+                  'type': dr.ac_detail(activity, 'Activity Type'),
+                  'distance': dr.ac_detail(activity, 'Distance'),
+                  'date': dr.ac_detail(activity, 'Date'),
+                  'duration': dr.ac_detail(activity,'Time'),
+                  'times_radar_plot': radar_plot,
+                  'title': title,
+                  'activity_otd' : otd,
+                  'distance_pace': htmls.distance_pace_plot(activity),
+                  'comparisons': htmls.comparisons(activity),
+                  'times_table': times_table,
+                  'times_curve': htmls.times_curve(activity),
+                  'prev_post': htmls.prev_post(activity),
+                  'shoes': htmls.shoes_activity(activity),
+                  'alt_distance_plotly': htmls.pace_alt_plotly(activity),
+                  'note': htmls.get_note(activity),
+                  'hr_pie': htmls.hr_pie(activity),
+                  'hr_dist': htmls.hr_dist(activity),
+                  '3D_map': htmls.ThreeD_map(activity),
+                  'challenge_update': htmls.challenge_update(activity)}
+    
+    return render(request, 'activity2.html', dictionary)
 
 def ac_map(request,activity,distance):
     

@@ -22,6 +22,7 @@ urlpatterns = [
     path('index/',views.index,name='index'),
     path('', views.home, name='home'),
     path('index/<activity>/',views.activity,name='<activity>'),
+    path('index2/<activity>/',views.activity_two,name='<activity>2'),
     path('rankings/<distance>',views.rank_list,name='<distance>_rankings'),
     path('rankings/',views.rankings_index,name='rankings'),
     path('index/<activity>/map/<distance>/',views.ac_map,name='<activity>_<distance>_map'),

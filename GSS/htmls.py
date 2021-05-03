@@ -198,25 +198,25 @@ def latest_activity():
     return(html)
 
 def year_week_progress():
-    print('year week')
-    bf.time_check()
+    #print('year week')
+    #bf.time_check()
     df = dr.pull_data()
     
     pf.plot_rolling_year_week_progress(df,'Running',ts.today_string)
 
     chart = chart_as_html()    
-    bf.time_check()
+    #bf.time_check()
     return(chart)
 
 def year_distances():
-    print('year dists')
-    bf.time_check()
+    #print('year dists')
+    #bf.time_check()
     df = dr.pull_data()
     
     pf.plot_distances_this_year(df,ts.month,ts.year,'Running')
     
     chart = chart_as_html()
-    bf.time_check()
+    #bf.time_check()
     return(chart)
 
 def activity_page_title(ac_no):
@@ -438,3 +438,32 @@ def hr_pie(ac_no):
     div = af.hr_zones_pie_plotly(ac_df)
     
     return(div)
+
+def hr_dist(ac_no):
+    
+    ac_df = dr.route_data(ac_no)
+    
+    af.hr_distribution(ac_df)
+    
+    chart = chart_as_html()
+    
+    return(chart)
+
+
+def ThreeD_map(ac_no):
+    
+    ac_df = dr.route_data(ac_no)
+    
+    div = mapper.basic_3D_map_plotly(ac_df)
+    
+    return(div)
+
+def challenge_update(ac_no):
+    
+    user_df = dr.pull_data()
+    
+    update = challenges.lejog_update(ac_no,user_df)
+    
+    html = f'<p>{update}</p>'
+    
+    return(html)

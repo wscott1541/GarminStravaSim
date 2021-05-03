@@ -7,6 +7,10 @@ Created on Mon Aug  3 15:32:47 2020
 
 https://github.com/bunnie/watchmap/blob/master/plot.py
 https://www.earthdatascience.org/courses/scientists-guide-to-plotting-data-in-python/plot-spatial-data/customize-raster-plots/interactive-maps/
+
+Longitude: x axis
+Latitude: y axis
+
 """
 
 import matplotlib
@@ -415,6 +419,44 @@ def enhanced_plotly_osm_map(ac_df):
     div = pio.to_html(fig,auto_play=False,full_html=False)
     
     return (div)
+
+def basic_3D_map_plotly(ac_df):
+    
+    try:
+        ac_df['check'] = ac_df['alt'].apply(lambda x: int(x))
+        ac_df['elev'] = ac_df['alt']
+    except:
+        ac_df['elev'] = 5
+
+    fig = go.Figure(data=go.Scatter3d(
+        x=ac_df['lon'],
+        y=ac_df['lat'], 
+        z=ac_df['elev'],
+        mode = 'lines'))
+    
+    #px.line_3d(df, x="gdpPercap", y="pop", z="year", color='country')
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    """scene=dict(
+        camera=dict(
+            up=dict(
+                x=0,
+                y=0,
+                z=1
+            ),
+            eye=dict(
+                x=0,
+                y=1.0707,
+                z=1,
+            )
+        ),
+        aspectratio = dict( x=1, y=1, z=0.7 ),
+        aspectmode = 'manual'
+    )"""
+    
+    return (div)
+    
 
 def stretch_osm_map(ac_df, distance, width_input=75, height_input=75):
     
