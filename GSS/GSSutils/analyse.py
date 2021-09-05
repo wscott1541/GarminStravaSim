@@ -106,11 +106,11 @@ def pace_alt_distance_plotly(df):
         df['td'] = df['time'] - df.iloc[0]['time']
         df['minutes'] = df['td'].apply(lambda x: x.total_seconds())
         df['minutes'] = df['minutes'].apply(lambda x: x/60)
-        df['delta_min'] = df['minutes'].diff(periods=5)
+        df['delta_min'] = df['minutes'].diff(periods=3)
         df['km'] = df['distance'] / 1000
-        df['delta_km'] = df['km'].diff(periods=5)
+        df['delta_km'] = df['km'].diff(periods=3)
         
-        df['pace'] = (df['delta_min'] / df['delta_km']).rolling(30).mean()
+        df['pace'] = (df['delta_min'] / df['delta_km']).rolling(15).mean()
 
         df['pace'] = df['pace'].apply(lambda x: 1/x)
         

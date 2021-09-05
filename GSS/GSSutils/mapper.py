@@ -416,17 +416,38 @@ def enhanced_plotly_osm_map(ac_df):
         mapbox={'center':{'lon': lon_mid, 'lat': lat_mid},
                 'zoom': zoom})
     
-    div = pio.to_html(fig,auto_play=False,full_html=False)
+    div = pio.to_html(fig,auto_play=False,full_html=False,default_width='100%')
+    
+    #div = div.replace('width="700" height="450"','')
+    
+    #div = div.replace(' width="400" height="400" ',' width="100%" height="100%" ')
     
     return (div)
+
+def convert_degrees_to_km(x,minimum):
+    
+    x = (x-minimum)*110.574
+    
+    return(x)
+    
 
 def basic_3D_map_plotly(ac_df):
     
     try:
         ac_df['check'] = ac_df['alt'].apply(lambda x: int(x))
         ac_df['elev'] = ac_df['alt']
+        altitudes = True
     except:
         ac_df['elev'] = 5
+        altitudes = False
+        
+    ac_df['lon'] = ac_df['lon'].apply(lambda x: convert_degrees_to_km(x,ac_df['lon'].min()))
+    ac_df['lat'] = ac_df['lat'].apply(lambda x: convert_degrees_to_km(x,ac_df['lat'].min()))
+    #ac_df['elev'] = ac_df['elev'].apply(lambda x: x/100)
+    ac_df['elev'] = ac_df['elev'].apply(lambda x: round(x,1)/100)#also breaks nan
+    ac_df['elev'] = ac_df['elev'].rolling(30,min_periods=1).mean()
+    
+    #w_to_h = ac_df['lon'].max()/ac_df['lat'].max()
 
     fig = go.Figure(data=go.Scatter3d(
         x=ac_df['lon'],
@@ -434,9 +455,32 @@ def basic_3D_map_plotly(ac_df):
         z=ac_df['elev'],
         mode = 'lines'))
     
+    fig.update_layout(
+        scene=dict(
+            camera = dict(
+                up=dict(x=0, y=0, z=1),
+                center=dict(x=0, y=0, z=0),
+                eye=dict(x=1.25, y=1.25, z=1.25)
+                    ),
+        #camera=dict(
+        #    eye=dict(x=0., y=0., z=2.5)
+        #    ),
+        aspectmode = 'data'
+        ),
+        #aspectratio = dict( x=1, y=1, z=1 ),
+        #aspectmode = 'data'
+    )
+    
+    fig.update_scenes(xaxis_autorange="reversed")
+    fig.update_scenes(yaxis_autorange="reversed")
+    
     #px.line_3d(df, x="gdpPercap", y="pop", z="year", color='country')
     
-    div = pio.to_html(fig,auto_play=False,full_html=False)
+    if altitudes is True:
+        div = pio.to_html(fig,auto_play=False,full_html=False)
+    else:
+        div = ''
+    
     
     """scene=dict(
         camera=dict(

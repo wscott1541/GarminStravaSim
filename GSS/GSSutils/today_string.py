@@ -10,10 +10,14 @@ Created on Sun Jun 21 17:10:24 2020
 https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
 """
 
-from time import time#, localtime
+#from time import time#, localtime
 from datetime import datetime, timedelta
 
-today = time()
+def get_time():
+    from time import time
+    return(time())
+
+today = get_time()
 
 today_dt = datetime.fromtimestamp(today)
 
@@ -25,6 +29,10 @@ time_string = datetime.strftime(today_dt,'%H:%M:%S')
 y_day_dt = today_dt - timedelta(days=1)
 
 y_day_string = datetime.strftime(y_day_dt,'%Y-%m-%d')
+
+timestamp = datetime.strftime(today_dt,'%Y-%m-%d %H:%M:%S')
+
+#ts = datetime.strftime(datetime.fromtimestamp(time.time()),'%Y-%m-%d %H:%M:%S')
 
 """
 now = list(localtime(today))

@@ -1,6 +1,29 @@
 <html>
 
     <script>
+
+function mainSVGreset(cls) {
+  var i;
+  var x = document.getElementsByClassName(cls)
+  for (i = 0; i < x.length; i++) {
+    x[i].setAttribute("width", "50%")
+    x[i].setAttribute("height", "50%")
+    /*removeAttribute*/
+  }
+}
+function adjustHeight(cls) {
+  var i;
+  var x = document.getElementsByClassName(cls);
+  for (i = 0; i < x.length; i++) {
+    x[i].style.position = "absolute"; 
+    x[i].style.width = "100%";
+    x[i].style.height = "100%"; 
+  }
+  mainSVGreset(cls)
+}
+
+
+
         function openLink(evt, animName) {
           var i, x, tablinks;
           x = document.getElementsByClassName("vert");
@@ -18,15 +41,26 @@
             {document.getElementById(animName).style.display = 'block';}
           
           evt.currentTarget.className += " w3-red";
+
+          adjustHeight("user-select-none svg-container")
+          adjustHeight('main-svg')
+          mainSVGreset('main-svg')
         }
 
-    function openCity(cityName) {
+          
+
+    function openCity(cityName,sectionName) {
   var i;
-  var x = document.getElementsByClassName("hori");
-  /*for (i = 0; i < x.length; i++) {
+  var str1 = 'hori-';
+  var str2 = sectionName;
+  var sec = str1.concat(str2);
+  var x = document.getElementsByClassName(sec);
+  for (i = 0; i < x.length; i++) {
     x[i].style.display = "none";  
-  }*/
+  }
   document.getElementById(cityName).style.display = "block";  
+  adjustHeight("user-select-none svg-container")
+  adjustHeight('main-svg')
 }
         </script>
 
@@ -46,12 +80,13 @@
 </style>
 
 <body>
-
+<!-- This is the menu bar on the lefft-->
 <div class="w3-sidebar w3-bar-block w3-black w3-card" style="width:130px">
   <h5 class="w3-bar-item">Summary</h5>
   <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Map')">Map</button>
   <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Analysis')">Analysis</button>
   <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'HeartRate')">HR</button>
+  <button class="w3-bar-item w3-button tablink" onclick="mainSVGreset('main-svg')">Reset</button>
 </div>
 
 <div style="margin-left:130px">
@@ -63,23 +98,24 @@
   
   {{ shoes|safe }}</p></div>
 
+  <!--This is the map block-->
   <div id="Map" class="w3-container vert w3-animate-left" style="display:none">
     <div class="w3-padding w3-bar w3-black">
-        <button class="w3-bar-item w3-button" onclick="openCity('Geo')">Geo</button>
-        <button class="w3-bar-item w3-button" onclick="openCity('Heat')">Heat</button>
-        <button class="w3-bar-item w3-button" onclick="openCity('3D')">3D</button>
+        <button class="w3-bar-item w3-button" onclick="openCity('Geo','map')">Geo</button></button>
+        <button class="w3-bar-item w3-button" onclick="openCity('Heat','map')">Heat</button>
+        <button class="w3-bar-item w3-button" onclick="openCity('3D','map')">3D</button>
         <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
       </div>
       
-    <div id="Geo" class="w3-container hori">
+    <div id="Geo" class="w3-container hori-map" style='border: 2px #FF0000 solid;'>
       {{ map|safe }}  
       </div>
       
-      <div id="Heat" class="w3-container hori" style="display:none;">
+      <div id="Heat" class="w3-container hori-map" style="display:none; border: 2px #FF0000 solid;">
         <p>I still need to load this.</p>
       </div>
       
-      <div id="3D" class="w3-container hori" style="display:none;">
+      <div id="3D" class="w3-container hori-map" style="display:none; width: 100%;">
         {{ 3D_map|safe }}
       </div>
     </div>

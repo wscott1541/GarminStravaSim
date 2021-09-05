@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 from . import htmls
 from .GSSutils import data_read as dr
+#from .GSSutils import today_string as ts
 # Create your views here.
 
 def home(request):
@@ -17,6 +18,8 @@ def home(request):
     
     year_distances = htmls.year_distances()
     
+    action_log = htmls.action_log({'page_type': ['home']})
+    
     dictionary = {'otd_para': otd_para,
                   'month_prev_run_dist': month_previous_running_distances,
                   'week_prev_run_dist': week_previous_running_distances,
@@ -29,6 +32,8 @@ def home(request):
 def index(request):
     
     index_list = htmls.index_list()
+    
+    action_log = htmls.action_log({'page_type': ['index']})
     
     dictionary = {'index_list' : index_list}
     
@@ -46,6 +51,8 @@ def activity(request,activity):
     
     otd = htmls.activity_otd(activity)
     
+    action_log = htmls.action_log({'page_type': ['activity'],
+                                   'detail': [activity]})
     
     dictionary = {'ac_no': activity,
                   'map' : route_map,
@@ -82,7 +89,6 @@ def activity_two(request,activity):
     title = htmls.activity_page_title(activity)
     
     otd = htmls.activity_otd(activity)
-    
     
     dictionary = {'ac_no': activity,
                   'map' : route_map,
@@ -121,12 +127,18 @@ def rank_list(request,distance):
                   'plot': htmls.splits_plotly(distance)#htmls.split_plot(distance)
                   }
     
+    action_log = htmls.action_log({'page_type': ['rankings'],
+                                   'detail': [distance]})
+    
     return render(request, 'split_ranks.html',dictionary)
 
 def rankings_index(request):
     
     dictionary = {'top_set': htmls.top_para(),
                   'splits_plot': htmls.all_splits_plot()}
+    
+    action_log = htmls.action_log({'page_type': ['rankings'],
+                                   'detail': ['index']})
     
     return render(request, 'rankings_index.html',dictionary)
 
@@ -139,6 +151,8 @@ def map_index(request,activity):
 def shoes_index(request):
     
     shoes_table = htmls.shoes_table()
+    
+    action_log = htmls.action_log({'page_type': ['shoes']})
     
     dictionary = {'shoes_table': shoes_table,
                   'shoes_plot': htmls.shoes_plot()}
@@ -163,7 +177,11 @@ def edit_field(request,activity,field):
 
 def challenge_year(request,challenge):
     
-    dictionary = {'challenge_map': htmls.challenge_map(challenge)}
+    dictionary = {'challenge_map': htmls.challenge_map(challenge),
+                  'challenge_progress': htmls.challenge_progress(challenge)}
+    
+    action_log = htmls.action_log({'page_type': ['challenge'],
+                                   'detail': [challenge]})
     
     return render(request, 'challenge.html',dictionary)
 

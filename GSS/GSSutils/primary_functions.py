@@ -409,34 +409,41 @@ def greatest_rank(user_df,activity_number,dist_dur,kind='all'):
     #    user_df[dist_dur] = user_df[dist_dur].apply(bf.stringtime_to_floatminute)
     #    val = bf.stringtime_to_floatminute(val)
           
-    user_df = user_df.sort_values(by=[dist_dur],ascending=False)#don't know about date ordering - hopefully leaves...
+    #user_df = user_df.sort_values(by=[dist_dur],ascending=False)#don't know about date ordering - hopefully leaves...
         
     #print(user_df[dist_dur].head())
  
-    user_df = user_df.loc[user_df[dist_dur] < val]
+    #user_df = user_df.loc[user_df[dist_dur] < val]
     
     #print(user_df[dist_dur].head())
     
-    vals = user_df[dist_dur].tolist()
+    #vals = user_df[dist_dur].tolist()
     
-    ranks = [1]
+    #ranks = [1]
         #stop = False
         
-    for i in range(1,len(vals)):
+    #for i in range(1,len(vals)):
         
-        if vals[i] == vals[i-1]:
-            ranks.append(ranks[-1])
-        else:
-            ranks.append(i+1)
-        
+    #    if vals[i] == vals[i-1]:
+    #        ranks.append(ranks[-1])
+    #    else:
+    #        ranks.append(i+1)
+    
+    user_df = user_df[user_df[dist_dur]>=val]
+    
     n_splits = len(user_df.loc[user_df[dist_dur] == val].index.values) 
+    
+    user_df[dist_dur] = user_df[dist_dur].apply(lambda x: str(x))
+    user_df['count'] = 1
+    #user_df = user_df[[dist_dur,'count']].groupby(dist_dur).sum().reset_index()
+    ranking = len(user_df[dist_dur].unique())
         
     if n_splits > 1:
         j = '='
     else:
         j = ''
         
-    rank = f'{j}{ranks[-1]}'
+    rank = f'{j}{ranking}'
     
     return(rank)
 
@@ -495,6 +502,7 @@ def fastest_since(user_df,activity_number,distance,html_option=False):
     
     date = []
     number = []
+    split_list = []
     
     while cont == True:
         for i in range(0,len(splits)):
@@ -504,6 +512,7 @@ def fastest_since(user_df,activity_number,distance,html_option=False):
                 if splits[i] < split and dates_dt[i] < date_dt:
                     date.append(dates[i])
                     number.append(ac_numbers[i])
+                    split_list.append(splits[i])
                     cont = False
                     found = True
             if i == len(splits) - 1:
@@ -520,7 +529,7 @@ def fastest_since(user_df,activity_number,distance,html_option=False):
         if html_option == False:
             out = f'fastest since {date[0][:10]}'
         else:
-            out = f"fastest since <a href='../{number[0]}'>{date[0][:10]}</a>"
+            out = f"fastest since <a href='../{number[0]}'>{date[0][:10]}</a>: {split_list[0][-8:]}"
     
     return(out)
         
@@ -547,16 +556,49 @@ def fastest_after(user_df,activity_number,distance,html_option=False):
         else:
             #out_no = user_df['Activity number'].tolist()[0]
             out_date = str(user_df['Date'].tolist()[0])[:10]
+            split_time = str(user_df[distance].tolist()[0][-8:])
                
             if html_option == False:
                 out = f'beaten on {out_date}'
             else:
                 out_no = user_df['Activity number'].tolist()[0]
-                out = f"beaten on <a href='../{out_no}'>{out_date}</a>"
+                out = f"beaten on <a href='../{out_no}'>{out_date}</a>: {split_time}"
     
     return(out)
     
+def last_run(user_df,activity_number,distance):
+    
+    date = dr.activity_details(user_df,activity_number,'Date')
+    
+    user_df = user_df[user_df['Activity Type']=='Running']
+    user_df = user_df[(user_df['Date']<date)&(user_df[distance]!='NONE')].reset_index()
 
+    if len(user_df) > 0:
+        date = str(user_df.iloc[-1]['Date'])[:10]
+        split = str(user_df.iloc[-1][distance])[-8:]
+    
+        string = f'{date}: {split}'
+    else:
+        string = 'N/A'
+    
+    return(string)
+
+def next_run(user_df,activity_number,distance):
+    
+    date = dr.activity_details(user_df,activity_number,'Date')
+    
+    user_df = user_df[user_df['Activity Type']=='Running']
+    user_df = user_df[(user_df['Date']>date)&(user_df[distance]!='NONE')].reset_index()
+
+    if len(user_df) > 0:
+        date = str(user_df.iloc[0]['Date'])[:10]
+        split = str(user_df.iloc[0][distance])[-8:]
+    
+        string = f'{date}: {split}'
+    else:
+        string = 'N/A'
+    
+    return(string)
 
 
 #greatest_rank(ws_df,ac_no,'Distance')
@@ -586,11 +628,13 @@ def greatest_since(user_df,activity_number,dist_dur):
     cont = True
     
     date = []
+    split_list =[]
     
     for i in range(0,len(splits)):
         #print(ac_type,types[i],splits[i],split,cont)
         if ac_type == types[i] and splits[i] > split and cont == True:
             date.append(dates[i])
+            split_list.append(splits[i])
             cont = False
             found = True
     
@@ -601,9 +645,9 @@ def greatest_since(user_df,activity_number,dist_dur):
             out = 'furthest!'
     else:
         if 'Time' in dist_dur:
-            out = f'longest since {date[0][:10]}'
+            out = f'longest since {date[0][:10]}: {split_list[0][-8:]}'
         if 'Dist' in dist_dur:
-            out = f'furthest since {date[0][:10]}'
+            out = f'furthest since {date[0][:10]} {split_list[0][-8:]}'
     
     return(out)
 
@@ -790,7 +834,9 @@ def html_activity_row(distance, user_df, ac_number,html_option=False):
 <td>{split_rank(user_df,ac_number,distance,kind='all')}</td>
 <td>{split_count(user_df,distance)}</td>  
 <td>{fastest_since(user_df,ac_number,distance,html_option)}</td>
+<td>{last_run(user_df,ac_number,distance)}</td>
 <td>{fastest_after(user_df,ac_number,distance,html_option)}</td>  
+<td>{next_run(user_df,ac_number,distance)}</td>
 </tr>"""
 
     #f"<b>{text}</b>: {str(dr.activity_splits(user_df,ac_number,distance))[-8:]} - {dr.split_rank(user_df,ac_number,distance)}/{dr.split_count(user_df,distance)} - {fastest_since(user_df,ac_number,distance,html_option)}"
@@ -824,7 +870,9 @@ def html_activity_rows(user_df, ac_number,html_option=False):
 <td>{greatest_rank(user_df,ac_number,'Distance',kind='all')}</td>
 <td>{count(user_df,ac_number,'Distance',kind='all')}</td>  
 <td>{greatest_since_two(user_df,ac_number,'Distance')}</td>   
+<td>{last_run(user_df,ac_number,'Distance')}km</td>
 <td>{greatest_until(user_df,ac_number,'Distance')}</td> 
+<td>{next_run(user_df,ac_number,'Distance')}km</td>
 </tr>
 
 <tr>
@@ -836,7 +884,9 @@ def html_activity_rows(user_df, ac_number,html_option=False):
 <td>{greatest_rank(user_df,ac_number,'Duration',kind='all')}</td>
 <td>{count(user_df,ac_number,'Duration',kind='all')}</td>  
 <td>{greatest_since_two(user_df,ac_number,'Time')}</td>  
+<td>{last_run(user_df,ac_number,'Time')}</td>
 <td>{greatest_until(user_df,ac_number,'Time')}</td>   
+<td>{next_run(user_df,ac_number,'Time')}</td>
 </tr>
 '''
     
@@ -859,8 +909,8 @@ def cropped_activity_table(user_df,ac_number):
 <th>Pace</th>
 <th colspan="2">Then</th>
 <th colspan="2">Now</th>
-<th>Before</th>
-<th>Since</th>
+<th colspan='2' style='text-align: centre;'>Before</th>
+<th colspan='2'>Since</th>
     
 {html_activity_rows(user_df,ac_number,html_option=True)}
 
@@ -1045,7 +1095,7 @@ def activity_comparisons_plotly(user_df,activity_number):
     )
 
     fig.update_layout(
-        xaxis_title='Ditance (km)',
+        xaxis_title='Distance (km)',
         yaxis_title='Time (m)')
     
     #fig = px.scatter(base_df,x='Distance',y='Time',hover_data=['Date'])
@@ -1142,6 +1192,7 @@ def shoe_rows(user_df):
     
     shoe_l_df = user_df.drop_duplicates('Shoes')
     shoe_l_df = shoe_l_df.loc[shoe_l_df['Shoes'] != 'NONE']
+    shoe_l_df = shoe_l_df[shoe_l_df['Shoes']==shoe_l_df['Shoes']]
     shoes_list = shoe_l_df['Shoes'].tolist()
     
     rows = '''<th>Shoes</th>
@@ -1512,6 +1563,9 @@ def otd_html_folium(date,user_df,img = 'N',index_link = True):
         if img != 'N' and ac_type != 'Cardio':
             #try:
             ac_df = dr.route_data(ac_no)
+            if len(ac_df) == 0:
+                raise ValueError(f'{ac_no} has no df: ',ac_df)
+                
             html_js = osm_map(ac_df,30,30)
                 
             lines = lines + html_js

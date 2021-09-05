@@ -14,6 +14,10 @@ import os
 
 import matplotlib.pyplot as plt
 
+import pandas as pd
+from datetime import datetime
+from dateutil import relativedelta
+
 from .GSSutils import data_read as dr
 from .GSSutils import primary_functions as pf
 from .GSSutils import today_string as ts
@@ -28,15 +32,34 @@ from .GSSutils import mapper
 
 from .GSSutils import challenges
 
-#def chart_from_mpl():
+def get_time():
+    from time import time
+    now = time()
+    return(datetime.strftime(datetime.fromtimestamp(now)+relativedelta.relativedelta(hours=1),'%Y-%m-%d %H:%M:%S'))
+
+def action_log(action_dictionary):
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+
+    filename = os.path.join(fileDir, 'usage_log.csv')
     
-#    fig = plt.gcf()
-    
-#    chart = mpld3.fig_to_html(fig)
-    
-    #plt.show()
-    
-#    return(chart)
+    try:
+        data = pd.read_csv(filename)
+        log = pd.DataFrame(data,columns=['timestamp','page_type','detail','mode'])
+    except:
+        log = pd.DataFrame(columns=['timestamp','page_type','detail','mode'])
+        
+    if len(log) >= 1:
+        mode = log['mode'].tolist()[-1]
+    else:
+        mode = 'user'#will want to finalise what I want to do here
+        
+    action_dictionary['timestamp'] = [get_time()]
+    action_dictionary['mode'] = [mode]
+        
+    action_df = pd.DataFrame.from_dict(action_dictionary)
+    log = log.append(action_df)
+    log.to_csv(r'{}'.format(filename))
+
 
 def chart_as_html():
     plt.savefig('temp_image.jpg')
@@ -64,13 +87,15 @@ def index_list():
     dates = df['Date'].tolist()
     times = df['Time'].tolist()
     dists = df['Distance'].tolist()
+    notes = df['Notes'].apply(lambda x: x if x==x else '').tolist()
     
     table = '''<table>
 <th>Activity ID</th>
 <th>Type</th>
 <th>Date</th>
 <th>Duration</th>
-<th>Distance, km</th>'''
+<th>Distance, km</th>
+<th class='notes-col'>Notes</th>'''
     
     #body = body + "<a href='{abbrs[-1]}'>{abbrs[-1]}</a>: {types[-1]}, {dates[-1]}: {dists[-1]}, {times[-1]}"
     
@@ -83,6 +108,7 @@ def index_list():
 <td>{dates[v]}</td>
 <td>{times[v]}</td>
 <td>{dists[v]}</td>
+<td class='notes-col'>{notes[v]}</td>
 </tr>"""
         #if i != len(df) - 1:
         #    line = line + '<br>'
@@ -95,13 +121,18 @@ def index_list():
         
 def generate_map(activity,map_size='reg'):
     
-    activity_df = dr.route_data(activity)
+    activity_type = dr.ac_detail(activity, 'Activity Type')
+
+    if activity_type != 'Cardio':
+        activity_df = dr.route_data(activity)
     
-    #mapper.tmb_test(activity_df,plot_size = map_size)
+        #mapper.tmb_test(activity_df,plot_size = map_size)
     
-    #chart = chart_as_html()
+        #chart = chart_as_html()
     
-    chart = mapper.enhanced_plotly_osm_map(activity_df)
+        chart = mapper.enhanced_plotly_osm_map(activity_df)
+    else:
+        chart = ''
     
     #chart = mapper.plot_osm_map(activity_df)
         
@@ -123,7 +154,7 @@ def times_table(ac_no):
     return(table)
 
 def times_radar(ac_no):
-    if dr.ac_detail(ac_no, 'Activity Type') == 'Running':
+    if dr.ac_detail(ac_no, 'Activity Type') == 'Running' and dr.ac_detail(ac_no, 'Distance') >=2.4:
         user_df = dr.pull_data()
         pf.times_radar(user_df, ac_no)
         chart = chart_as_html()
@@ -364,8 +395,12 @@ def map_bt_line(ac_no):
 
 def shoes_activity(ac_no):
     user_df = dr.pull_data()
-    
-    line = pf.shoes_activity_line(user_df,ac_no)
+    shoes = dr.ac_detail(ac_no, 'Shoes')
+
+    if shoes == shoes:      
+        line = pf.shoes_activity_line(user_df,ac_no)
+    else:
+        line = ''
     
     return(line)
 
@@ -431,11 +466,27 @@ def challenge_map(challenge):
     
     return(div)
 
+def challenge_progress(challenge):
+    
+    user_df = dr.pull_data()
+    yyyy = ts.year
+    
+    if challenge == 'lejog':
+        div = challenges.plot_challenge_linear_progress(challenge,user_df,yyyy)
+    else:
+        div = ''
+        
+    return(div)
+    
+
 def hr_pie(ac_no):
     
     ac_df = dr.route_data(ac_no)
-        
-    div = af.hr_zones_pie_plotly(ac_df)
+    
+    try:    
+        div = af.hr_zones_pie_plotly(ac_df)
+    except:
+        div='<p>No HR data</p>'
     
     return(div)
 
@@ -443,9 +494,12 @@ def hr_dist(ac_no):
     
     ac_df = dr.route_data(ac_no)
     
-    af.hr_distribution(ac_df)
+    try:
+        af.hr_distribution(ac_df)
     
-    chart = chart_as_html()
+        chart = chart_as_html()
+    except:
+        chart = '<p>No HR data</p>'
     
     return(chart)
 
@@ -453,8 +507,12 @@ def hr_dist(ac_no):
 def ThreeD_map(ac_no):
     
     ac_df = dr.route_data(ac_no)
-    
-    div = mapper.basic_3D_map_plotly(ac_df)
+    activity_type = dr.ac_detail(ac_no,'Activity Type')
+
+    if activity_type != 'Cardio':   
+        div = mapper.basic_3D_map_plotly(ac_df)
+    else:
+        div = ''
     
     return(div)
 

@@ -29,6 +29,31 @@ from GSS.GSSutils import data_read as dr
 
 from numpy import NaN
 
+import urllib.request, json
+
+def action_log(action_dictionary):
+
+    filename = 'usage_log.csv'
+    
+    try:
+        data = pd.read_csv(filename)
+        log = pd.DataFrame(data,columns=['timestamp','page_type','detail','mode'])
+    except:
+        log = pd.DataFrame(columns=['timestamp','page_type','detail','mode'])
+        
+    action_df = pd.DataFrame.from_dict(action_dictionary)
+    log = log.append(action_df)
+    log.to_csv(filename)
+    
+def get_timestamp():
+    today = time.time()
+
+    today_dt = datetime.fromtimestamp(today)
+    
+    timestamp = datetime.strftime(today_dt,'%Y-%m-%d %H:%M:%S')
+
+    return(timestamp)
+    
 conversion = 180 / (2 ** 31)
 
 def create_nans(x):
@@ -137,7 +162,6 @@ def best_time_ws(distance,gpx_df,pull_time=False):
     else:     
         return(gpx_df)
     
-import urllib.request, json
 #from bs4 import BeautifulSoup
 
 #from geopy.geocoders import Nominatim
@@ -721,7 +745,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         if activity == 'Cycling':
             shoes = 'NONE'
         if activity == 'Running':
-            shoes = 'Hoka One One Clifton 7'
+            shoes = 'Hoka One One Clifton 7'#'Vivobarefoot Primus Lite II'#
         if activity == 'Walking':
             shoes = 'Merrell Vego 2019'
     
@@ -778,7 +802,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
     assess_main(main_df,df,ac_details)
         
-    
     #if email_option == True:
     #    import email_functions
     
@@ -798,6 +821,14 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     except:
         print('No gpx file')
 
+
+    action_dict = {'timestamp': [get_timestamp()],
+                   'page_type': ['upload'],
+                   'detail': [ac_abbr],
+                   'mode': ['user']}
+    
+    action_log(action_dict)
+    
     #try:
     #    os.remove('temp-abbr.csv')
     #except:
@@ -835,6 +866,8 @@ def import_from_args():
     
     parser.add_argument('--notes', '-n', help='Optional: use {_} not { }')
     
+    parser.add_argument('--dev', '-d', help='Alternative: add dev or user switch to usage log; separate from uploading activity')
+    
     #convert input options to function inputs
     args = parser.parse_args()
     
@@ -871,8 +904,13 @@ def import_from_args():
     else:
         notes = ''
         
-    
-    if FIT == 'NONE' and gpx == 'NONE':
+    if args.dev:
+        mode = args.dev
+        action_dict = {'timestamp': [get_timestamp()],
+                   'page_type': ['usage_set'],
+                   'mode': [mode]}
+        action_log(action_dict)    
+    elif FIT == 'NONE' and gpx == 'NONE':
         print('Requires a --FIT or a --gpx file to import')
     else:
         activity_import(FIT=FIT, gpx=gpx, activity=activity, shoes=shoes, alt_option=alt_option, notes=notes)

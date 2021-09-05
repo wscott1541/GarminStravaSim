@@ -18,6 +18,7 @@ from . import basic_functions as bf
 from . import today_string as ts
 
 from datetime import datetime, timedelta
+from dateutil import relativedelta
 
 import pandas as pd
 
@@ -134,7 +135,7 @@ def lejog(year,user_df):
 
 def lejog_update(ac_no,user_df):
     
-    user_df = user_df[user_df['Activity Type'].isin(['Running','Walking'])]
+    user_df = user_df[user_df['Activity Type'].isin(['Running','Walking','Hiking'])]
     
     date = dr.ac_detail(ac_no,'Date')
     
@@ -167,7 +168,7 @@ def lejog_update(ac_no,user_df):
     next_dist = round(next_dist/1000,1)
     
     if pre_loc != post_loc:
-        last_text = f'You reached <b>{post_loc}<b>!'
+        last_text = f'You reached <b>{post_loc}</b>!'
     else:
         last_text = f'Last waymark: {pre_loc},{place_distance}km'
         
@@ -178,4 +179,85 @@ def lejog_update(ac_no,user_df):
 <br>{next_text}"""
 
     return(html)
+
+def plot_challenge_linear_progress(challenge,user_df,year):
     
+    c_df = import_challenge_csv(challenge)
+    
+    user_df = user_df[user_df['Activity Type'].isin(['Running','Walking','Hiking'])]
+    
+    full_distance = c_df.at[len(c_df)-1,'distance']/1000
+    
+    if challenge == 'lejog':
+        challenge_name = 'LEJOG'
+    
+    fig = go.Figure()
+    
+    fig.add_trace(
+            go.Scatter(
+                mode='lines',
+                name=challenge_name,
+                x=[1,364],
+                y=[0,full_distance],
+                line={'color': 'red'},
+                #hovertemplate = hover_t,
+                #hoverinfo = 'skip',
+                showlegend = True
+                ))
+    
+    def pull_year(x):
+        return(float(x[:4]))
+    
+    user_df['year'] = user_df['Date'].apply(pull_year)
+    user_df['Date'] = user_df['Date'].apply(lambda x: x[:10])
+    user_df = user_df[['Date','Distance','year']].groupby('Date').sum().reset_index()
+    user_df['year'] = user_df['Date'].apply(pull_year)
+    start_year = int(user_df['year'].min())
+    user_df = user_df.drop(columns=['year'])
+    
+    for yyyy in range(start_year,year+1):
+        start_date = datetime.strptime(f'{int(yyyy)}-01-01','%Y-%m-%d')
+        days = [datetime.strftime(start_date+relativedelta.relativedelta(days=i),'%Y-%m-%d') for i in range(365)]
+        
+        if days[-1] != f'{yyyy}-12-31':
+            days += [f'{yyyy}-12-31']
+            
+        if yyyy == year:
+            days = [d for d in days if d <= ts.today_string]
+        
+        y_df = pd.DataFrame.from_dict({'Date': days})
+        
+        y_df = pd.merge(y_df,user_df,how='left',on='Date')
+        
+        y_df['Distance'] = y_df['Distance'].fillna(0)
+        
+        y_df['Distance Covered'] = y_df['Distance'].cumsum().fillna(0)
+        
+        y_df['index'] = [x for x in range(1,len(y_df)+1)]
+        
+        if yyyy == year:
+            fig.add_trace(go.Scatter(
+        mode='lines',
+        name='{}: {}km'.format(year,round(y_df['Distance'].sum(),2)),
+        x=y_df['index'],
+        y=y_df['Distance Covered'],
+        line={'color': '#000000'},
+        marker={'size': 10}#,
+        #visible='legendonly'
+        ))
+        else:
+            fig.add_trace(go.Scatter(
+        mode='lines',
+        name='{}: {}km'.format(yyyy,round(y_df['Distance'].sum(),2)),
+        x=y_df['index'],
+        y=y_df['Distance Covered'],
+        line={'color': '#000000'},
+        marker={'size': 10},
+        visible='legendonly'
+        ))
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    return(div)
+    
+
