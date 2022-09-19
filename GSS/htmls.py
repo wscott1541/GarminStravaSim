@@ -13,6 +13,7 @@ import base64
 import os
 
 import matplotlib.pyplot as plt
+import json
 
 import pandas as pd
 from datetime import datetime
@@ -88,15 +89,17 @@ def index_list():
     dates = df['Date'].tolist()
     times = df['Time'].tolist()
     dists = df['Distance'].tolist()
+    rankings = df['Run Rankings'].tolist()
     notes = df['Notes'].apply(lambda x: x if x==x else '').tolist()
     
-    table = '''<table>
+    table = '''<table style='width: 100%'>
 <th>Activity ID</th>
 <th>Type</th>
 <th>Date</th>
 <th>Duration</th>
 <th>Distance, km</th>
-<th class='notes-col'>Notes</th>'''
+<th class='notes-col'>Notes</th>
+<th></th>'''
     
     #body = body + "<a href='{abbrs[-1]}'>{abbrs[-1]}</a>: {types[-1]}, {dates[-1]}: {dists[-1]}, {times[-1]}"
     
@@ -110,6 +113,7 @@ def index_list():
 <td>{times[v]}</td>
 <td>{dists[v]}</td>
 <td class='notes-col'>{notes[v]}</td>
+<td>{pf.interpret_rankings(rankings[v])}</td>
 </tr>"""
         #if i != len(df) - 1:
         #    line = line + '<br>'

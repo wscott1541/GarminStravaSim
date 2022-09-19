@@ -24,6 +24,7 @@ y_day_string = ts.y_day_string
 
 from . import analyse
 
+import json
 #print(day)
 
 from datetime import datetime, timedelta
@@ -2177,6 +2178,38 @@ def plotly_distances_this_year_and_last(user_df,m,yyyy,activity):
     div = pio.to_html(fig,auto_play=False,full_html=False)
     
     return div
+
+def interpret_rankings(rankings, desired_distance=None):
+        
+        rankings = json.loads(rankings.replace("'", '"'))
+        if rankings:
+            #raise ValueError(rankings, type(rankings))
+            
+            r = '' 
+            
+            links = {
+                '1st': 	'&#129351',
+                    #'<img src="https://img.icons8.com/color-glass/48/000000/trophy.png"/>',
+                '2nd': '&#129352;',
+                    #'''<img src="https://d3nn82uaxijpm6.cloudfront.net/assets/svg/icon-at-pr-02-dced92d045c9ba151bd5540df94ae376351f1fc8707cd91d587aef2a221ad726.svg"
+#style="height: 50%; overflow: hidden; transform: translateY(-50%);"/>''',
+                '3rd': '&#129353;'
+                    #'<img src="https://img.icons8.com/color-glass/48/000000/trophy.png"/>'
+                }
+            
+            for p in ('1st', '2nd', '3rd'):
+                l = rankings.get(p, [])
+                
+                if desired_distance:
+                    l = [r for r in l if r == desired_distance]
+                    
+                if l:
+                    r += links[p] * len(l)
+            
+            return r
+            
+        else:
+            return ''
     
     
 def rankings_html(user_df,distance):
@@ -2197,6 +2230,7 @@ def rankings_html(user_df,distance):
     user_df['pace'] = user_df['pace'].apply(bf.floatminute_to_stringtime)
     paces = user_df['pace'].tolist()
     notes = user_df['Notes'].fillna('').tolist()
+    run_rankings = user_df['Run Rankings'].tolist()
     
     ranks = [1]
     
@@ -2212,7 +2246,7 @@ def rankings_html(user_df,distance):
     times = list(map(lambda x: str(x).replace('0 days ',''), times))
     durl = bf.dtag_to_durl(distance)
          
-    html = '''<th>Rank</th><th>Date</th><th>Split</th><th>Pace (m/km)</th><th>Notes</th>'''
+    html = '''<th>Rank</th><th>Date</th><th>Split</th><th>Pace (m/km)</th><th>Notes</th><th></th>'''
 
     for i in range(0, len(ac_nos)):
         row = f"""<tr>
@@ -2221,11 +2255,14 @@ def rankings_html(user_df,distance):
 <td><a href='../index/{ac_nos[i]}/map/{durl}'>{times[i]}</a></td>
 <td>{paces[i]}</td>
 <td>{notes[i]}</td>
+<td>{interpret_rankings(run_rankings[i], distance)}
 </tr>"""#could link to split map
 
 #there is a much neater solution here, whereby
 
         html = html + row
+        
+        #'&#129351'
         
     return(html)
 
