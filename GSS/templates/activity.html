@@ -40,12 +40,16 @@
             {{ note|safe }}<!--br included in function-->
           
           {{ shoes|safe }}</p>
+
+          {{ activity_notes|safe }}
         
       {{ map|safe }}
 
       {{ 3D_map|safe }}
 
       {{ alt_distance_plotly|safe }}
+
+      {{ km_split_bars|safe }}
       
       <div class="w3-bar" styling="color: #C1C1C1;">
         <button class="w3-bar-item w3-button" onclick="openHR('zones')">HR zones</button>
@@ -82,6 +86,6 @@
           {{ prev_post|safe }}<br>
         <a href='../../'>Home</a> | <a href='../'>Index</a> | <a href='../../rankings'>Rankings</a> |
         <a href={% url 'shoes' %}>Shoes</a> |
-        <a href='../../challenges/lejog/'>LEJOG</a></p>
+        <a href={% url 'challenges' %}>Challenges</a></p>
     </body>
 </html>

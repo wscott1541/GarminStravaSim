@@ -1,0 +1,165 @@
+<html>
+
+    <script>
+        function openLink(evt, animName) {
+          var i, x, tablinks;
+          x = document.getElementsByClassName("vert");
+          /*for (i = 0; i < x.length; i++) {
+            x[i].style.display = "none";
+          }*/
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < x.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" w3-red", "");
+          }
+          
+          if (document.getElementById(animName).style.display = 'block') 
+            {document.getElementById(animName).style.display = 'none';}
+          if (document.getElementById(animName).style.display = 'none') 
+            {document.getElementById(animName).style.display = 'block';}
+          
+          evt.currentTarget.className += " w3-red";
+        }
+
+    function openCity(cityName) {
+  var i;
+  var x = document.getElementsByClassName("hori");
+  for (i = 0; i < x.length; i++) {
+    x[i].style.display = "none";  
+  }
+  document.getElementById(cityName).style.display = "block";  
+}
+        </script>
+
+<title>{{ title }}</title>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style>
+  table {width: 100%;
+            border: 1px solid black;
+            border-collapse: collapse;
+            text-align: center;}
+          th,
+          td {
+            padding: 10px;
+            border: 1px solid black;
+            border-collapse: collapse;
+          }
+</style>
+
+<body>
+
+<div class="w3-sidebar w3-bar-block w3-black w3-card" style="width:130px">
+  <h5 class="w3-bar-item">Summary</h5>
+  <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Map')">Map</button>
+  <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Analysis')">Analysis</button>
+  <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'HR')">HR</button>
+  <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Comparisons')">Comparisons</button>
+  <button class="w3-bar-item w3-button tablink" onclick="openLink(event, 'Other')">Other</button>
+  
+</div>
+
+<div style="margin-left:130px">
+  <div class="w3-padding"><p><b><u>{{ type }}</u></b>, {{ date }}<br>
+        
+    {{ distance }}km in {{ duration }}<br>
+
+    {{ note|safe }}<!--br included in function-->
+  
+  {{ shoes|safe }}</p></div>
+
+  <div id="Map" class="w3-container vert w3-animate-left" style="display:none">
+    <div class="w3-bar w3-black">
+        <button class="w3-bar-item w3-button" onclick="openCity('Geo')">Geo</button>
+        <button class="w3-bar-item w3-button" onclick="openCity('Heat')">Heat</button>
+        <button class="w3-bar-item w3-button" onclick="openCity('3D')">3D</button>
+        <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
+      </div>
+      
+    <div id="Geo" class="w3-container hori">
+      {{ map|safe }}  
+      </div>
+      
+      <div id="Heat" class="w3-container hori" style="display:none">
+        <p>I still need to load this.</p>
+      </div>
+      
+      <div id="3D" class="w3-container hori" style="display:none">
+        {{ 3D_map|safe }}
+      </div>
+
+  
+  <div id="Analysis" class="w3-container vert w3-animate-left" style="display:none">
+        <div class="w3-bar w3-black">
+            <button class="w3-bar-item w3-button" onclick="openCity('Distance')">Distance</button>
+            <button class="w3-bar-item w3-button" onclick="openCity('Duration')">Duration</button>
+            <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
+          </div>
+          
+        <div id="Distance" class="w3-container hori">
+          {{ alt_distance_plotly|safe }}
+          </div>
+          
+          <div id="Duration" class="w3-container hori" style="display:none">
+            <p>I still need to load this.</p>
+          </div>
+
+  <div id="HR" class="w3-container vert w3-animate-left" style="display:none">
+            <div class="w3-bar w3-black">
+                <button class="w3-bar-item w3-button" onclick="openCity('hr_zones')">Zones</button>
+                <button class="w3-bar-item w3-button" onclick="openCity('hr_details')">Details</button>
+                <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
+              </div>
+              
+            <div id="hr_zones" class="w3-container hori">
+              {{ hr_pie|safe }}
+              </div>
+              
+              <div id="hr_details" class="w3-container hori" style="display:none">
+                {{ hr_dist|safe }}
+              </div>
+              
+  <div id="Comparisons" class="w3-container vert w3-animate-left" style="display:none">
+                <div class="w3-bar w3-black">
+                    <button class="w3-bar-item w3-button" onclick="openCity('times_table')">Table</button>
+                    <button class="w3-bar-item w3-button" onclick="openCity('times_radar')">Radar</button>
+                    <button class="w3-bar-item w3-button" onclick="openCity('other_plot')">Others</button>
+                    <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
+                  </div>
+                  
+                <div id="times_table" class="w3-container hori">
+                  <table>
+                    {{ times_table|safe }}
+                  </table>
+                  </div>
+                  
+                  <div id="times_radar" class="w3-container hori" style="display:none">
+                    {{ times_radar_plot|safe }}
+                  </div>
+
+                  <div id="other_plot" class="w3-container hori" style="display:none">
+                    {{ comparisons|safe }}
+                  </div>
+
+ <div id="Other" class="w3-container vert w3-animate-left" style="display:none">
+                    <div class="w3-bar w3-black">
+                        <button class="w3-bar-item w3-button" onclick="openCity('challenges')">Challenges</button>
+                        <button class="w3-bar-item w3-button" onclick="openCity('otd')">On This Day</button>
+                        <button class="w3-bar-item w3-button" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
+                      </div>
+                      
+                    <div id="challenges" class="w3-container hori">
+                      <table>
+                        {{ challenge_update|safe }}
+                      </table>
+                      </div>
+                      
+                      <div id="otd" class="w3-container hori" style="display:none">
+                        {{ activity_otd|safe }}
+                      </div>
+  
+    
+</div>
+
+</div>
+
+</body>
+</html>

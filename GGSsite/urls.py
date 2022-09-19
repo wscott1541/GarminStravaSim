@@ -31,6 +31,7 @@ urlpatterns = [
     path('index/<activity>/edit/<field>/<new_string>/', views.edit_func, name='<activity>_<field>_edit_func'),
     path('index/<activity>/edit/', views.edit_index, name='<activity>_edit'),
     path('index/<activity>/edit/<field>/',views.edit_field, name = '<activity>_edit_<field>'),
+    path('challenges/',views.challenge_index,name='challenges'),
     path('challenges/<challenge>/',views.challenge_year,name='<challenge>')
     
 ]

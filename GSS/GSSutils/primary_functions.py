@@ -27,6 +27,7 @@ from . import analyse
 #print(day)
 
 from datetime import datetime, timedelta
+from dateutil import relativedelta
 
 from math import pi
 
@@ -850,9 +851,14 @@ def html_activity_row(distance, user_df, ac_number,html_option=False):
 
 def html_activity_rows(user_df, ac_number,html_option=False):
     
-    text = f"{html_activity_row('1km', user_df, ac_number,html_option)}"
+    text = ''
+    #f"{html_activity_row('1km', user_df, ac_number,html_option)}"
     
-    options = ['1 mile', '1.5 mile', '3 mile', '5km', '10km', '20km', 'Half', 'Full']
+    if 'NONE' in text:
+        text = ''
+    
+    options = list(dr.dist_dict.keys())
+    #['1 mile', '1.5 mile', '3 mile', '5km', '10km', '20km', 'Half', 'Full']
     
     for i in range(0,len(options)):
         
@@ -1237,7 +1243,7 @@ def shoes_plotly(user_df):
     user_df = user_df.sort_values(by='Date',ascending=True)
     
     shoe_l_df = user_df.drop_duplicates('Shoes')
-    shoe_l_df = shoe_l_df.loc[shoe_l_df['Shoes'] != 'NONE']
+    shoe_l_df = shoe_l_df.loc[-shoe_l_df['Shoes'].fillna('NONE').isin(['NONE','default',None])]
     shoes_list = shoe_l_df['Shoes'].tolist()
     
     fig = go.Figure()
@@ -1248,6 +1254,16 @@ def shoes_plotly(user_df):
         shoe_df = user_df.loc[user_df['Shoes'] == shoe]
         
         shoe_df['c_d'] = shoe_df['Distance'].cumsum()
+        
+        try:
+            start_date = shoe_df['Date'].tolist()[0]
+        except:
+            raise ValueError(shoe, shoe_df)
+        
+        shoe_df = pd.concat([pd.DataFrame.from_dict({
+            'Date': [start_date],
+            'c_d': [0]
+            }), shoe_df])
         
         #hover_t = '''<extra></extra>'''
         
@@ -2075,18 +2091,97 @@ def plot_distances_this_year(user_df,m,yyyy,activity):
         ax.legend();
     
     plt.title(title)
+    
+def plotly_distances_this_year_and_last(user_df,m,yyyy,activity):
+    
+    user_df = user_df[user_df['Activity Type'].isin([activity])]
+    
+    abs_m = m
+    
+    fig = go.Figure()
+    
+    def create_empty(m,yyyy):
+        
+        month_length = bf.month_length(m,yyyy)
+        
+        l = [str(int(x)) for x in range(0,month_length+1)]
+        
+        df = pd.DataFrame.from_dict({'day': l})
+        
+        return df
+    
+    def plot_month(user_df,m,yyyy, present_year = True):
+        
+        user_df['year'] = user_df['Date'].apply(lambda x: float(x[:4]))
+        user_df = user_df[user_df['year']==yyyy]
+        user_df['month'] = user_df['Date'].apply(lambda x: float(x[5:7]))
+        user_df = user_df[user_df['month']==m]
+        
+        user_df['day'] = user_df['Date'].apply(lambda x: str(int(float(x[8:10]))))
+        
+        user_df = user_df[['day','Distance']]
+        
+        month_df = pd.merge(create_empty(m, yyyy),user_df,how='outer',on='day')
+        month_df['Distance'] = month_df['Distance'].fillna(0)
+        month_df['Distance Covered'] = month_df['Distance'].cumsum()
+        
+        colours_dict = {
+            '1': 'blue',
+            '2': 'red',
+            '3': 'purple',
+            '4': 'coral',
+            '5': 'olivedrab',
+            '6': 'fuchsia',
+            '7': 'black',
+            '8': 'gold',
+            '9': 'grey',
+            '10': 'cyan',
+            '11': 'deeppink',
+            '12': 'lime'
+            }
+        
+        colour = colours_dict.get(str(int(m)))
+        line_style = 'solid' if present_year else 'dash'
+        if present_year:
+            visibility = True
+        elif abs_m <= 3 and m <= 3:
+            visibility = True
+        else:
+            visibility = 'legendonly'
+        
+        fig.add_trace(
+            go.Scatter(
+                mode='lines',
+                name=f'{bf.month_caller(m)} {yyyy}',
+                x=month_df['day'],
+                y=month_df['Distance Covered'],
+                line={'color': colour,
+                      'dash': line_style},
+                #hovertemplate = hover_t,
+                visible=visibility,
+                showlegend = True
+                ))
+    
+    for mm in range(1,m+1):
+        plot_month(user_df,mm,yyyy)
+        
+    for mm in range(1,13):
+        plot_month(user_df,mm,yyyy-1,present_year=False)
+        
+    fig.update_layout(title=f'Monthly {activity} Distances in {yyyy} (and {int(yyyy-1)})',
+                xaxis=dict(showgrid=False),
+              yaxis=dict(title='km')
+)
 
+        
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    return div
+    
     
 def rankings_html(user_df,distance):
     
     user_df = user_df.loc[user_df['Activity Type'] == 'Running']
-    
-    #if distance == '1mile':
-    #    user_df[distance] = user_df['1 mile']
-    #if distance == '1.5mile':
-    #    user_df[distance] = user_df['1.5 mile']
-    #if distance == '3mile':
-    #    user_df[distance] = user_df['3 mile']
     
     user_df = user_df.loc[user_df[distance] != 'NONE']
     
@@ -2101,6 +2196,7 @@ def rankings_html(user_df,distance):
     user_df['pace'] = user_df['split'] / dist
     user_df['pace'] = user_df['pace'].apply(bf.floatminute_to_stringtime)
     paces = user_df['pace'].tolist()
+    notes = user_df['Notes'].fillna('').tolist()
     
     ranks = [1]
     
@@ -2110,16 +2206,24 @@ def rankings_html(user_df,distance):
             ranks.append(ranks[-1])
         else:
             ranks.append(i+1)
+    #this is used to rank splits
+    #you could use a groupby and a count and then merge in, if you wanted
+    
+    times = list(map(lambda x: str(x).replace('0 days ',''), times))
+    durl = bf.dtag_to_durl(distance)
          
-    html = '''<th>Rank</th><th>Date</th><th>Split</th><th>Pace (m/km)</th>'''
+    html = '''<th>Rank</th><th>Date</th><th>Split</th><th>Pace (m/km)</th><th>Notes</th>'''
 
     for i in range(0, len(ac_nos)):
         row = f"""<tr>
 <td>{ranks[i]}</td>
 <td><a href='../index/{ac_nos[i]}'>{ac_dates[i]}</a></td>
-<td>{times[i]}</td>
+<td><a href='../index/{ac_nos[i]}/map/{durl}'>{times[i]}</a></td>
 <td>{paces[i]}</td>
+<td>{notes[i]}</td>
 </tr>"""#could link to split map
+
+#there is a much neater solution here, whereby
 
         html = html + row
         
@@ -2172,15 +2276,8 @@ def top_n(user_df,n=3):
 
 def formatted_title(title):
     
-    if title == '1mile':
-        t = '1 mile'
-    elif title == '1.5mile':
-        t = '1.5 mile'
-    elif title == '3mile':
-        t = '3 mile'
-    else:
-        t = title
-        
+    t = bf.durl_to_dtag(title)
+    
     return(t)
 
 def convert_date_to_abs(date):
@@ -2236,6 +2333,7 @@ def times_curve(user_df,ac_no):
             
     full_d = dr.activity_details(user_df,ac_no,'Distance')
     full_t = dr.activity_details(user_df,ac_no,'Time')
+    #raise ValueError(full_t)
     full_t = bf.stringtime_to_floatminute(str(full_t)[-8:])
     
     times.append(full_t)
@@ -2266,11 +2364,12 @@ def all_splits_plot(user_df,options='all'):
         
             fig.add_trace(
                 go.Scatter(
+                    name=d,
                     mode='markers',
                     x=d_df['Date'],
                     y=d_df[d],
                     hovertemplate = hover_t,
-                    showlegend = False
+                    showlegend = True
                     ))
         
         fig.update_layout(
@@ -2294,10 +2393,11 @@ def all_splits_plot(user_df,options='all'):
         fig.add_trace(
                 go.Scatter(
                     mode='markers',
+                    name='Times',
                     x=d_df['Date'],
                     y=d_df[d],
                     hovertemplate = hover_t,
-                    showlegend = False
+                    showlegend = True
                     ))
         
         #d_df[d] = pd.to_numeric(d_df[d])
@@ -2312,6 +2412,64 @@ def all_splits_plot(user_df,options='all'):
         
         #print(type(lim))
         #print(d_df[d].std())
+        
+        best = d_df[d].tolist()[0]
+        times = {d_df['Date'].tolist()[0]: {'time': best}}
+        
+        bests = [bf.split_to_dt(d_df['Time'].tolist()[0])]
+        dates = [d_df['Date'].tolist()[0]]
+        
+        #for d,t in zip(d_df['Date'].tolist(), d_df['Time'].tolist()):
+        #    if bf.split_to_dt(t) < best:
+        #        best = bf.split_to_dt(t)
+        #        times[d] = {'time': best}
+        
+        for d,t in zip(d_df['Date'].tolist(), d_df[d].tolist()):
+            #time = bf.split_to_dt(t)
+            if t < bests[-1]:
+                if len(bests) > 1:
+                    bests.append(bests[-1])
+                    dates.append(d)
+                bests.append(t)
+                dates.append(d)
+                
+        bests.append(bests[-1])
+        dates.append(d_df['Date'].tolist()[-1])
+                
+        #lastday = d_df['Date'].tolist()[-1]
+        #durations = []
+        
+        for d in range(len(times)):
+            this_day = list(times.keys())[d]
+            next_day = list(times.keys())[d+1] if d < len(times)-1 else d_df['Date'].tolist()[-1]
+            #raise ValueError(this_day, next_day)
+            try:
+                diff = datetime.strptime(next_day, '%Y-%m-%d %H:%M:%S') - datetime.strptime(this_day, '%Y-%m-%d %H:%M:%S')
+            except:
+                raise ValueError(next_day, this_day)
+            width = diff
+            times[this_day]['held_for'] = diff.days
+            times[this_day]['width'] = width         
+            diff = diff.days
+            midpoint = datetime.strptime(this_day, '%Y-%m-%d %H:%M:%S') + relativedelta.relativedelta(days=int(diff/2))
+            times[this_day]['midpoint'] = midpoint
+            
+        #bests = [i['time'] for i in list(times.values())]
+        #points = [i['midpoint'] for i in list(times.values())]
+        #widths = [i['width'].days for i in list(times.values())]
+        
+        fig.add_trace(
+                go.Scatter(
+                    name='Best',
+                    mode='lines',
+                    x=dates,
+                    y=bests,
+                    #width=widths,
+                    #hovertemplate = hover_t,
+                    showlegend = True
+                    ))
+            
+        #raise ValueError(times)    
         
         fig.update_layout(
             xaxis_title="Date",

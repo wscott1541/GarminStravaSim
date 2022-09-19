@@ -20,18 +20,25 @@ import os
 
 #cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
 
-cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','Rise','Fall','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Notes','Admin']
+cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','Rise','Fall','1km','1 mile','1.5 mile','3 mile','5km','5 mile','10km','10 mile','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Run Rankings','Notes','Admin']
 
-dist_list = ['1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full']
 dist_dict = {'1km': 1000,
               '1 mile': 1609.34,
               '1.5 mile': 2414.02,
               '3 mile': 4828.03,
               '5km': 5000,
+              '5 mile': 8046.72,
               '10km': 10000,
+              '10 mile': 16093.40,
               '20km': 20000,
               'Half': 21097.7,
               'Full': 42195}
+
+dist_list = list(dist_dict.keys())
+
+if any(d for d in dist_list if d not in cols):
+    raise ValueError('check all distances in cols')
+
 '''
 def pull_initials():
     user_data = pd.read_csv (r'users.csv')  

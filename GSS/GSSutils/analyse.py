@@ -12,7 +12,7 @@ from . import data_read as dr
 from . import basic_functions as bf
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from time import time
 
@@ -1063,6 +1063,212 @@ def dur_dist_comp(df):
             colour = 'green'
             
         plt.plot(xs,ys,color=colour)
+        
+def prep_interval_df(df:pd.DataFrame, distance:str)->pd.DataFrame:
+    
+    dist_cols = {k.replace(' ',''):k for k in dr.dist_dict}
+    dist_col = dist_cols[distance]
+        
+    df = df[df[dist_col]==1]#Keep only the times relevant to the split
+    df = df.reset_index(drop=True)
+
+    df['distance_cut'] = df['distance'].diff().fillna(0)
+    df['distance_cut'] = df['distance_cut'].cumsum()
+    
+    return df
+    
+        
+def km_splits_bars_plotly(df: pd.DataFrame, distance:str=None, whole_activity:bool=True)->str:
+    #dr.dist_dict
+    
+    non_km_splits = {
+        '1km': 500,
+        '1mile': dr.dist_dict['1 mile']/4,
+        '1.5mile': dr.dist_dict['1.5 mile']/3,
+        '3mile': dr.dist_dict['3 mile']/3
+        }
+    
+    if not whole_activity:
+        df = prep_interval_df(df, distance)
+        #dist_cols = {k.replace(' ',''):k for k in dr.dist_dict}
+        #dist_col = dist_cols[distance]
+        
+        #df = df[df[dist_col]==1]#Keep only the times relevant to the split
+        #df = df.reset_index(drop=True)
+
+        #df['distance_cut'] = df['distance'].diff().fillna(0)
+        #df['distance_cut'] = df['distance_cut'].cumsum()
+        
+        #raise ValueError(df[['distance','distance_cut']].head())
+    else:
+        df['distance_cut'] = df['distance']
+    
+    interval_distance = non_km_splits[distance] if distance and distance in non_km_splits  else 1000
+    #raise ValueError(interval_distance)
+    
+    df['interval'] = df['distance_cut'].apply(lambda x: x // interval_distance)#convert to km, assign each
+    
+    #raise ValueError(df['distance_cut'][:25])
+    
+    splits = {}
+    
+    for k in df['interval'].unique():
+        start_time = df[df['interval']==k]['time'].min()
+        end_time = df[df['interval']==k]['time'].max()
+        
+        split_time = end_time - start_time 
+        
+        split_seconds = split_time.total_seconds()
+        
+        start_dist = df[df['interval']==k]['distance_cut'].min()
+        end_dist = df[df['interval']==k]['distance_cut'].max()
+        
+        start_dist = round(start_dist/1000,2)
+        end_dist = round(end_dist/1000,2)
+        
+        split_dist = f'{start_dist}km-{end_dist}km'
+        
+        if end_dist - start_dist > 25/1000:
+            splits[split_dist] = split_seconds
+        
+        #raise ValueError(splits)
+        
+    #raise ValueError(splits)
+    
+    bars = list(splits.keys())
+    heights = list(splits.values())
+    labels = [bf.seconds_to_str_minutes(t) for t in heights]
+    
+    #raise ValueError(labels)
+    
+        
+    fig = go.Figure()
+    
+    fig.add_trace(
+        go.Bar(
+            x=bars, 
+            y=heights,
+            text=labels,
+            textposition='auto'
+            )
+        )
+    
+    div = pio.to_html(fig,auto_play=False,full_html=False)
+    
+    return div
+        
+        
+def halfway_split_str(df:pd.DataFrame, distance:str)->(str, str, str):
+    
+    dist_cols = {k.replace(' ',''):k for k in dr.dist_dict}
+    dist_col = dist_cols[distance]
+        
+    #df = df[df[dist_col]==1].reset_index(drop=True)#Keep only the times relevant to the split
+    
+    #df['distance_cut'] = df['distance'].diff().fillna(0)
+    #df['distance_cut'] = df['distance_cut'].cumsum()
+    
+    df = prep_interval_df(df, distance)
+    
+    halfway = dr.dist_dict[dist_col]/2
+    
+    df['interval'] = df['distance_cut'].apply(lambda x: 'front' if x // halfway == 0 else 'back')
+    
+    splits = {}
+    
+    for i in ('front', 'back'):
+        start_time = df[df['interval']==i]['time'].min()
+        end_time = df[df['interval']==i]['time'].max()
+
+        split_time = end_time - start_time 
+        
+        split_seconds = split_time.total_seconds()   
+        
+        splits[i] = split_seconds
+
+    front = bf.seconds_to_str_minutes(splits['front'])    
+    back = bf.seconds_to_str_minutes(splits['back'])    
+    
+    #raise ValueError(splits['front'], splits['back'], splits['front']-splits['back'])
+    
+    diff = splits['back'] - splits['front']
+    diff = bf.seconds_to_str_minutes(diff)
+    
+    return front, back, diff
+
+def calc_reigel_time(current_best_time, distance_run, distance_to_run):
+    # T2 = T1 x (D2/D1) 1.06
+    
+    D1 = dr.dist_dict[distance_run]
+    D2 = dr.dist_dict[distance_to_run]
+    
+    current_best_time = bf.split_to_dt(current_best_time)
+    start = datetime.strptime('00:00:00', '%H:%M:%S')
+    current_best_time = current_best_time - start
+    current_best_time = current_best_time.total_seconds()
+    
+    projected_best_time = current_best_time * ((D2/D1) ** 1.06)
+    
+    #raise ValueError(projected_best_time, D1, D2)
+    
+    return projected_best_time#bf.seconds_to_str_minutes(projected_best_time)
+    
+    
+def distance_reigel_efficiency(user_df: pd.DataFrame, ac_no: str, distance: str)->str:
+    
+    # https://www.runnersworld.com/uk/training/a761681/rws-race-time-predictor/#:~:text=It's%20based%20on%20a%20formula,the%20calculated%20time%20for%20D2.
+    # https://www.ukresults.net/misc/predictor.html
+
+    if distance in ['1km', '1mile']:
+        return ''
+    else:
+        dtag = bf.durl_to_dtag(distance)
+        
+        time_run = dr.ac_detail(ac_no, dtag)
+        
+        distances = list(dr.dist_dict.keys())
+        
+        distances = [d for d in distances if dr.dist_dict[d] < dr.dist_dict[dtag] and d != '1km']
+        #comp_dist = None
+        
+        #for n, d in enumerate(distances[1:]):
+        #    if distance == 'Half':
+        #        comp_dist = '10km'
+        #    elif d == distance and not comp_dist:
+        #        comp_dist = distances[n-1]
+        #        #i.e. compare with 1km for a mile, 5km for 5 miles, but not 20km for half (10km favoured)
+        
+        date = dr.ac_detail(ac_no, 'Date')
+        
+        user_df = user_df[user_df['Date'] < date]#keep only preceding PBs
+        
+        def fetch_pb(dtag_col: str)->str:
+            return user_df[dtag_col].min()
+        
+        pbs = {d: fetch_pb(d) for d in distances}
+        
+        projected_times = {d: calc_reigel_time(pbs[d], d, dtag) for d in distances}
+        
+        #raise ValueError(projected_times)
+        
+        best_projection = None
+        projected_from = None
+        projection_source = None
+        
+        for d, t in projected_times.items():
+            #t_seconds = bf.split_to_dt(t)
+            #start = datetime.strptime('00:00:00', '%H:%M:%S')
+            #t_seconds = t_seconds - start
+            #t_seconds = t_seconds.total_seconds()
+            if best_projection is None or t < best_projection:
+                best_projection = t
+                projected_from = d
+                projection_source = pbs[d]
+                
+        return f'''A {time_run.replace('0 days ','')} {dtag}
+compares with a projected best time of {str(timedelta(seconds=best_projection))[:-str(timedelta(seconds=best_projection)).rfind('.')]},
+calculated from a {projected_from} PB of {projection_source.replace('0 days ','')}'''
+
     
 #ac_no = dr.latest_activity('WS')
 #print(ac_no)

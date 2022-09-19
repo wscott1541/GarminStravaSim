@@ -1,8 +1,18 @@
 <html>
+    <head>
+        <title>{{ page_title }}</title>
+    </head>
     <body>
+        <p>{{ title|safe }}
+            <br>{{ halfway_split|safe }}
+            <br>{{ reigel_projection|safe }}
+        </p>
+
         <p>{{ distance_map|safe }}</p>
+
+        {{ km_split_bars|safe }}
         
-        <p><a href='../../'>Activity</a>: <a href="../">Maps</a><br>
+        <p><a href='../../'>Activity</a>: <a href="../">Splits</a><br>
             <a href={% url 'home' %}>Home</a> | <a href={% url 'index' %}>Index</a> | <a href={% url 'rankings' %}>Rankings</a></p>
 
     </body>

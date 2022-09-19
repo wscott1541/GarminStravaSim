@@ -1,11 +1,29 @@
 <html>
+
+    <head>
+    <title>Challenges: {{ challenge_title|safe }}</title>
+    </head>
+
     <body>
+
+        <p><b>{{ challenge_title|safe }}</b></p>
+
+        <!-- <p>{{ challenge_summary|safe }}</p> -->
+
+        <table>
+            {{ challenge_table|safe }}
+        </table>
+
         <p>{{ challenge_map|safe }}</p>
         
         {{ challenge_progress|safe }}
 
-        <p><a href='../../'>Activity</a>: <a href="../">Maps</a><br>
-            <a href={% url 'home' %}>Home</a> | <a href={% url 'index' %}>Index</a> | <a href={% url 'rankings' %}>Rankings</a></p>
+        <p><a href={% url 'home' %}>Home</a> | 
+            <a href={% url 'index' %}>Index</a> | 
+            <a href={% url 'rankings' %}>Rankings</a> | 
+            <a href={% url 'shoes' %}>Shoes</a> |
+            <a href={% url 'challenges' %}>Challenges</a>
+        </p>
 
     </body>
 </html>

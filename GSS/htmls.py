@@ -25,6 +25,7 @@ from .GSSutils import analyse as af
 #print(ts.today_string)
 #from . import analyse
 from .GSSutils import editing as ef
+from .GSSutils import notes as notes
 
 from .GSSutils import basic_functions as bf
 
@@ -156,8 +157,11 @@ def times_table(ac_no):
 def times_radar(ac_no):
     if dr.ac_detail(ac_no, 'Activity Type') == 'Running' and dr.ac_detail(ac_no, 'Distance') >=2.4:
         user_df = dr.pull_data()
-        pf.times_radar(user_df, ac_no)
-        chart = chart_as_html()
+        try:
+            pf.times_radar(user_df, ac_no)
+            chart = chart_as_html()
+        except:
+            chart = ''
         #lines = pf.cropped_activity_lines(user_df, ac_no)
         #chart = f'<p>{lines}<br>{chart}</p>'
         #lines = pf.cropped_activity_table(user_df, ac_no)
@@ -244,9 +248,12 @@ def year_distances():
     #bf.time_check()
     df = dr.pull_data()
     
-    pf.plot_distances_this_year(df,ts.month,ts.year,'Running')
+    #pf.plot_distances_this_year(df,ts.month,ts.year,'Running')
     
-    chart = chart_as_html()
+    #chart = chart_as_html()
+    
+    chart = pf.plotly_distances_this_year_and_last(df,ts.month,ts.year,'Running')
+    
     #bf.time_check()
     return(chart)
 
@@ -263,21 +270,16 @@ def activity_otd(ac_no):
     user_df = dr.pull_data()
     
     ac_date = str(dr.ac_detail(ac_no, 'Date'))[:10]
-    
-    para = pf.otd_html_folium(ac_date,user_df,img = 'Y',index_link = False)
+    try:
+        para = pf.otd_html_folium(ac_date,user_df,img = 'Y',index_link = False)
+    except:
+        para = ''
     
     return(para)
     
 def split_rankings(distance):
-    
-    if distance == '1mile':
-        dist = '1 mile'
-    elif distance == '1.5mile':
-        dist = '1.5 mile'
-    elif distance == '3mile':
-        dist = '3 mile'
-    else:
-        dist = distance
+            
+    dist = bf.durl_to_dtag(distance)
         
     user_df = dr.pull_data()
     
@@ -299,6 +301,22 @@ def split_title(distance):
     
     return(title)
 
+def split_page_title(ac_no, distance, html=False):
+
+    user_df = dr.pull_data()
+        
+    split = pf.formatted_title(distance)
+
+    date = dr.activity_details(user_df,ac_no,'Date')
+    date = datetime.strftime(datetime.strptime(date, '%Y-%m-%d %H:%M:%S'), '%Y-%m-%d') 
+    
+    time = str(dr.activity_details(user_df,ac_no,split)).replace('0 days ','')
+
+    if html:
+        return f'''<b>{split}</b>: {time} on {date}'''
+    else:
+        return split + ': ' + date
+    
 '''
 def split_plot(distance):
     
@@ -430,6 +448,14 @@ def pace_alt_plotly(ac_no):
     
     return(div)
 
+def edit_prompt(field):
+    
+    user_df = dr.pull_data()
+    
+    prompt = ef.edit_prompt(user_df, field)
+    
+    return prompt
+
 def return_edit(ac_no,field,new_string):
     
     user_df = dr.pull_data()
@@ -454,13 +480,22 @@ def get_note(ac_no):
         
     return(out)
 
+def challenge_title(challenge):
+    
+    if challenge in challenges.challenge_list:
+        s = challenges.translate_title(challenge)
+    else:
+        s = challenge
+        
+    return s
+
 def challenge_map(challenge):
     
     user_df = dr.pull_data()
     yyyy = ts.year
     
-    if challenge == 'lejog':
-        div = challenges.lejog(yyyy, user_df)
+    if challenge in challenges.challenge_list:
+        div = challenges.challenge(yyyy, user_df,challenge)
     else:
         div = ''
     
@@ -471,12 +506,35 @@ def challenge_progress(challenge):
     user_df = dr.pull_data()
     yyyy = ts.year
     
-    if challenge == 'lejog':
+    if challenge in challenges.challenge_list:
         div = challenges.plot_challenge_linear_progress(challenge,user_df,yyyy)
     else:
         div = ''
         
     return(div)
+
+def challenge_summary(challenge):
+    
+    user_df = dr.pull_data()
+    yyyy = ts.year
+    
+    if challenge in challenges.challenge_list:
+        s = challenges.challenge_summary(challenge,user_df,yyyy)
+    else:
+        s = f'There is no challenge associated with {challenge}.'
+        
+    return s
+    
+def challenge_table(challenge):
+    
+    user_df = dr.pull_data()
+    
+    if challenge in challenges.challenge_list:
+        table = challenges.waymark_table(challenge, user_df)
+    else:
+        table = ''
+        
+    return table
     
 
 def hr_pie(ac_no):
@@ -520,8 +578,56 @@ def challenge_update(ac_no):
     
     user_df = dr.pull_data()
     
-    update = challenges.lejog_update(ac_no,user_df)
+    update = '<b><u>Challenges</u></b><br>'
+    
+    for c in challenges.challenge_list:
+        c_update = challenges.challenge_update(ac_no,user_df,c)
+        update += c_update
+        
+        if c != challenges.challenge_list[-1]:
+            update += '<br>'
     
     html = f'<p>{update}</p>'
     
     return(html)
+
+def activity_notes(ac_no):
+    
+    div = notes.load_notes_html(ac_no)
+    
+    return div
+
+def km_split_bars(ac_no, distance=None, whole_activity=True):
+    
+    ac_df = dr.route_data(ac_no)
+    activity_type = dr.ac_detail(ac_no,'Activity Type')
+    
+    if activity_type in ('Running'):
+        div = af.km_splits_bars_plotly(ac_df, distance, whole_activity)
+    else:
+        div = ''
+    
+    return div
+
+def halfway_split_p(ac_no, distance):
+    
+    ac_df = dr.route_data(ac_no)
+    activity_type = dr.ac_detail(ac_no,'Activity Type')
+    
+    if activity_type in ('Running'):
+        front, back, diff = af.halfway_split_str(ac_df, distance)
+        
+        p = f'''Front half: {front}
+<br>Back half: {back}
+<br>Difference: {diff}
+'''
+    else:
+        p = ''
+    
+    return p
+
+def split_reigel_efficiency(ac_no, distance):
+    
+    user_df = dr.pull_data()
+    
+    return af.distance_reigel_efficiency(user_df, ac_no, distance)

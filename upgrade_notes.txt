@@ -1,0 +1,33 @@
+- DONE: split breakdown: 5km into 1km, 1st half, 2nd half
+- DONE: multiple file loading
+- training schedule??!?!
+- type of run: LongRun, Race, Easy, Intervals, Hard
+- upgrades to rolling chart
+- DONE: add 5 mile and 10 mile breakdowns
+- add Sixth and maybe third projections
+- DONE: ranking progressions
+- upgrade hover text for progressions and times generally
+- add X-run average
+- limit that chart
+- km/mile switching
+- DONE: put 0 on shoes
+- calendar
+- distance vs time pace graph switching
+- stop the pace being out of whack at the start
+- incorporating sorting into import
+- Link to Strava
+- Link to Parkrun
+- DONE: Add options to edit shoes and download prompt etc
+- DONE: add notes to rankings tables 
+- add Days since/beaten on to rankings tables
+- create comparison between (splits on) different runs
+- Yasso logger
+- prevent duplicate entries
+- automatic date opening
+- upload to Github
+- steal Garmin's 'compare' feature
+- STARTED: little PB trophies on index
+- altitudes line on km splits bars
+- DONE: Reigel estimates
+- PB summary
+- fix distance rankings

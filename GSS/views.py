@@ -54,7 +54,8 @@ def activity(request,activity):
     action_log = htmls.action_log({'page_type': ['activity'],
                                    'detail': [activity]})
     
-    dictionary = {'ac_no': activity,
+    dictionary = {
+        'ac_no': activity,
                   'map' : route_map,
                   'type': dr.ac_detail(activity, 'Activity Type'),
                   'distance': dr.ac_detail(activity, 'Distance'),
@@ -74,7 +75,10 @@ def activity(request,activity):
                   'hr_pie': htmls.hr_pie(activity),
                   'hr_dist': htmls.hr_dist(activity),
                   '3D_map': htmls.ThreeD_map(activity),
-                  'challenge_update': htmls.challenge_update(activity)}
+                  'challenge_update': htmls.challenge_update(activity),
+                  'activity_notes': htmls.activity_notes(activity),
+                  'km_split_bars': htmls.km_split_bars(activity)
+                  }
     
     return render(request, 'activity.html', dictionary)
 
@@ -116,7 +120,16 @@ def activity_two(request,activity):
 
 def ac_map(request,activity,distance):
     
-    dictionary = {'distance_map': htmls.distance_map(activity,distance)}
+    
+    
+    dictionary = {
+        'page_title': htmls.split_page_title(activity, distance, html=False),
+        'title': htmls.split_page_title(activity, distance, html=True),
+        'reigel_projection': htmls.split_reigel_efficiency(activity, distance),
+        'distance_map': htmls.distance_map(activity, distance),
+        'km_split_bars': htmls.km_split_bars(activity, distance, whole_activity=False),
+        'halfway_split': htmls.halfway_split_p(activity, distance)
+                  }
     
     return render(request, 'ac_map.html',dictionary)
 
@@ -173,16 +186,32 @@ def edit_index(request,activity):
     
 def edit_field(request,activity,field):
     
-    return render(request, 'edit_field.html')
+    prompt = htmls.edit_prompt(field)
+    
+    dictionary = {'prompt': prompt}
+    
+    return render(request, 'edit_field.html', dictionary)
 
 def challenge_year(request,challenge):
     
-    dictionary = {'challenge_map': htmls.challenge_map(challenge),
-                  'challenge_progress': htmls.challenge_progress(challenge)}
+    dictionary = {'challenge_title': htmls.challenge_title(challenge),
+                  'challenge_summary': htmls.challenge_summary(challenge),
+                'challenge_map': htmls.challenge_map(challenge),
+                 'challenge_progress': htmls.challenge_progress(challenge),
+                 'challenge_table': htmls.challenge_table(challenge)
+                 }
     
     action_log = htmls.action_log({'page_type': ['challenge'],
                                    'detail': [challenge]})
     
     return render(request, 'challenge.html',dictionary)
+
+def challenge_index(request):
+    
+    dictionary = {}
+    
+    action_log = htmls.action_log({'page_type': ['challenge_index']})
+    
+    return render(request, 'challenge_index.html',dictionary)
 
     

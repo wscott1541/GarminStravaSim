@@ -6,7 +6,7 @@ Created on Fri Feb 12 13:12:37 2021
 """
 ###TO HAVE NO REFERENCES TO OTHER MODULES!###
 from time import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from . import today_string as ts
 
@@ -213,26 +213,34 @@ def convert_time(x):
 
 
 def durl_to_dtag(durl):
+    
+    mappings = {
+        '1mile': '1 mile',
+        '1.5mile': '1.5 mile',
+        '3mile': '3 mile',
+        '5mile': '5 mile',
+        '10mile': '10 mile'
+                }
 
-    if durl == '1mile':
-        dtag = '1 mile'
-    elif durl == '1.5mile':
-        dtag = '1.5 mile'
-    elif durl == '3mile':
-        dtag = '3 mile'
+    if durl in mappings:
+        dtag = mappings[durl]
     else:
         dtag = durl
 
     return(dtag)
 
 def dtag_to_durl(dtag):
+    
+    mappings = {
+        '1 mile': '1mile',
+        '1.5 mile': '1.5mile',
+        '3 mile': '3mile',
+        '5 mile': '5mile',
+        '10 mile': '10mile'
+                }
 
-    if dtag == '1 mile':
-        durl = '1mile'
-    elif dtag == '1.5 mile':
-        durl = '1.5mile'
-    elif dtag == '3 mile':
-        durl = '3mile'
+    if dtag in mappings:
+        durl = mappings[dtag]
     else:
         durl = dtag
 
@@ -257,6 +265,19 @@ def split_to_floatminute(x):
     x = stringtime_to_floatminute(x)
     
     return(x)
+
+def seconds_to_str_minutes(x: float):
+    #ty_res = time.gmtime(x)
+    #res = time.strftime("%H:%M:%S",ty_res).lstrip('0:')
+    #raise ValueError(x, type(x))
+    
+    minus = '-' if x < 0 else ''
+    res = str(timedelta(seconds = abs(x)))
+    
+    if res[:2] == '0:':
+        res = res[2:]
+
+    return minus+res
 
 
     
