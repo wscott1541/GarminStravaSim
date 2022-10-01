@@ -35,7 +35,7 @@
     <body>
         <p><b><u>{{ type }}</u></b>, {{ date }}<br>
         
-            {{ distance }}km in {{ duration }}<br>
+            {{ distance }}km in {{ duration }} {{rankings|safe }}<br>
 
             {{ note|safe }}<!--br included in function-->
           

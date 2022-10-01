@@ -61,6 +61,7 @@ def activity(request,activity):
                   'distance': dr.ac_detail(activity, 'Distance'),
                   'date': dr.ac_detail(activity, 'Date'),
                   'duration': dr.ac_detail(activity,'Time'),
+                  'rankings': htmls.run_rankings_html_str(activity),
                   'times_radar_plot': radar_plot,
                   'title': title,
                   'activity_otd' : otd,

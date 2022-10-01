@@ -24,10 +24,13 @@
 - Yasso logger
 - prevent duplicate entries
 - automatic date opening
-- upload to Github
+- DONE: upload to Github
 - steal Garmin's 'compare' feature
-- STARTED: little PB trophies on index
+- DONE: little PB trophies on index
 - altitudes line on km splits bars
 - DONE: Reigel estimates
 - PB summary
 - fix distance rankings
+- add user_setup.py
+- write a README
+- DONE: add the little medal emojis everywhere they're relevant

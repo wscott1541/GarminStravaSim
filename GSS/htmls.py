@@ -219,6 +219,7 @@ def latest_activity():
     date = df['Date'].tolist()[-1]
     time = df['Time'].tolist()[-1]
     dist = df['Distance'].tolist()[-1]
+    rankings = df['Run Rankings'].tolist()[-1]
     
     try:
         ac_df = dr.route_data(abbr)
@@ -231,7 +232,7 @@ def latest_activity():
     
     html = f'''<b><u>Latest</u></b><br>
 {link}, {date}<br>
-{dist}km, {time}
+{dist}km, {time} {pf.interpret_rankings(rankings)}
 {map_html}'''
 
     return(html)
@@ -635,3 +636,7 @@ def split_reigel_efficiency(ac_no, distance):
     user_df = dr.pull_data()
     
     return af.distance_reigel_efficiency(user_df, ac_no, distance)
+
+def run_rankings_html_str(ac_no):
+    
+    return pf.interpret_rankings(dr.ac_detail(ac_no, 'Run Rankings'))

@@ -1563,13 +1563,14 @@ def otd_html_folium(date,user_df,img = 'N',index_link = True):
         ac_type = dr.activity_details(user_df,ac_no,'Type')
         ac_dist = dr.activity_details(user_df,ac_no,'Distance')
         ac_dur = dr.activity_details(user_df,ac_no,'Duration')
+        ac_rankings = dr.activity_details(user_df,ac_no,'Run Rankings')
         
         if index_link == True:
             link = f'index/{ac_no}'
         else:
             link = f'../{ac_no}'
         
-        line = f"{ac_date[:4]}: <a href='{link}'>{ac_type}</a>, {ac_dist}km in {ac_dur}"
+        line = f"{ac_date[:4]}: <a href='{link}'>{ac_type}</a>, {ac_dist}km in {ac_dur} {interpret_rankings(ac_rankings)}"
         
         if i == 0:
             lines = lines + line
