@@ -381,9 +381,10 @@ def add_run_rankings(df: pd.DataFrame, times: Dict[str, timedelta], date: dateti
         }
     
     for dist in dr.dist_dict:
-        t = times[dist]
-        
-        d_df = df[(df['Date']<str(date))&(df[dist]<=str(t))&(df[dist]!='NONE')]
+        t = times.get(dist, 'NONE')
+
+        if a_type == 'Running':
+            d_df = df[(df['Date']<str(date))&(df[dist]<=str(t))&(df[dist]!='NONE')]
         
         #if '2022-09-17' in str(date) and dist == '1.5 mile':
         #    print(d_df, d_df[dist].unique())

@@ -34,3 +34,8 @@
 - add user_setup.py
 - write a README
 - DONE: add the little medal emojis everywhere they're relevant
+- year summaries: distance run, longest (fastest?) runs in the year, etc, expected PB percentage above expectation
+- DONE: fix whatever's up with walking imports
+- add altitudes archiving
+- index filtering
+- convert this to 'sprint planning'
