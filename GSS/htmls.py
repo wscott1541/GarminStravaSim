@@ -198,16 +198,16 @@ def month_and_previous_running_distances():
     
     return(chart)
 
-def week_and_previous_running_distances():
-    print('week and previous')
-    bf.time_check()
+def week_and_previous_running_distances(date_string=ts.today_string):
+    #print('week and previous')
+    #bf.time_check()
     user_df = dr.pull_data()
     
-    pf.plot_week_previous_distances(user_df,ts.today_string,'Running')
+    pf.plot_week_previous_distances(user_df,date_string,'Running')
     
     chart = chart_as_html()
     
-    bf.time_check()
+    #bf.time_check()
     
     return(chart)
 

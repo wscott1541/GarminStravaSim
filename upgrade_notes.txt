@@ -39,3 +39,9 @@
 - add altitudes archiving
 - index filtering
 - convert this to 'sprint planning'
+- IN PROGRESS: preceding mileage graph
+	- DONE: add weekly
+	- add monthly next to that
+- DONE: allow changing shoes
+- add shoes to index
+- functionaries import functions

@@ -51,6 +51,8 @@ def activity(request,activity):
     
     otd = htmls.activity_otd(activity)
     
+    date = dr.ac_detail(activity, 'Date')[:10]#Date and not time
+    
     action_log = htmls.action_log({'page_type': ['activity'],
                                    'detail': [activity]})
     
@@ -78,7 +80,8 @@ def activity(request,activity):
                   '3D_map': htmls.ThreeD_map(activity),
                   'challenge_update': htmls.challenge_update(activity),
                   'activity_notes': htmls.activity_notes(activity),
-                  'km_split_bars': htmls.km_split_bars(activity)
+                  'km_split_bars': htmls.km_split_bars(activity),
+                  'week_and_previous': htmls.week_and_previous_running_distances(date)
                   }
     
     return render(request, 'activity.html', dictionary)
@@ -164,11 +167,9 @@ def map_index(request,activity):
 
 def shoes_index(request):
     
-    shoes_table = htmls.shoes_table()
-    
     action_log = htmls.action_log({'page_type': ['shoes']})
     
-    dictionary = {'shoes_table': shoes_table,
+    dictionary = {'shoes_table': htmls.shoes_table(),
                   'shoes_plot': htmls.shoes_plot()}
     
     return render(request, 'shoes.html',dictionary)

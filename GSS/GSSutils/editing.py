@@ -160,12 +160,18 @@ def edit_prompt(user_df,column):
         s_df = s_df.drop_duplicates(subset=['Shoes'],keep='first')
         shoes = s_df['Shoes'].tolist()
         shoes = list(filter(lambda x: x not in ['NONE', 'default'], shoes))
+        shoes = [s for s in shoes if all(b not in s for b in '{}')]
         
         def shoes_link(shoe):
             link = shoe.replace(' ','_')
             return f"<a href='{link}'>{shoe}</a>"
         
-        text = '<br>'.join(list(map(shoes_link, shoes)))
+        text = '<br>'.join(list(map(shoes_link, shoes))) + '''
+<br><br>Remember that dictionaries must be in the form {"Shoes 1": 5.00, "Shoes 2": 5.00} for 5km in Shoes 1
+and Shoes 2, with double and not single quotes
+'''
+        
+
         
     elif column == 'Download':
         text = """<a href='Download'>Download</a> or <a href='archive'>archive</a>

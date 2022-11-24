@@ -25,7 +25,6 @@ y_day_string = ts.y_day_string
 from . import analyse
 
 import json
-#print(day)
 
 from datetime import datetime, timedelta
 from dateutil import relativedelta
@@ -47,6 +46,8 @@ import numpy as np
 import pandas as pd
 
 from time import time
+
+from typing import Union, Dict
 
 def populate_arrays(m,yyyy,month_dates,curr_vals):
     lim = bf.month_length(m,yyyy)
@@ -1135,10 +1136,29 @@ def activity_comparisons_plotly(user_df,activity_number):
 #activity_comparisons(df,'B2AE1701')
 #time_check()
 #print('done')
+
+def json_dict_shoes(shoes: str)->Union[str, Dict[str, float]]:
+    try:
+        return json.loads(shoes) if all(b in shoes for b in '{}') else shoes
+    except:
+        return shoes
+
+def distance_for_shoes(x: pd.DataFrame, pair_of_shoes)->float:
+        
+    if isinstance(x['Shoes'], str):
+        return x['Distance']
+    elif isinstance(x['Shoes'], dict):
+        return x['Shoes'][pair_of_shoes]
+    else:
+        raise ValueError(f"{x['Shoes']} is neither a str or a dict")
     
 def shoes_distance(user_df,pair_of_shoes,ac_no='NONE'):
     
-    df = user_df.loc[user_df['Shoes'] == pair_of_shoes]
+    df = user_df[user_df['Shoes'].apply(lambda x: pair_of_shoes in str(x))]
+    
+    df['Shoes'] = df['Shoes'].apply(json_dict_shoes)
+    
+    df['Distance'] = df.apply(lambda x: distance_for_shoes(x, pair_of_shoes), axis=1)
     
     if ac_no != 'NONE':
         date = dr.activity_details(df,ac_no,'Date')
@@ -1161,10 +1181,8 @@ def shoes_distance(user_df,pair_of_shoes,ac_no='NONE'):
     
     return(shoe_distance)
     
-def shoes_activity_line(user_df,activity_number):
-    
-    shoes = dr.activity_details(user_df,activity_number,'Shoes')
-    
+def single_shoes_activity_line(user_df, activity_number, shoes):
+        
     if shoes != 'NONE':
         dist = round(shoes_distance(user_df,shoes,activity_number),2)
     
@@ -1191,16 +1209,55 @@ def shoes_activity_line(user_df,activity_number):
         html = ''
     
     return(html)
+
+def shoes_activity_line(user_df,activity_number):
+    
+    shoes = dr.activity_details(user_df,activity_number,'Shoes')
+    
+    shoes = json_dict_shoes(shoes)
+    #raise ValueError(shoes,type(shoes))
+    
+    htmls = []
+    
+    if isinstance(shoes, str):
+        htmls.append(single_shoes_activity_line(user_df, activity_number, shoes))
+    elif isinstance(shoes, dict):
+        for shoe in shoes:
+            htmls.append(single_shoes_activity_line(user_df, activity_number, shoe))
+    else:
+        raise ValueError(type(shoes))
+        
+    return ', '.join(htmls)
+  
+
+def are_shoes(shoe: list)->bool:#aware this is badly typed
+    if not isinstance(shoe, str) and np.isnan(shoe):
+        return False
+    elif all(b in shoe for b in '{}'):
+        return False
+    elif shoe in ['NONE']:
+        return False
+    else:
+        return True  
+    
+def are_specific_shoes(x: Union[str, dict], pair_of_shoes: str)->bool:#aware this is badly typed
+
+    if x != x:#I'm sorry but this is just easier than np.isnan
+        return False
+    elif isinstance(x, str):
+        return x == pair_of_shoes
+    elif isinstance(x, dict):
+        return pair_of_shoes in x
     
 def shoe_rows(user_df):
         
     user_df['Date'] = user_df['Date'].apply(bf.convert_time)
     user_df = user_df.sort_values(by='Date',ascending=False)
     
-    shoe_l_df = user_df.drop_duplicates('Shoes')
-    shoe_l_df = shoe_l_df.loc[shoe_l_df['Shoes'] != 'NONE']
-    shoe_l_df = shoe_l_df[shoe_l_df['Shoes']==shoe_l_df['Shoes']]
-    shoes_list = shoe_l_df['Shoes'].tolist()
+    shoes_list = user_df.drop_duplicates('Shoes', keep='first')['Shoes'].tolist()
+    #shoes_list = shoe_l_df['Shoes'].tolist()
+    
+    shoes_list = list(filter(are_shoes, shoes_list))
     
     rows = '''<th>Shoes</th>
     <th>Main</th>
@@ -1208,11 +1265,15 @@ def shoe_rows(user_df):
     <th>Last used</th>
     <th>Total distance</th>'''
     
-    for i in range(0,len(shoes_list)):
-        shoes = shoes_list[i]
-        #dist = round(shoes_total_dist(user_df, shoes),2)
+    user_df['Shoes'] = user_df['Shoes'].apply(json_dict_shoes)
+    
+    for shoes in shoes_list:
         
-        shoe_df = user_df.loc[user_df['Shoes'] == shoes]
+        shoe_df = user_df.copy()
+        
+        shoe_df = shoe_df[shoe_df['Shoes'].apply(lambda x: are_specific_shoes(x, shoes))]
+        
+        shoe_df['Distance'] = shoe_df.apply(lambda x: distance_for_shoes(x, shoes), axis=1)
         
         dist = round(shoe_df['Distance'].sum(),1)
         
@@ -1243,16 +1304,20 @@ def shoes_plotly(user_df):
     user_df['Date'] = user_df['Date'].apply(bf.convert_time)
     user_df = user_df.sort_values(by='Date',ascending=True)
     
-    shoe_l_df = user_df.drop_duplicates('Shoes')
-    shoe_l_df = shoe_l_df.loc[-shoe_l_df['Shoes'].fillna('NONE').isin(['NONE','default',None])]
-    shoes_list = shoe_l_df['Shoes'].tolist()
+    shoes_list = user_df.drop_duplicates('Shoes', keep='first')['Shoes'].tolist()    
+    shoes_list = list(filter(are_shoes, shoes_list))
     
     fig = go.Figure()
     
-    for i in range(0,len(shoes_list)):
-        shoe = shoes_list[i]
+    user_df['Shoes'] = user_df['Shoes'].apply(json_dict_shoes)
+    
+    for shoe in shoes_list:
         
-        shoe_df = user_df.loc[user_df['Shoes'] == shoe]
+        shoe_df = user_df.copy()
+        
+        shoe_df = shoe_df[shoe_df['Shoes'].apply(lambda x: are_specific_shoes(x, shoe))]
+        
+        shoe_df['Distance'] = shoe_df.apply(lambda x: distance_for_shoes(x, shoe), axis=1)
         
         shoe_df['c_d'] = shoe_df['Distance'].cumsum()
         
