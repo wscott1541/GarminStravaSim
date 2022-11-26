@@ -31,15 +31,15 @@ def home(request):
 
 def index(request):
     
-    index_list = htmls.index_list()
-    
     action_log = htmls.action_log({'page_type': ['index']})
     
-    dictionary = {'index_list' : index_list}
+    dictionary = {'index_list' : htmls.index_list()}
     
     return render(request,'index.html',dictionary)
 
 def activity(request,activity):
+    
+    ac = dr.Activity(activity)
     
     route_map = htmls.generate_map(activity,'reg')
     
@@ -51,10 +51,10 @@ def activity(request,activity):
     
     otd = htmls.activity_otd(activity)
     
-    date = dr.ac_detail(activity, 'Date')[:10]#Date and not time
-    
     action_log = htmls.action_log({'page_type': ['activity'],
                                    'detail': [activity]})
+    
+    #raise  ValueError('ac_object', ac.year, ac.month, ac.date, ac.date_dt)
     
     dictionary = {
         'ac_no': activity,
@@ -64,6 +64,7 @@ def activity(request,activity):
                   'date': dr.ac_detail(activity, 'Date'),
                   'duration': dr.ac_detail(activity,'Time'),
                   'rankings': htmls.run_rankings_html_str(activity),
+                  'rise_and_fall': htmls.rise_and_fall(ac),
                   'times_radar_plot': radar_plot,
                   'title': title,
                   'activity_otd' : otd,
@@ -81,7 +82,8 @@ def activity(request,activity):
                   'challenge_update': htmls.challenge_update(activity),
                   'activity_notes': htmls.activity_notes(activity),
                   'km_split_bars': htmls.km_split_bars(activity),
-                  'week_and_previous': htmls.week_and_previous_running_distances(date)
+                  'week_and_previous': htmls.week_and_previous_running_distances(ac.date),
+                  'month_and_previous': htmls.month_and_previous_running_distances(ac.day, ac.month, ac.year)
                   }
     
     return render(request, 'activity.html', dictionary)
@@ -123,8 +125,6 @@ def activity_two(request,activity):
     return render(request, 'activity2.html', dictionary)
 
 def ac_map(request,activity,distance):
-    
-    
     
     dictionary = {
         'page_title': htmls.split_page_title(activity, distance, html=False),

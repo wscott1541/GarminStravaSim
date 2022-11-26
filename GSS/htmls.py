@@ -82,7 +82,6 @@ def chart_as_html():
 
 def index_list():
     df = dr.pull_data()
-    #df = dr.pull_data()
     
     abbrs = df['Activity number'].tolist()
     types = df['Activity Type'].tolist()
@@ -91,6 +90,7 @@ def index_list():
     dists = df['Distance'].tolist()
     rankings = df['Run Rankings'].tolist()
     notes = df['Notes'].apply(lambda x: x if x==x else '').tolist()
+    shoes = df['Shoes'].apply(pf.shoes_specific_line).tolist()
     
     table = '''<table style='width: 100%'>
 <th>Activity ID</th>
@@ -99,9 +99,9 @@ def index_list():
 <th>Duration</th>
 <th>Distance, km</th>
 <th class='notes-col'>Notes</th>
+<th>Shoes</th>
 <th></th>'''
     
-    #body = body + "<a href='{abbrs[-1]}'>{abbrs[-1]}</a>: {types[-1]}, {dates[-1]}: {dists[-1]}, {times[-1]}"
     
     for i in range(0,len(df)):
         v = len(df) - i - 1
@@ -113,11 +113,10 @@ def index_list():
 <td>{times[v]}</td>
 <td>{dists[v]}</td>
 <td class='notes-col'>{notes[v]}</td>
+<td>{shoes[v]}</td>
 <td>{pf.interpret_rankings(rankings[v])}</td>
 </tr>"""
-        #if i != len(df) - 1:
-        #    line = line + '<br>'
-        #body = body + line
+
         table = table + row
     
     return(table)
@@ -177,37 +176,30 @@ def times_radar(ac_no):
     return(chart)
     
 def otd_para(date=ts.today_string):
-    #print(str(ts.today_string))
+    
     user_df = dr.pull_data()
     
     para = pf.otd_html_folium(date,user_df,img = 'Y')
     
     return(para)
 
-def month_and_previous_running_distances():
-    print('month and prevous')
-    bf.time_check()
+def month_and_previous_running_distances(day=ts.day, month=ts.month, year=ts.year):
     
     user_df = dr.pull_data()
     
-    pf.plot_month_previous_distances(ts.month,ts.year,'Running',user_df)
+    pf.plot_month_previous_distances(day, month, year, 'Running', user_df)
     
     chart = chart_as_html()
-    
-    bf.time_check()
     
     return(chart)
 
 def week_and_previous_running_distances(date_string=ts.today_string):
-    #print('week and previous')
-    #bf.time_check()
+
     user_df = dr.pull_data()
     
     pf.plot_week_previous_distances(user_df,date_string,'Running')
     
     chart = chart_as_html()
-    
-    #bf.time_check()
     
     return(chart)
 
@@ -215,15 +207,17 @@ def latest_activity():
     df = dr.pull_data()
     
     abbr = df['Activity number'].tolist()[-1]
+    
+    ac = dr.Activity(abbr)
+    
     ac_type = df['Activity Type'].tolist()[-1]
-    date = df['Date'].tolist()[-1]
+    date = ac.date_str
     time = df['Time'].tolist()[-1]
     dist = df['Distance'].tolist()[-1]
     rankings = df['Run Rankings'].tolist()[-1]
     
     try:
-        ac_df = dr.route_data(abbr)
-        ac_map = mapper.plot_osm_map(ac_df,40,40)
+        ac_map = mapper.plot_osm_map(ac.route_data, 40, 40)
         map_html = f'<br>{ac_map}'
     except:
         map_html = ''
@@ -640,3 +634,10 @@ def split_reigel_efficiency(ac_no, distance):
 def run_rankings_html_str(ac_no):
     
     return pf.interpret_rankings(dr.ac_detail(ac_no, 'Run Rankings'))
+
+def rise_and_fall(ac: dr.Activity)->str:
+    
+    if ac.ascent_str and ac.descent_str:
+        return f'<br>{ac.ascent_str} up, {ac.descent_str} down'
+    else:
+        return ''

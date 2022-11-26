@@ -5,8 +5,12 @@ Created on Fri Feb 12 13:12:37 2021
 @author: WS
 """
 ###TO HAVE NO REFERENCES TO OTHER MODULES!###
-from time import time
+
+import numpy as np
+
 from datetime import datetime, timedelta
+from time import time
+from typing import Optional
 
 from . import today_string as ts
 
@@ -73,22 +77,24 @@ def month_caller(m):
         string = 'Dec'
     return(string)
 
-def month_length(m,yyyy):
-    if m == 1 or m == 3 or m == 5 or m == 7 or m == 8 or m == 10 or m == 12:
+def month_length(m: float, yyyy: float, d:Optional[float]=None)->float:#sighhh
+    
+    if m in (1, 3, 5, 7, 8, 10, 12):
         length = 31
-    if m == 4 or m == 6 or m == 9 or m == 11:
-        length = 30
-    if m == 2 and yyyy == 2016:
-        length = 29
-    elif m == 2 and yyyy == 2020:
+    elif m in (4, 6, 9, 11):
+        length = 30    
+    elif m == 2 and yyyy in (2016, 2020, 2024):
         length = 29
     elif m == 2:
         length = 28
         
-    if m == ts.month and yyyy == ts.year:
+    if m == ts.month and yyyy == ts.year:#i.e. is the current month of the year 
         length = ts.day
     
-    return(length)
+    if d:#unless we've said we'd like a different month 
+        length = d
+    
+    return length
 
 def add_zeros(str_n):
     if float(str_n) >= 10 or float(str_n) == 0:
@@ -279,6 +285,11 @@ def seconds_to_str_minutes(x: float):
 
     return minus+res
 
+def isnan(x)->bool:
+    if isinstance(x, (float, int)):
+        return np.isnan
+    else:
+        return True
+        
 
-    
     

@@ -45,12 +45,12 @@ import base64
 import numpy as np
 import pandas as pd
 
-from time import time
+#from time import time
 
 from typing import Union, Dict
 
-def populate_arrays(m,yyyy,month_dates,curr_vals):
-    lim = bf.month_length(m,yyyy)
+def populate_arrays(d, m,yyyy,month_dates,curr_vals):
+    lim = bf.month_length(m,yyyy, d)
     
     if month_dates[-1] < lim:
         month_dates.append((month_dates[-1]) + 1)
@@ -71,7 +71,7 @@ def populate_arrays(m,yyyy,month_dates,curr_vals):
             curr_vals.insert(i + 1,curr_vals[i])  
         i += 1
         
-def duration_sum(m,yyyy,activity,user_df):
+def duration_sum(d, m, yyyy, activity, user_df):
     dates = user_df['Date'].tolist()
     times = user_df['Time'].tolist()
     types = user_df['Activity Type'].tolist()
@@ -90,17 +90,19 @@ def duration_sum(m,yyyy,activity,user_df):
         activity = 'i'
     
     for i in range(0,len(dates)):
-        if bf.date_string(m,yyyy) in str(dates[i]) and activity in types[i]:
+        day_strf = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
+        day_strp = datetime.strftime(day_strf,'%d')
+        day_float = float(day_strp)
+        
+        if bf.date_string(m,yyyy) in str(dates[i]) and activity in types[i] and day_float <= d:
             times = plot_mins[-1] + mins[i]
             plot_mins.append(times)
-            day_strf = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
-            day_strp = datetime.strftime(day_strf,'%d')
+            
             month_dates.append(float(day_strp))
             #month_dates.append(float(dates[i][-2:]))
             
-    populate_arrays(m,yyyy,month_dates,plot_mins)
+    populate_arrays(d, m,yyyy,month_dates,plot_mins)
     
-    #error message?
     return(month_dates,plot_mins)
 
 '''
@@ -128,11 +130,12 @@ def distance_sum(m,yyyy,activity,user_df):#can add 'All'
     return(month_dates,sum_distances)
 '''
 
-def month_dist_sum(m,yyyy,activity,user_df):#can add 'All'
+def month_dist_sum(d,m,yyyy,activity,user_df):#can add 'All'
+
     sum_distances = [0]
     month_dates = [0]
     
-    user_df = user_df.loc[user_df['Activity Type'] == activity]
+    user_df = user_df[user_df['Activity Type'] == activity]
     
     dates = user_df['Date'].tolist()
     distances = user_df['Distance'].tolist()
@@ -141,22 +144,27 @@ def month_dist_sum(m,yyyy,activity,user_df):#can add 'All'
         activity = 'i'
     
     for i in range(0,len(dates)):
-        if bf.date_string(m,yyyy) in str(dates[i]):
+        day_strf = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
+        day_strp = datetime.strftime(day_strf,'%d')
+        day_float = float(day_strp)
+        
+        if bf.date_string(m,yyyy) in str(dates[i]) and day_float <= d:
             dist = round(sum_distances[-1] + float(distances[i]),2)
+            
             sum_distances.append(dist)
-            day_strf = datetime.strptime(dates[i],'%Y-%m-%d %H:%M:%S')
-            day_strp = datetime.strftime(day_strf,'%d')
+            
             month_dates.append(float(day_strp))
-    
-    populate_arrays(m,yyyy,month_dates,sum_distances)
+            
+    populate_arrays(d,m,yyyy,month_dates,sum_distances)
     
     #print(month_dates)
     
     #error message?
     return(month_dates,sum_distances)
 
-def plot_month_previous_distances(m,yyyy,activity,user_df):
-    curr_month_dates, curr_sum_distances = month_dist_sum(m,yyyy,activity,user_df)
+def plot_month_previous_distances(d, m, yyyy, activity, user_df):
+    
+    curr_month_dates, curr_sum_distances = month_dist_sum(d, m, yyyy, activity, user_df)
     
     if activity == 'All':
         activity = 'i'
@@ -170,13 +178,16 @@ def plot_month_previous_distances(m,yyyy,activity,user_df):
     else:
         new_year = yyyy
         prev_month = m - 1
-    prev_month_dates, prev_sum_distances = month_dist_sum(prev_month,new_year,activity,user_df)
     
-    junk_month_dates,prev_mins = duration_sum(prev_month,new_year,activity,user_df)
+    prev_day = bf.month_length(prev_month, new_year)
+    
+    prev_month_dates, prev_sum_distances = month_dist_sum(prev_day, prev_month, new_year, activity, user_df)
+    
+    junk_month_dates,prev_mins = duration_sum(prev_day, prev_month,new_year,activity,user_df)
     prev_annot = '{} {}: {}km in {} '.format(bf.month_caller(prev_month),new_year,round(prev_sum_distances[-1],2),bf.floatminute_to_stringtime(prev_mins[-1]))
     
     try:
-        junk_month_dates_two,curr_mins = duration_sum(m,yyyy,activity,user_df)
+        junk_month_dates_two,curr_mins = duration_sum(d, m, yyyy, activity, user_df)
         cm_string = bf.floatminute_to_stringtime(curr_mins[-1])
     except:
         cm_string = 'NOT FOUND'
@@ -245,21 +256,10 @@ def week_distance_sum_list(activities_df,date_string,activity):
     dates = activities_df['Date'].tolist()
     types = activities_df['Activity Type'].tolist()
     
-    #durs = []
-    
-    #for i in range(0,len(dur_strings)):
-    #    dur = stringtime_to_floatminute(dur_strings[i])
-    #    
-    #    durs.append(dur)
-    
     end_date = datetime.strptime(date_string,'%Y-%m-%d')
-    #end_date = datetime.timestamp(date_strf)
+    
     sta_date = end_date - timedelta(days=6)
-    #print(end_date)
-    #print(sta_date)
-    
-    #temp_date = sta_date - timedelta(days=1)
-    
+        
     days = [sta_date]
     vals = [0]
     #days = []
@@ -1121,21 +1121,9 @@ def activity_comparisons_plotly(user_df,activity_number):
     #bf.time_check()
     
     div = pio.to_html(fig,auto_play=False,full_html=False)
-    
-    #bf.time_check()
-    
+        
     return(div)
     
-
-#print('start')
-#time_check()    
-#df = dr.pull_data('WS')
-#time_check()
-#activity_comparisons_ex(df,'B2AE1701')
-#time_check()
-#activity_comparisons(df,'B2AE1701')
-#time_check()
-#print('done')
 
 def json_dict_shoes(shoes: str)->Union[str, Dict[str, float]]:
     try:
@@ -1167,18 +1155,7 @@ def shoes_distance(user_df,pair_of_shoes,ac_no='NONE'):
         df = df.loc[df['Date'] <= date]
     
     shoe_distance = df['Distance'].sum()
-    
-    #shoes = user_df['Shoes'].tolist()  
-    #dists = user_df['Distance'].tolist()    
-    
-    #shoe_dists = []
-    
-    #for i in range(0,len(shoes)):
-    #    if pair_of_shoes == shoes[i]:
-    #        shoe_dists.append(dists[i])
-            
-    #shoe_distance = round(sum(shoe_dists),1)
-    
+
     return(shoe_distance)
     
 def single_shoes_activity_line(user_df, activity_number, shoes):
@@ -1209,6 +1186,34 @@ def single_shoes_activity_line(user_df, activity_number, shoes):
         html = ''
     
     return(html)
+
+def shoes_specific_line(x: str)-> str:
+    
+    def string_shoes(x: str)->str:
+        if x in ('default', 'NONE'):
+            return ''
+        else:
+            return x
+        
+    def dict_shoes(x: Dict[str, float])->str:
+        l = []
+        
+        for shoe,distance in x.items():
+            s = f'{shoe}: {distance}km'
+            l.append(s)
+        
+        return ',<br>'.join(l)
+
+    shoes = json_dict_shoes(x)
+    
+    if isinstance(shoes, float):
+        return ''
+    elif isinstance(shoes, str):
+        return string_shoes(shoes)
+    elif isinstance(shoes, dict):
+        return dict_shoes(shoes)
+    else:
+        raise TypeError(f'{shoes} is {type(shoes)} and must be a string or maybe a dict')
 
 def shoes_activity_line(user_df,activity_number):
     

@@ -29,7 +29,10 @@
             border: 1px solid black;
             border-collapse: collapse;
           }
-          
+          .layout-row {
+              display: grid;
+              column-gap: 5%;
+          }
         </style>
       </head>
     <body>
@@ -39,7 +42,9 @@
 
             {{ note|safe }}<!--br included in function-->
           
-          {{ shoes|safe }}</p>
+          {{ shoes|safe }}
+        
+          <!--br included in function-->{{ rise_and_fall|safe }}</p>
 
           {{ activity_notes|safe }}
         
@@ -74,7 +79,10 @@
 
     </body>
 
-    {{ week_and_previous|safe }}
+    <div class='layout-row' style="width: 100%">
+      <div>{{ week_and_previous|safe }}</div>
+      <div>{{ month_and_previous|safe }}</div>
+    </div>
 
     {{ comparisons|safe }}
 

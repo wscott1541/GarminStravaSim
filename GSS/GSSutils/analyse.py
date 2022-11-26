@@ -1188,9 +1188,7 @@ def halfway_split_str(df:pd.DataFrame, distance:str)->(str, str, str):
 
     front = bf.seconds_to_str_minutes(splits['front'])    
     back = bf.seconds_to_str_minutes(splits['back'])    
-    
-    #raise ValueError(splits['front'], splits['back'], splits['front']-splits['back'])
-    
+        
     diff = splits['back'] - splits['front']
     diff = bf.seconds_to_str_minutes(diff)
     
@@ -1268,36 +1266,3 @@ def distance_reigel_efficiency(user_df: pd.DataFrame, ac_no: str, distance: str)
         return f'''A {time_run.replace('0 days ','')} {dtag}
 compares with a projected best time of {str(timedelta(seconds=best_projection))[:-str(timedelta(seconds=best_projection)).rfind('.')]},
 calculated from a {projected_from} PB of {projection_source.replace('0 days ','')}'''
-
-    
-#ac_no = dr.latest_activity('WS')
-#print(ac_no)
-#route = route_data('M20201111')
-#dist_dur_comp(route) 
-#plt.show()
-#dur_dist_comp(route)
-   
-    
-
-#df = dr.pull_data('WS')
-#pace(df,'AAKF0322')
-
-#pauls = 'Morning_Run.gpx'
-#paul_df = simple_gpx_pull(pauls)     
-#best_times = best_times_running(paul_df)  
-               
-#plt.show()    
-#route = route_data('A8RG3448')
-#print('Route pulled') 
-#print(hr_html(route))
-#plt.show()
-#lap_bars(route)
-#plt.show()
-#hr_dist_durs_plot(route)
-#plt.show()
-#hr_zones_pie(route)
-#plt.show()
-#plt.show()
-#hr_distribution(route)
-#plt.show()
-#hr_plot_time(route)

@@ -6,6 +6,7 @@ Created on Thu Jun 18 19:18:49 2020
 @author: WS
 """
 
+import numpy as np
 import pandas as pd
 
 from . import today_string
@@ -18,7 +19,7 @@ from math import sqrt
 
 import os
 
-#cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
+from typing import Dict
 
 cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','Rise','Fall','1km','1 mile','1.5 mile','3 mile','5km','5 mile','10km','10 mile','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Run Rankings','Notes','Admin']
 
@@ -53,27 +54,40 @@ def pull_initials():
 '''
 
 def pull_data():
-    data = pd.read_csv (r'activities.csv')  
+    return pd.read_csv (r'activities.csv')#.set_index('Activity number', drop=False) 
  
-    df = pd.DataFrame(data)
+    #raise ValueError(data)
+ 
+    #df = pd.DataFrame(data)
 
     #initials_list = users['Initials'].tolist()
     
     #initials = initials_list[0]
     
-    return(df)
+    #return(df)
 
-def ac_detail(ac_number, detail):
+def ac_detail(ac_number, detail): #weirdly, is there a reason not to load the lot of them as a dict?
     
-    df = pull_data()
+    df = pull_data().set_index('Activity number', drop=False)
     
-    df = df.loc[df['Activity number'] == ac_number]
+    deet = df.at[ac_number, detail]
+    
+    #df = df.reset_index()
+    
+    return deet
 
-    deet_list = df[detail].tolist()
-
-    deet = deet_list[0]
+def ac_dict(ac_number: str)->Dict:#should really type this properly
     
-    return(deet)
+    df = pull_data().set_index('Activity number', drop=False)
+    
+    return df.loc[ac_number].to_dict()
+
+    #return {c: df.at[ac_number,c] for c in df.columns}
+    
+    #for c in df.columns:
+    #    d[c] = df.at[ac_number, c]
+    
+    #return d
 
 def pull_gpx_status(initials):
     user_data = pd.read_csv (r'users.csv')  
@@ -174,27 +188,6 @@ def week_times(initials,distance):
             
     return(types,dates,dists,splits)
 
-def activity_splits(user_df,activity_number,distance):
-    
-    #user_df = user_df.loc[user_df['Activity number'] == activity_number]
-    
-        #ac_numbers = user_df['Activity number'].tolist()
-    #splits = user_df[distance].tolist()
-    
-        #split_list = []
-        #for i in range(0,len(ac_numbers)):
-            #    split_list.append(splits[i])
-    
-    #split = splits[0]
-    #print(activity_number,distance)
-    
-    index = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
-    #print(index)
-    split = user_df.at[index,distance]
-    #print(split)
-    
-    return(split)
-    
 def activity_details(user_df,activity_number,field):  
 
     if field == 'Duration':
@@ -202,9 +195,14 @@ def activity_details(user_df,activity_number,field):
     elif field == 'Type':
         field = 'Activity Type'
     
-    index = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
+    # index = user_df[user_df['Activity number'] == activity_number].index.values[0]
     
-    value = user_df.at[index,field]
+    # value = user_df.at[index,field]
+    
+    user_df = user_df.set_index('Activity number', drop=False)
+    
+    return user_df.at[activity_number, field] 
+    
     
     '''
     ac_numbers = user_df['Activity number'].tolist()
@@ -240,7 +238,28 @@ def activity_details(user_df,activity_number,field):
         value = shoe[0]
     '''
     
-    return(value)
+    # return(value)
+
+def activity_splits(user_df,activity_number,distance):
+    
+    #user_df = user_df.loc[user_df['Activity number'] == activity_number]
+    
+        #ac_numbers = user_df['Activity number'].tolist()
+    #splits = user_df[distance].tolist()
+    
+        #split_list = []
+        #for i in range(0,len(ac_numbers)):
+            #    split_list.append(splits[i])
+    
+    #split = splits[0]
+    #print(activity_number,distance)
+    
+    #index = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
+    #print(index)
+    #split = user_df.at[index,distance]
+    #print(split)
+    
+    return activity_details(user_df, activity_number, distance)
 
 #user_df = pull_data('WS')
 #print(activity_details(user_df,'AB4H2007','Shoes'))
@@ -541,7 +560,7 @@ def pull_csv_pd(activity_number,option='column_name'):
     data = pd.read_csv(r'{}'.format(filename))
     df = pd.DataFrame(data)#because just get all the columns?
     
-    df['time'] = df['time'].apply(lambda x : datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
+    df['time'] = df['time'].apply(lambda x: datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
     
     return(df)
 
@@ -553,3 +572,47 @@ def route_data(activity_number,option='column_name'):
         
     return(df)    
     
+class Activity:
+    
+    def strftime(self, fmt):
+        return datetime.strftime(self.date_dt, fmt)
+    
+    def fmt_alt(self, alt: str)->float:
+        if alt == 'NONE':
+            return np.nan
+        else:
+            return float(alt)
+    
+    def fmt_alt_change(self, alt_change):
+        if alt_change:
+            return f'{abs(alt_change)}m'
+        else:
+            return ''
+    #think about which of these should be callable elsewhere (include in the class) and which should not (separate)
+    
+    def __init__(self, activity_id):
+        self.activity_id = activity_id
+        self.activity_dict = ac_dict(activity_id)
+        self._route_data = None
+        
+        #Date-related qualities
+        self.date_str = self.activity_dict['Date']
+        self.date_dt = datetime.strptime(self.date_str, '%Y-%m-%d %H:%M:%S')
+        self.date = self.strftime('%Y-%m-%d')
+        self.year, self.month, self.day = round(float(self.strftime('%Y'))), round(float(self.strftime('%m'))), round(float(self.strftime('%d')))
+
+        #altitude-related qualities
+        self.ascent = self.fmt_alt(self.activity_dict['Rise'])
+        self.descent = self.fmt_alt(self.activity_dict['Fall'])
+        self.ascent_str = self.fmt_alt_change(self.ascent)
+        self.descent_str = self.fmt_alt_change(self.descent)
+       
+    @property
+    def route_data(self)->pd.DataFrame:
+        if self._route_data:
+            pass
+        else:
+            self._route_data = pull_csv_pd(self.activity_id)
+        
+        return self._route_data
+        
