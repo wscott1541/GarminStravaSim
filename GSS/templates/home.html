@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Home - GSS</title>
+        <title>Home - SOD</title>
     </head>
     <body>
         <p>{{ latest_activity|safe }}</p>
@@ -13,7 +13,9 @@
         <p><a href={% url 'index' %}>Index</a> | 
             <a href={% url 'rankings' %}>Rankings</a> | 
             <a href={% url 'shoes' %}>Shoes</a> |
-            <a href={% url 'challenges' %}>Challenges</a></p>
+            <a href={% url 'challenges' %}>Challenges</a> | 
+            <a href="/year_summary/{{year}}">Year in Review</a>
+        </p>
     </body>
 </html>
 

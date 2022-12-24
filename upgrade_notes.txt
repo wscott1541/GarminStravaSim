@@ -14,7 +14,7 @@
 - calendar
 - distance vs time pace graph switching
 - stop the pace being out of whack at the start
-- incorporating sorting into import
+- DONE: incorporating sorting into import
 - Link to Strava
 - Link to Parkrun
 - DONE: Add options to edit shoes and download prompt etc
@@ -25,23 +25,34 @@
 - prevent duplicate entries
 - automatic date opening
 - DONE: upload to Github
-- steal Garmin's 'compare' feature
+- DUPLICATE: steal Garmin's 'compare' feature
 - DONE: little PB trophies on index
 - altitudes line on km splits bars
 - DONE: Reigel estimates
-- PB summary
+- IN PROGRESS: PB summary
 - fix distance rankings
 - add user_setup.py
 - write a README
 - DONE: add the little medal emojis everywhere they're relevant
-- year summaries: distance run, longest (fastest?) runs in the year, etc, expected PB percentage above expectation
+- IN PROGRESS: year summaries: distance run, longest (fastest?) runs in the year, etc, expected PB percentage above expectation
 - DONE: fix whatever's up with walking imports
 - add altitudes archiving
 - index filtering
-- convert this to 'sprint planning'
-- IN PROGRESS: preceding mileage graph
-	- DONE: add weekly
+- convert this to 'sprint planning' (or at least clean up)
+	- bugs/new content/debt/upgrades
+- DONE: preceding mileage graph
+	- add weekly
 	- add monthly next to that
 - DONE: allow changing shoes
-- add shoes to index
-- functionaries import functions
+- DONE: add shoes to index
+- refactor loading_modules.py functions and appropriate efficiencies
+- add km/£ units to shoes
+- remove all the damn .locs 
+- DONE: extend custom route
+- IN PROGRESS: add user_df and activity as a class to be loaded in views.py
+- add elevation generator editing
+- add dates to custom route
+- altitude related challenges
+- actually, you could develop cacheing by saving the html of the page somewhere with a metadata.  Dev code changes are already tracked and you can reference last activity (or last upload) to see if it needs redoing.
+- add metadata column (upload dt) to activities.csv (deprecate admin?)
+- gpx export

@@ -2,8 +2,9 @@ from django.shortcuts import render
 
 from . import htmls
 from .GSSutils import data_read as dr
-#from .GSSutils import today_string as ts
-# Create your views here.
+from .GSSutils import today_string as ts
+from .GSSutils import basic_functions as bf
+
 
 def home(request):
     
@@ -25,7 +26,8 @@ def home(request):
                   'week_prev_run_dist': week_previous_running_distances,
                   'latest_activity': latest_activity,
                   'year_week_progress': year_week_progress,
-                  'year_distances': year_distances}
+                  'year_distances': year_distances,
+                  'year': ts.year}
     
     return render(request,'home.html',dictionary)
 
@@ -203,7 +205,7 @@ def challenge_year(request,challenge):
                  'challenge_table': htmls.challenge_table(challenge)
                  }
     
-    action_log = htmls.action_log({'page_type': ['challenge'],
+    htmls.action_log({'page_type': ['challenge'],
                                    'detail': [challenge]})
     
     return render(request, 'challenge.html',dictionary)
@@ -212,8 +214,36 @@ def challenge_index(request):
     
     dictionary = {}
     
-    action_log = htmls.action_log({'page_type': ['challenge_index']})
+    htmls.action_log({'page_type': ['challenge_index']})
     
     return render(request, 'challenge_index.html',dictionary)
+
+def year_summary(request, year):
+    
+    htmls.action_log({'page_type': ['year_summary'], 'detail': [year]})
+    
+    year_int = int(year)
+    
+    activities = dr.Activities()
+
+    activities = activities.date_filter('%Y', year)
+
+    running = activities.deep_copy().col_filter({'Activity Type': 'Running'})
+    walking = activities.deep_copy().col_filter({'Activity Type': 'Walking'})
+    
+    dictionary = {
+        'year': year,
+        'year_running_distances': htmls.year_distances(year=year_int),
+        'year_walking_distances': htmls.year_distances(year=year_int, activity='Walking'),
+        'n_runs': bf.pluralise(running.unique_activities, 'run'),
+        'n_run_days': bf.pluralise(running.active_days, 'day'),
+        'total_distance': '{:,.1f}'.format(running.sum_distance),
+        'avg_distance': '{:,.1f}'.format(running.mean_distance),
+        'pbs': htmls.pb_summary_paras(running),
+        'n_walks': bf.pluralise(walking.unique_activities, 'walk'),
+        'n_walk_days': bf.pluralise(walking.active_days, 'day')
+        }
+    
+    return render(request, 'year_summary.html', dictionary)
 
     

@@ -18,13 +18,13 @@ import json
 import pandas as pd
 from datetime import datetime
 from dateutil import relativedelta
+from typing import Optional
 
 from .GSSutils import data_read as dr
 from .GSSutils import primary_functions as pf
 from .GSSutils import today_string as ts
 from .GSSutils import analyse as af
-#print(ts.today_string)
-#from . import analyse
+
 from .GSSutils import editing as ef
 from .GSSutils import notes as notes
 
@@ -39,7 +39,7 @@ def get_time():
     now = time()
     return(datetime.strftime(datetime.fromtimestamp(now)+relativedelta.relativedelta(hours=1),'%Y-%m-%d %H:%M:%S'))
 
-def action_log(action_dictionary):
+def action_log(action_dictionary)->None:
     fileDir = os.path.dirname(os.path.realpath('__file__'))
 
     filename = os.path.join(fileDir, 'usage_log.csv')
@@ -74,9 +74,6 @@ def chart_as_html():
     
     os.remove('temp_image.jpg')
     
-    #plt.show()
-    
-    #img = chart_from_mpl()
     
     return(img)
 
@@ -121,7 +118,6 @@ def index_list():
     
     return(table)
 
-####print(index_list)
         
 def generate_map(activity,map_size='reg'):
     
@@ -242,19 +238,19 @@ def year_week_progress():
     #bf.time_check()
     return(chart)
 
-def year_distances():
-    #print('year dists')
-    #bf.time_check()
+def year_distances(year:int=ts.year, month:Optional[int]=None, activity:Optional[str]='Running'):
+    
+    if month is None:
+        if year == ts.year:
+            month = ts.month
+        else:
+            month = 12#effectively default to December if the year has been completed
+    
     df = dr.pull_data()
     
-    #pf.plot_distances_this_year(df,ts.month,ts.year,'Running')
+    chart = pf.plotly_distances_this_year_and_last(df, month, year, activity)
     
-    #chart = chart_as_html()
-    
-    chart = pf.plotly_distances_this_year_and_last(df,ts.month,ts.year,'Running')
-    
-    #bf.time_check()
-    return(chart)
+    return chart
 
 def activity_page_title(ac_no):
     ac_type = dr.ac_detail(ac_no, 'Activity Type')
@@ -641,3 +637,23 @@ def rise_and_fall(ac: dr.Activity)->str:
         return f'<br>{ac.ascent_str} up, {ac.descent_str} down'
     else:
         return ''
+
+def pb_summary_paras(activities: dr.Activities, join:Optional[str]='<br>')->str:
+    
+    pbs = {}
+    
+    for d in dr.dist_list:
+        ac_id = activities.pb_activity(d)
+        ac_obj = dr.Activity(ac_id)
+        pbs[d] = {
+            'time': activities.quickest_time(d),
+            'date': f"{ac_obj.day} {ac_obj.strftime('%b')}",
+            'link': f'../../index/{ac_id}'}
+        
+    strs = []
+    
+    for k,d in pbs.items():
+        if d['time']:
+            strs.append(f"{k}: {d['time'].replace('0 days ', '')} on <a href='{d['link']}'>{d['date']}</a>")
+    
+    return join.join(strs)

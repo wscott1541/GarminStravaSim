@@ -19,7 +19,9 @@ from math import sqrt
 
 import os
 
-from typing import Dict
+from typing import Dict, Optional
+
+import copy
 
 cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','Rise','Fall','1km','1 mile','1.5 mile','3 mile','5km','5 mile','10km','10 mile','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Run Rankings','Notes','Admin']
 
@@ -599,7 +601,8 @@ class Activity:
         self.date_str = self.activity_dict['Date']
         self.date_dt = datetime.strptime(self.date_str, '%Y-%m-%d %H:%M:%S')
         self.date = self.strftime('%Y-%m-%d')
-        self.year, self.month, self.day = round(float(self.strftime('%Y'))), round(float(self.strftime('%m'))), round(float(self.strftime('%d')))
+        self.year, self.month, self.day = (round(float(self.strftime(fmt))) for fmt in ('%Y', '%m', '%d'))
+        #round(float(self.strftime('%Y'))), round(float(self.strftime('%m'))), round(float(self.strftime('%d')))
 
         #altitude-related qualities
         self.ascent = self.fmt_alt(self.activity_dict['Rise'])
@@ -615,4 +618,83 @@ class Activity:
             self._route_data = pull_csv_pd(self.activity_id)
         
         return self._route_data
+        
+class Activities:
+    
+    def strftime_col(self, fmt)->pd.Series:
+        return self.df['Date'].apply(lambda x: datetime.strftime(x, fmt))
+        
+    def __init__(self, filters: Optional[Dict]={}):
+        self.df = pd.read_csv (r'activities.csv')
+        self.df['Date'] = self.df['Date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+        
+        self._unique_activities = None
+        self._active_days = None
+        self._sum_distance = None
+        self._mean_distance = None
+        self._quickest_times = {}
+        
+    def col_filter(self, filters: Dict)->None:
+        for k, v in filters.items():
+            self.df = self.df[self.df[k]==v]
+        return self
+    
+    def date_filter(self, str_fmt: str, value: str):
+        
+        dates = self.strftime_col(str_fmt)
+        
+        self.df = self.df[dates==value]
+        
+        return self
+    
+    def deep_copy(self):
+        return copy.deepcopy(self)
+    
+    def find_quickest_time(self, column):
+        if self._quickest_times.get(column):
+            pass
+        else:
+            df = self.df[self.df[column]!='NONE']
+            self._quickest_times[column] = df[column].min()
+            
+        return self._quickest_times
+    
+    def quickest_time(self, column):
+        self.find_quickest_time(column)
+        
+        return self._quickest_times.get(column)
+    
+    def pb_activity(self, column)->Activity:
+        pb = self.quickest_time(column)
+        
+        df = self.df[self.df[column]==pb]
+        
+        if df.empty:
+            return None
+        else:
+            return df['Activity number'].tolist()[0]
+
+    @property
+    def unique_activities(self)->float:
+        if self._unique_activities:
+            pass
+        else:
+            self._unique_activities = len(self.df)
+        
+        return self._unique_activities
+    
+    @property
+    def active_days(self)->float:
+        if self._active_days:
+            pass
+        else:            
+            self._active_days = self.strftime_col('%Y-%m-%d').nunique()
+        
+        return self._active_days
+    @property
+    def sum_distance(self)->float:
+        return self.df['Distance'].sum()
+    @property
+    def mean_distance(self):
+        return self.df['Distance'].mean()
         

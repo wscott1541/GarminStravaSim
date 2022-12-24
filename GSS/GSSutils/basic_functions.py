@@ -291,5 +291,8 @@ def isnan(x)->bool:
     else:
         return True
         
-
-    
+def pluralise(n: float, phrase: str)->str:
+    if n == 1:
+        return f'{n} {phrase}'
+    else:
+        return f'{n} {phrase}s'

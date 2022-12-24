@@ -68,6 +68,11 @@ def convert_time(x):
         x = datetime.strptime(x,'%Y-%m-%d %H:%M:%S')
     return(x)
 
+def sort_by_date(filename:str='activities.csv')->None:
+    df = pd.read_csv(r'{}'.format(filename))
+    df = df.sort_values(by='Date', ascending=True)
+    df.to_csv(r'{}'.format(filename))    
+
 def best_time_ws(distance,gpx_df,pull_time=False, known_time=False):
     
     distance_numeral = dr.dist_dict[distance]
@@ -895,6 +900,8 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     #    email_functions.activity_email(settings,ac_abbr,initials)
 
     print(f'Imported {ac_abbr}')
+    
+    sort_by_date()
 
     try:
         os.remove(FIT)

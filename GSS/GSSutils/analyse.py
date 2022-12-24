@@ -6,26 +6,19 @@ Created on Sun Jul 12 14:18:22 2020
 @author: WS
 """
 
-#column reference: ['Activity number','Activity Type','Date','Distance','Time','1km','1 mile','1.5 mile','3 mile','5km','10km','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Status']
-
 from . import data_read as dr
 from . import basic_functions as bf
 
 import pandas as pd
 from datetime import datetime, timedelta
+from typing import Union
 
-from time import time
-
-import os
 
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
-#pio.to_html(fig,auto_play=False,full_html=False)
 
-#import primary_user_functions as puf
-#from . import primary_user_functions as puf 
 from . import basic_functions as bf
 minutes_axes_label = bf.minutes_axes_label
 
@@ -1266,3 +1259,5 @@ def distance_reigel_efficiency(user_df: pd.DataFrame, ac_no: str, distance: str)
         return f'''A {time_run.replace('0 days ','')} {dtag}
 compares with a projected best time of {str(timedelta(seconds=best_projection))[:-str(timedelta(seconds=best_projection)).rfind('.')]},
 calculated from a {projected_from} PB of {projection_source.replace('0 days ','')}'''
+    
+    
