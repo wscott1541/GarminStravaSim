@@ -55,4 +55,5 @@
 - altitude related challenges
 - actually, you could develop cacheing by saving the html of the page somewhere with a metadata.  Dev code changes are already tracked and you can reference last activity (or last upload) to see if it needs redoing.
 - add metadata column (upload dt) to activities.csv (deprecate admin?)
-- gpx export
+- DONE: gpx export
+- DONE: find out how you can have a quicker km than the fastest km (rounding)

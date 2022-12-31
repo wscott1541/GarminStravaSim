@@ -169,24 +169,31 @@ def map_index(request,activity):
 
 def shoes_index(request):
     
-    action_log = htmls.action_log({'page_type': ['shoes']})
+    htmls.action_log({'page_type': ['shoes']})
     
     dictionary = {'shoes_table': htmls.shoes_table(),
                   'shoes_plot': htmls.shoes_plot()}
     
     return render(request, 'shoes.html',dictionary)
 
+def edit_index(request,activity):
+    
+    htmls.action_log({'page_type': [str(activity)+'_edit'], 'detail': ['index']})
+    
+    return render(request,'edit_index.html')
+
 def edit_func(request,activity,field,new_string):
     
-    edit_complete = htmls.return_edit(activity,field,new_string)
+    htmls.action_log({'page_type': [str(activity)+'_edit'], 'detail': [field]})
+    
+    ac = dr.Activity(activity)
+    
+    edit_complete = htmls.return_edit(activity,field,new_string, ac)
     
     dictionary = {'edit_complete': edit_complete}
     
     return render(request, 'edit_func.html', dictionary)
 
-def edit_index(request,activity):
-    
-    return render(request,'edit_index.html')
     
 def edit_field(request,activity,field):
     
@@ -237,6 +244,7 @@ def year_summary(request, year):
         'year_walking_distances': htmls.year_distances(year=year_int, activity='Walking'),
         'n_runs': bf.pluralise(running.unique_activities, 'run'),
         'n_run_days': bf.pluralise(running.active_days, 'day'),
+        'sum_time': running.sum_time,
         'total_distance': '{:,.1f}'.format(running.sum_distance),
         'avg_distance': '{:,.1f}'.format(running.mean_distance),
         'pbs': htmls.pb_summary_paras(running),

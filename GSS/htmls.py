@@ -451,11 +451,11 @@ def edit_prompt(field):
     
     return prompt
 
-def return_edit(ac_no,field,new_string):
+def return_edit(ac_no,field,new_string, activity):
     
     user_df = dr.pull_data()
     
-    line = ef.edit_field(user_df,ac_no,field,new_string)
+    line = ef.edit_field(user_df, ac_no, field, new_string, activity)
     
     return(line)
 
@@ -645,15 +645,18 @@ def pb_summary_paras(activities: dr.Activities, join:Optional[str]='<br>')->str:
     for d in dr.dist_list:
         ac_id = activities.pb_activity(d)
         ac_obj = dr.Activity(ac_id)
+        n_pbs = activities.n_pbs(d)
+        n_pbs_str = '' if n_pbs == 0 else f'({n_pbs} PBs)'
         pbs[d] = {
             'time': activities.quickest_time(d),
             'date': f"{ac_obj.day} {ac_obj.strftime('%b')}",
-            'link': f'../../index/{ac_id}'}
+            'link': f'../../index/{ac_id}',
+            'n_pbs': n_pbs_str}
         
     strs = []
     
     for k,d in pbs.items():
         if d['time']:
-            strs.append(f"{k}: {d['time'].replace('0 days ', '')} on <a href='{d['link']}'>{d['date']}</a>")
+            strs.append(f"{k}: {d['time'].replace('0 days ', '')} on <a href='{d['link']}'>{d['date']}</a> {d['n_pbs']}")
     
     return join.join(strs)

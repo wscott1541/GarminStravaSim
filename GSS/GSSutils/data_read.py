@@ -18,6 +18,7 @@ import gpxpy
 from math import sqrt
 
 import os
+import json
 
 from typing import Dict, Optional
 
@@ -592,6 +593,7 @@ class Activity:
             return ''
     #think about which of these should be callable elsewhere (include in the class) and which should not (separate)
     
+    
     def __init__(self, activity_id):
         self.activity_id = activity_id
         self.activity_dict = ac_dict(activity_id)
@@ -601,6 +603,7 @@ class Activity:
         self.date_str = self.activity_dict['Date']
         self.date_dt = datetime.strptime(self.date_str, '%Y-%m-%d %H:%M:%S')
         self.date = self.strftime('%Y-%m-%d')
+        self.time = self.strftime('%H:%M:%S')
         self.year, self.month, self.day = (round(float(self.strftime(fmt))) for fmt in ('%Y', '%m', '%d'))
         #round(float(self.strftime('%Y'))), round(float(self.strftime('%m'))), round(float(self.strftime('%d')))
 
@@ -618,21 +621,27 @@ class Activity:
             self._route_data = pull_csv_pd(self.activity_id)
         
         return self._route_data
+    
+    
         
 class Activities:
     
-    def strftime_col(self, fmt)->pd.Series:
-        return self.df['Date'].apply(lambda x: datetime.strftime(x, fmt))
+    def strftime_col(self, column, fmt)->pd.Series:
+        return self.df[column].apply(lambda x: datetime.strftime(x, fmt))
         
     def __init__(self, filters: Optional[Dict]={}):
         self.df = pd.read_csv (r'activities.csv')
         self.df['Date'] = self.df['Date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+        self.df['Time'] = pd.to_timedelta(self.df['Time'])
+        self.df['Run Rankings'] = self.df['Run Rankings'].apply(lambda x: json.loads(x.replace("'",'"')))
+        
+        self.personal_bests = {k:{} for k in dist_list}
         
         self._unique_activities = None
         self._active_days = None
         self._sum_distance = None
         self._mean_distance = None
-        self._quickest_times = {}
+        self._sum_time = None
         
     def col_filter(self, filters: Dict)->None:
         for k, v in filters.items():
@@ -641,7 +650,7 @@ class Activities:
     
     def date_filter(self, str_fmt: str, value: str):
         
-        dates = self.strftime_col(str_fmt)
+        dates = self.strftime_col('Date', str_fmt)
         
         self.df = self.df[dates==value]
         
@@ -650,29 +659,41 @@ class Activities:
     def deep_copy(self):
         return copy.deepcopy(self)
     
-    def find_quickest_time(self, column):
-        if self._quickest_times.get(column):
+    def quickest_time(self, column)->str:#unconverted timedelta str, but str nonethless
+        if self.personal_bests[column].get('quickest_time'):
             pass
         else:
-            df = self.df[self.df[column]!='NONE']
-            self._quickest_times[column] = df[column].min()
+            self.personal_bests[column]['quickest_time'] = self.df[self.df[column]!='NONE'][column].min()
             
-        return self._quickest_times
+        return self.personal_bests[column]['quickest_time']
     
-    def quickest_time(self, column):
-        self.find_quickest_time(column)
-        
-        return self._quickest_times.get(column)
-    
-    def pb_activity(self, column)->Activity:
-        pb = self.quickest_time(column)
-        
-        df = self.df[self.df[column]==pb]
-        
-        if df.empty:
-            return None
+    def pb_activity(self, column)->str:
+        if self.personal_bests[column].get('ac_id'):
+            pass
         else:
-            return df['Activity number'].tolist()[0]
+            pb = self.quickest_time(column)
+            df = self.df[self.df[column]==pb]
+            
+            if df.empty:
+                ac_id = None
+            else:
+                ac_id = df['Activity number'].tolist()[0]
+                
+            self.personal_bests[column]['ac_id'] = ac_id
+        
+        return self.personal_bests[column]['ac_id']
+    
+    def n_pbs(self, column)->float:
+        if self.personal_bests[column].get('n_pbs'):
+            pass
+        else:
+            n = 0
+            for r in self.df['Run Rankings']:
+                if column in r.get('1st', []):
+                    n += 1
+            self.personal_bests[column]['n_pbs'] = int(n)
+        
+        return self.personal_bests[column]['n_pbs']
 
     @property
     def unique_activities(self)->float:
@@ -688,13 +709,30 @@ class Activities:
         if self._active_days:
             pass
         else:            
-            self._active_days = self.strftime_col('%Y-%m-%d').nunique()
+            self._active_days = self.strftime_col('Date', '%Y-%m-%d').nunique()
         
         return self._active_days
     @property
     def sum_distance(self)->float:
-        return self.df['Distance'].sum()
+        if self._sum_distance:
+            pass
+        else:
+            self._sum_distance = self.df['Distance'].sum()
+       
+        return self._sum_distance
     @property
-    def mean_distance(self):
-        return self.df['Distance'].mean()
+    def mean_distance(self)->float:
+        if self._mean_distance:
+            pass
+        else:
+            self._mean_distance = self.df['Distance'].mean()
         
+        return self._mean_distance
+    @property
+    def sum_time(self)->timedelta:
+        if self._sum_time:
+            pass
+        else:                        
+            self._sum_time = self.df['Time'].sum()
+            
+        return self._sum_time

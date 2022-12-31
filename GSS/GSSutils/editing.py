@@ -139,7 +139,7 @@ def download_as_csv(activity_number,suffix):
     def add_csv(x:str)->str:
         return x if x[-4:]=='.csv' else x+'.csv'
     
-    if suffix == 'Download':
+    if suffix == 'download_csv':
         output_filename = 'activity_' + str(activity_number)
         output_filename = add_csv(output_filename)
     elif suffix  in ['archive', 'original']:
@@ -150,6 +150,56 @@ def download_as_csv(activity_number,suffix):
     a_df.to_csv(r'{}'.format(output_filename))
 
     return output_filename        
+
+      
+def gen_trkpt(route_data: pd.Series)->str:
+    
+    time = str(route_data['time']).replace(' ', 'T') + '.000Z'
+    
+    return f'''
+<trkpt lat="{route_data['lat']}" lon="{route_data['lon']}">
+    <ele>{route_data['alt']}</ele>
+    <time>{time}</time>
+    <extensions>
+        <ns3:TrackPointExtension>
+            <ns3:hr>{route_data['HR']}</ns3:hr>
+        </ns3:TrackPointExtension>
+    </extensions>
+</trkpt>'''
+
+
+def download_as_gpx(activity: dr.Activity)->None:
+    s = f'''<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="SOD">
+<metadata>
+    <time>{activity.date}T{activity.time}.000Z</time>
+</metadata>
+    <trk>
+    <name>{activity.activity_dict["Activity Type"]}</name>
+    <type>{activity.activity_dict["Activity Type"].lower()}</type>
+    
+    <trkseg>
+    '''
+    
+    trkpts = activity.route_data.apply(gen_trkpt, axis=1)
+    
+    s += '''
+'''.join(trkpts.tolist())
+    
+    s += '''</trkseg>
+  </trk>
+</gpx>'''
+
+    fileDir = os.path.dirname(os.path.realpath('__file__'))
+    
+    filename = os.path.join(fileDir, 'activity_{}.gpx'.format(activity.activity_id))
+
+    gpx_file = open(filename, "w")
+    n = gpx_file.write(s)
+    gpx_file.close()
+
+    return activity.activity_id
+
 
 def edit_prompt(user_df,column):
     
@@ -173,16 +223,20 @@ and Shoes 2, with double and not single quotes
         
 
         
-    elif column == 'Download':
-        text = """<a href='Download'>Download</a> or <a href='archive'>archive</a>
+    elif column == 'download_csv':
+        text = """<a href='download_csv'>Download</a> or <a href='archive'>archive</a>
 <br>or type the desired filename into the url bar
         """
+    
+    elif column == 'download_gpx':
+        text = "<a href='download_gpx'>Download</a>"
+    
     else:
         text = 'To amend, add to url with underscores in lieu of spaces'
     
     return text
 
-def edit_field(user_df,activity_number,column,new):
+def edit_field(user_df,activity_number,column,new, activity: dr.Activity):
     
     location = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
 
@@ -213,16 +267,22 @@ def edit_field(user_df,activity_number,column,new):
         
         out = 'File reset'
         
-    elif column == 'Download':
+    elif column == 'Download csv':
         
         path = download_as_csv(activity_number,new)
         
         out = 'Downloaded to ' + path
+        
+    elif column == 'Download gpx':
+        path = download_as_gpx(activity)
+        
+        out = 'GPX downloaded'
+        
 
     else:
         out = f'{column} not editable'
         
-    return(out)
+    return out
 
     
     

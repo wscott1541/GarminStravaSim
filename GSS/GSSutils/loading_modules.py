@@ -29,7 +29,7 @@ from GSS.GSSutils import data_read as dr
 
 #import analyse
 
-from numpy import NaN, nan,isnan
+from numpy import NaN, nan, isnan
 
 import urllib.request, json
 
@@ -77,10 +77,7 @@ def best_time_ws(distance,gpx_df,pull_time=False, known_time=False):
     
     distance_numeral = dr.dist_dict[distance]
     
-    #print('start')
-    #time_check()
     distances = gpx_df['distance'].tolist()
-    #times = gpx_df['time'].tolist()
     
     indexes = []
     
