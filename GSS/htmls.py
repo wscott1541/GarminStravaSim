@@ -644,14 +644,17 @@ def pb_summary_paras(activities: dr.Activities, join:Optional[str]='<br>')->str:
     
     for d in dr.dist_list:
         ac_id = activities.pb_activity(d)
-        ac_obj = dr.Activity(ac_id)
-        n_pbs = activities.n_pbs(d)
-        n_pbs_str = '' if n_pbs == 0 else f'({n_pbs} PBs)'
-        pbs[d] = {
-            'time': activities.quickest_time(d),
-            'date': f"{ac_obj.day} {ac_obj.strftime('%b')}",
-            'link': f'../../index/{ac_id}',
-            'n_pbs': n_pbs_str}
+        
+        if ac_id:
+        
+            ac_obj = dr.Activity(ac_id)
+            n_pbs = activities.n_pbs(d)
+            n_pbs_str = '' if n_pbs == 0 else f'({n_pbs} PBs)'
+            pbs[d] = {
+                'time': activities.quickest_time(d),
+                'date': f"{ac_obj.day} {ac_obj.strftime('%b')}",
+                'link': f'../../index/{ac_id}',
+                'n_pbs': n_pbs_str}
         
     strs = []
     

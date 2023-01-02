@@ -668,6 +668,9 @@ class Activities:
         return self.personal_bests[column]['quickest_time']
     
     def pb_activity(self, column)->str:
+        
+        
+        
         if self.personal_bests[column].get('ac_id'):
             pass
         else:
@@ -679,7 +682,7 @@ class Activities:
             else:
                 ac_id = df['Activity number'].tolist()[0]
                 
-            self.personal_bests[column]['ac_id'] = ac_id
+            self.personal_bests[column]['ac_id'] = ac_id        
         
         return self.personal_bests[column]['ac_id']
     
