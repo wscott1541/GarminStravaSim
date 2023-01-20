@@ -669,8 +669,6 @@ class Activities:
     
     def pb_activity(self, column)->str:
         
-        
-        
         if self.personal_bests[column].get('ac_id'):
             pass
         else:

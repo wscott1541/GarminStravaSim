@@ -21,7 +21,7 @@ import gpxpy
 import haversine
 from math import sqrt
 
-from typing import Dict, List
+from typing import Dict, List, Optional, Union
 
 #import data_read as dr
 
@@ -314,9 +314,7 @@ def save_alt_col(ac_df,alt_df,file_location):
     ac_df['alt'] = alts
         
     #f_name = f'activity_{activity_number}.csv'
-    
-    print(ac_df.columns)
-    
+        
     #input('cont?')
 
     ac_df.to_csv(file_location, index=False)
@@ -338,11 +336,7 @@ def falling(x):
 def ascent_descent(ac_df):
     try:
         
-        #ac_data = pd.read_csv(f'activity_{ac_numbs[i]}.csv')
-
         alt_df = ac_df[['alt']]
-    
-        #alt_df['check'] = alt_df['alt'].apply(round_func)
         
         alt_df['alt'] = alt_df['alt'].rolling(60,min_periods=1).mean()
         alt_df['alt'] = alt_df['alt'].apply(lambda x: round(x,1))
@@ -366,7 +360,6 @@ def ascent_descent(ac_df):
         if rise == 0.0 and fall == 0.0:
             rise = 'NONE'
             fall = 'NONE'
-            #print('rbk')
 
     except:
         rise = 'NONE'
@@ -406,8 +399,6 @@ def add_run_rankings(df: pd.DataFrame, times: Dict[str, timedelta], date: dateti
 
 def assess_main(main_df,gpx_df,ac_details,main_df_name='activities.csv'):
     df = main_df
-
-    #ac_abbr,activity,date, dist,full_string,shoes
 
     print('Loading activity {}'.format(len(df)))
     row = []
@@ -455,13 +446,23 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name='activities.csv'):
     #doesn't work because some are timestamps and some are strings
     
     main_df.to_csv(r'{}'.format(main_df_name),index=False) 
+    
+def gen_unused_activity_id(activities: dr.Activities, assigned_activity_id: Optional[Union[str, float]] = None)->str:
+    used_ids = activities.df['Activity number'].tolist()
 
+    if assigned_activity_id and assigned_activity_id not in used_ids:
+        return assigned_activity_id
+    else:
+        name_options = 'ABCDEFGHIJKLMNOPQRSTUV'
+        for c in name_options:
+            ac_id = f'{c}{ts.year}{ts.month}{ts.day}'
+            if ac_id not in used_ids:
+                return ac_id
 
 def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_option=True,alt_option=True,notes=''):
 
-    #set-up
-    #initials = dr.pull_initials()
-    
+    activities = dr.Activities()
+
     if ('FIT' not in FIT) and (FIT != 'NONE'):
         FIT = FIT + '.FIT'
     
@@ -470,21 +471,13 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         
     if gpx != 'NONE':
         
-        name_options = 'ABCDE'
-        
-        available_options = []
-        
-        latest_name = dr.latest_activity()
-        
-        for i in range(0,len(name_options)):
-            if  f'{name_options[i]}{ts.year}{ts.month}{ts.day}' != latest_name:
-                available_options.append(f'{name_options[i]}{ts.year}{ts.month}{ts.day}')
-        
-        ac_abbr = available_options[0]
+        ac_abbr = gen_unused_activity_id(activities)
     else:
         pos = FIT.find('.FIT')
         
         ac_abbr = FIT[:pos] 
+        
+    ac_abbr = gen_unused_activity_id(activities, ac_abbr)
         
     print(f'Importing {ac_abbr}')
         
@@ -586,7 +579,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
             # Go through all the data entries in this record
             for record_data in record:
         
-        #print(record_data)
+                print(record_data)
         
                 if record_data.name == 'timestamp':
                     fit_ts.append(record_data.value)
@@ -634,8 +627,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     timestamps.append(time_dt)
         
                 hr_found = False
-        
-                #while hr_found == False:
             
                 for n in range(0,len(fit_ts)):
                     if time_dt == fit_ts[n] and hr_found == False:
@@ -669,7 +660,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     
                 if time_dt >= fit_s and time_dt <= fit_f:
                     distance = distances[-1]
-
+                    
+                #print(time_dt, fit_s, fit_f)
+                
                 if time_dt >= fit_s and time_dt <= fit_f:
                     a_row = [lon,lat,alt,time_dt,distance,hr]
                     row = pd.Series(a_row,index=df.columns)
@@ -899,16 +892,21 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     print(f'Imported {ac_abbr}')
     
     sort_by_date()
+    
+    remove_files = False
+    
 
     try:
-        os.remove(FIT)
-        print('FIT removed')
+        if remove_files:
+            os.remove(FIT)
+            print('FIT removed')
     except:
         print('No FIT file')
         
     try:
-        os.remove(gpx)
-        print('gpx removed')
+        if remove_files:
+            os.remove(gpx)
+            print('gpx removed')
     except:
         print('No gpx file')
 
