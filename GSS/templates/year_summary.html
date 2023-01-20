@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <title>{{ year }} in Review - SOD</title>
+    </head>
+    <body>
+        <p><b><u>{{ year}} in Review</u></b></p>
+
+        <p><u>Running</u>
+        <br>{{n_runs}} on {{n_run_days}} for {{ total_distance }}km in {{ sum_time }}, an average of {{avg_distance}}km per run.
+        <br>{{pbs|safe}} 
+    </p>
+
+        <p>
+            {{ year_running_distances|safe }}
+        </p>
+
+        <p><u>Walking</u></p>
+
+            {{ year_walking_distances|safe }}
+
+        <p><a href={% url 'home' %}>Home</a> |
+            <a href={% url 'index' %}>Index</a> | 
+            <a href={% url 'rankings' %}>Rankings</a> | 
+            <a href={% url 'shoes' %}>Shoes</a> |
+            <a href={% url 'challenges' %}>Challenges</a></p>
+    </body>
+</html>
+
