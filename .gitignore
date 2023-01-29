@@ -1,10 +1,17 @@
 #ignore all pycache
-**/__pycache__/
 __pycache__/
+*.cpython-38.pyc
 
-#ignore everything in GPXArchive and Notes
+.DS_Store
+
+#ignore everything in Archive,  GPXarchive and Notes
+Archive/
+Archive.gitignore/
 GPXarchive/
-Notes/	
+GPXarchive.gitignore/
+Notes/
+Notes/*.html
 
 #ignore Misc
 Misc
+Misc.gitignore
