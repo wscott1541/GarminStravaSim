@@ -1,0 +1,10 @@
+#ignore all pycache
+**/__pycache__/
+__pycache__/
+
+#ignore everything in GPXArchive and Notes
+GPXarchive/
+Notes/	
+
+#ignore Misc
+Misc
