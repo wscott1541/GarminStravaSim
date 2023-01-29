@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ignore all pycache
 __pycache__/
 *.cpython-38.pyc
@@ -15,3 +16,22 @@ Notes/*.html
 #ignore Misc
 Misc
 Misc.gitignore
+=======
+#ignore all pycache
+__pycache__/
+*.cpython-38.pyc
+
+.DS_Store
+
+#ignore everything in Archive,  GPXarchive and Notes
+Archive/
+Archive.gitignore/
+GPXarchive/
+GPXarchive.gitignore/
+Notes/
+Notes/*.html
+
+#ignore Misc
+Misc
+Misc.gitignore
+>>>>>>> ff21c79cbe9c0a85840aeb656842118d3abe7043
