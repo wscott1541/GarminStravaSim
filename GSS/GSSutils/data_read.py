@@ -26,17 +26,19 @@ import copy
 
 cols = ['Activity number','Activity Type','Date','Distance','Time','Shoes','Rise','Fall','1km','1 mile','1.5 mile','3 mile','5km','5 mile','10km','10 mile','20km','Half','Full','C10k','C20k','C50k','C100k','C200k','C250k','Run Rankings','Notes','Admin']
 
-dist_dict = {'1km': 1000,
-              '1 mile': 1609.34,
-              '1.5 mile': 2414.02,
-              '3 mile': 4828.03,
-              '5km': 5000,
-              '5 mile': 8046.72,
-              '10km': 10000,
-              '10 mile': 16093.40,
-              '20km': 20000,
-              'Half': 21097.7,
-              'Full': 42195}
+dist_dict = {
+    '1km': 1000,
+    '1 mile': 1609.34,
+    '1.5 mile': 2414.02,
+    '3 mile': 4828.03,
+    '5km': 5000,
+    '5 mile': 8046.72,
+    '10km': 10000,
+    '10 mile': 16093.40,
+    '20km': 20000,
+    'Half': 21097.7,
+    'Full': 42195
+}
 
 dist_list = list(dist_dict.keys())
 
@@ -546,10 +548,14 @@ def route_data(activity_number):
     return(df)
 '''
 
-def pull_csv_pd(activity_number,option='column_name'):
+def generate_gpx_archive_filename(activity_number: str)->str:
     fileDir = os.path.dirname(os.path.realpath('__file__'))
+    
+    return os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
 
-    filename = os.path.join(fileDir, 'GPXarchive.gitignore/activity_{}.csv'.format(activity_number))
+def pull_csv_pd(activity_number, option='column_name'):
+
+    filename = generate_gpx_archive_filename(activity_number)
     
     #I think I only need distance and time
     
@@ -567,11 +573,9 @@ def pull_csv_pd(activity_number,option='column_name'):
     
     return(df)
 
-def route_data(activity_number,option='column_name'):
-    #if len(activity_number) == 10:
-    #    df = pull_gpx(activity_number)
-    #if len(activity_number) == 8 or len(activity_number) == 9:
-    df = pull_csv_pd(activity_number,option)
+def route_data(activity_number, option='column_name'):
+
+    df = pull_csv_pd(activity_number, option)
         
     return(df)    
     

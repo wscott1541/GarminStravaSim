@@ -451,7 +451,7 @@ def edit_prompt(field):
     
     return prompt
 
-def return_edit(ac_no,field,new_string, activity):
+def return_edit(ac_no, field, new_string, activity):
     
     user_df = dr.pull_data()
     
