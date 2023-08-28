@@ -22,7 +22,7 @@
 - add Days since/beaten on to rankings tables
 - create comparison between (splits on) different runs
 - Yasso logger
-- prevent duplicate entries
+- DONE: prevent duplicate entries
 - automatic date opening
 - DONE: upload to Github
 - DUPLICATE: steal Garmin's 'compare' feature
@@ -57,3 +57,11 @@
 - add metadata column (upload dt) to activities.csv (deprecate admin?)
 - DONE: gpx export
 - DONE: find out how you can have a quicker km than the fastest km (rounding)
+- DONE: add .gitignore
+- convert FIT & gpx merge to inner join, rather than overall times
+- reset times based on gpx times.
+- Add rankings to reset
+- Sort out the weird inconsistency between Strava and Garmin timestamps
+- Save sträva files in Archive too?
+- bugfix: merge to include cadence
+- bugfix: swimmin'
