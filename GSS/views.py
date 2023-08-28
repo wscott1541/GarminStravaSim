@@ -188,11 +188,11 @@ def edit_func(request,activity,field,new_string):
     
     ac = dr.Activity(activity)
     
-    edit_complete = htmls.return_edit(activity,field,new_string, ac)
-    
-    dictionary = {'edit_complete': edit_complete}
-    
-    return render(request, 'edit_func.html', dictionary)
+    edit_complete = htmls.return_edit(activity, field, new_string, ac)
+        
+    return render(request, 'edit_func.html', {
+        'edit_complete': edit_complete
+        })
 
     
 def edit_field(request,activity,field):
