@@ -1,8 +1,11 @@
 #ignore all pycache
 __pycache__/
 *.cpython-38.pyc
-
+GSS/GSSutils/__pycache__/ 
+# something ain't working
+*.pyc
 .DS_Store
+GSS/.DS_Store
 
 #ignore everything in Archive,  GPXarchive and Notes
 Archive/
