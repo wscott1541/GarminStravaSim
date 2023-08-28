@@ -579,7 +579,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
             # Go through all the data entries in this record
             for record_data in record:
         
-                print(record_data)
+                # print(record_data)
         
                 if record_data.name == 'timestamp':
                     fit_ts.append(record_data.value)
@@ -822,10 +822,10 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         if activity == 'Cycling':
             shoes = 'NONE'
         if activity == 'Running':
-            shoes = 'Altra Torin 5'
+            shoes = 'Altra Torin 5 Red'
             #'Hoka One One Clifton 8'#'Vivobarefoot Primus Lite II'#
         if activity == 'Walking':
-            shoes = 'Altra Torin 5'
+            shoes = 'Altra Torin 5 Red'
             #'Merrell Vego 2019'
     
     if activity == 'Running':
@@ -893,8 +893,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
     sort_by_date()
     
-    remove_files = False
-    
+    remove_files = True
 
     try:
         if remove_files:
@@ -917,11 +916,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                    'mode': ['user']}
     
     action_log(action_dict)
-    
-    #try:
-    #    os.remove('temp-abbr.csv')
-    #except:
-    #    print('Complete!')  
     
     print('Complete')
     

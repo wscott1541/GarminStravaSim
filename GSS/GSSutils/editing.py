@@ -5,22 +5,18 @@ Created on Sun Feb 21 09:03:26 2021
 @author: WS
 """
 
-import pandas as pd
-
 import haversine
-from math import sqrt
-from datetime import datetime
+import os
+import pandas as pd
 import time
 
-import os
+from math import sqrt
+from datetime import datetime
+from typing import List
 
 
 from . import data_read as dr
-
 from . import loading_modules as lm
-# best_time_ws
-
-#assess_main(main_df,gpx_df,ac_details
     
 def nan_to_none(x):
     
@@ -37,7 +33,47 @@ def format_url(x):
         
     return(x)
 
-def reset_distances(user_df,activity_number,column,new):
+def reset_distance_column(a_df: pd.DataFrame, include_altitude=False)->List[float]:
+    """
+    Remeasures distances, including or not including altitude
+    NOTE: I'm pretty sure the including altitudes given a misleading distance
+    """
+    
+    distances = [0]
+    
+    lats = a_df['lat'].tolist()
+    lons = a_df['lon'].tolist()
+    alts = a_df['alt'].tolist()
+    
+    
+    for i in range(1,len(a_df)):
+        prev_lon = lons[i-1]
+        prev_lat = lats[i-1]
+        prev_alt = alts[i-1]
+        
+        lon, lat, alt = lons[i], lats[i], alts[i]
+        
+        delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
+        
+        if include_altitude:
+            delta_alt = alt - prev_alt
+                    
+            extra_distance = sqrt((delta_2D ** 2) + (delta_alt ** 2))
+        else:
+            extra_distance = delta_2D
+                    
+        new = distances[-1] + extra_distance
+        
+        distances.append(new)
+    
+    return distances
+    
+
+def reset_distances(user_df,activity_number,column,new, include_distance=False):
+    """
+    Turning off the distance resetting in favour of just resetting the times
+
+    """
     
     location = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
     
@@ -55,33 +91,11 @@ def reset_distances(user_df,activity_number,column,new):
     cols = [c for c in cols if c in list(a_df.columns)]
     a_df = a_df[cols]
     
-    distances = [0]
     
-    lats = a_df['lat'].tolist()
-    lons = a_df['lon'].tolist()
-    alts = a_df['alt'].tolist()
+    if include_distance:
+        a_df['distance'] = reset_distance_column(a_df)
     
-    
-    for i in range(1,len(a_df)):
-        prev_lon = lons[i-1]
-        prev_lat = lats[i-1]
-        prev_alt = alts[i-1]
-        
-        lon, lat, alt = lons[i], lats[i], alts[i]
-                
-        delta_2D = haversine.haversine((prev_lat,prev_lon),(lat,lon)) * 1000
-                    
-        delta_alt = alt - prev_alt
-                    
-        distance_3D = sqrt((delta_2D ** 2) + (delta_alt ** 2))
-                
-        new = distances[-1] + distance_3D
-        
-        distances.append(new)
-        
-    a_df['distance'] = distances
-    
-    final_distance = distances[-1]
+    final_distance = a_df['distance'].tolist()[-1]
     
     activity = user_df.at[location,'Activity Type']
     

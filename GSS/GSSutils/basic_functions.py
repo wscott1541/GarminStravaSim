@@ -213,9 +213,9 @@ def minutes_axes_label(minutes):
     return(tags,points)
 
 def convert_time(x):
-    if str(type(x))  == "<class 'str'>":
+    if isinstance(x, str):
         x = datetime.strptime(x,'%Y-%m-%d %H:%M:%S')
-    return(x)
+    return x
 
 
 def durl_to_dtag(durl):
