@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Feb 21 09:03:26 2021
-
-@author: WS
-"""
-
 import haversine
 import os
 import pandas as pd
@@ -12,8 +5,7 @@ import time
 
 from math import sqrt
 from datetime import datetime
-from typing import Dict, List, Optional
-
+from typing import Dict, List, Optional, Tuple
 
 from . import data_read as dr
 from . import loading_modules as lm
@@ -68,7 +60,7 @@ def reset_distance_column(a_df: pd.DataFrame, include_altitude=False)->List[floa
     
     return distances
 
-def recalculate_and_return_best_distances(df: pd.DataFrame, activity_number: str, final_distance: Optional[float] = None)->Dict[str, str]:
+def recalculate_and_return_best_distances(df: pd.DataFrame, activity_number: str, final_distance: Optional[float] = None)->Tuple[pd.DataFrame, Dict[str, str]]:
 
     filename = dr.generate_gpx_archive_filename(activity_number)
 
@@ -82,10 +74,11 @@ def recalculate_and_return_best_distances(df: pd.DataFrame, activity_number: str
             df = lm.best_time_ws(i, df)
     
             df.to_csv(r'{}'.format(filename))
+            print(df.columns)
         
             times[i] = lm.best_time_ws(i, df, True)
 
-    return times
+    return df, times
 
 def reset_best_times(user_df: pd.DataFrame, activity_number: str, best_times: Dict[str, str])->pd.DataFrame:
     for d in dr.dist_list:
@@ -103,10 +96,9 @@ def reset_activity_time(user_df: pd.DataFrame, activity_df: pd.DataFrame, activi
 
     return user_df
 
-def reset_distances(user_df, activity_number, column, new, include_distance=False):
+def reset_distances(user_df, activity_number, column, new, include_distance=False)->None:
     """
-    Turning off the distance resetting in favour of just resetting the times
-
+    NOTE: Turning off the distance resetting in favour of just resetting the times
     """
     
     location = user_df.loc[user_df['Activity number'] == activity_number].index.values[0]
@@ -133,10 +125,10 @@ def reset_distances(user_df, activity_number, column, new, include_distance=Fals
     a_df['time'] = a_df['time'].apply(lambda x: datetime.strptime(x,'%Y-%m-%d %H:%M:%S'))
     
     best_times = {}
-    
+
     if activity == 'Running':
-        best_times = recalculate_and_return_best_distances(a_df, activity_number, final_distance)
-                
+        a_df, best_times = recalculate_and_return_best_distances(a_df, activity_number, final_distance)
+    
     a_df = a_df[cols+list(best_times.keys())]
                 
     user_df = reset_best_times(user_df, activity_number, best_times)
@@ -155,7 +147,7 @@ def reset_distances(user_df, activity_number, column, new, include_distance=Fals
     
     user_df.at[location, 'Notes'] = notes
     
-    user_df.at[location, 'Date'] = a_df['time'].tolist()
+    user_df.at[location, 'Date'] = datetime.strftime(a_df['time'].tolist()[0], '%Y-%m-%d %H:%M:%S')
     
     user_df = reset_activity_time(user_df, a_df, activity_number)
     
@@ -223,7 +215,7 @@ def merge_activities(user_df: pd.DataFrame, this_activity: str, activity_to_merg
     activity_type = user_df.loc[this_activity_bool, 'Activity Type'].tolist()[0]
 
     if activity_type == 'Running':
-        best_times = recalculate_and_return_best_distances(df, this_activity, final_distance)
+        df, best_times = recalculate_and_return_best_distances(df, this_activity, final_distance)
         user_df = reset_best_times(user_df, this_activity, best_times)
     else:
         df.to_csv(r'{}'.format(this_activity_filename))
@@ -374,7 +366,7 @@ def edit_field(user_df, activity_number, column, new, activity: dr.Activity):
         
     elif column == 'Reset':
         
-        reset_distances(user_df,activity_number,column,new)
+        reset_distances(user_df,activity_number,column,new, False)
         
         out = 'File reset'
         

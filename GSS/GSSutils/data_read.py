@@ -605,7 +605,7 @@ class Activity:
         
         #Date-related qualities
         self.date_str = self.activity_dict['Date']
-        self.date_dt = datetime.strptime(self.date_str, '%Y-%m-%d %H:%M:%S')
+        self.date_dt = datetime.strptime(self.date_str, '%Y-%m-%d %H:%M:%S')# if isinstance(self.date_str, str) else self.date_str
         self.date = self.strftime('%Y-%m-%d')
         self.time = self.strftime('%H:%M:%S')
         self.year, self.month, self.day = (round(float(self.strftime(fmt))) for fmt in ('%Y', '%m', '%d'))
