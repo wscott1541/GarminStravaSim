@@ -381,9 +381,6 @@ def add_run_rankings(df: pd.DataFrame, times: Dict[str, timedelta], date: dateti
         if a_type == 'Running':
             d_df = df[(df['Date']<str(date))&(df[dist]<=str(t))&(df[dist]!='NONE')]
         
-        #if '2022-09-17' in str(date) and dist == '1.5 mile':
-        #    print(d_df, d_df[dist].unique())
-        
         if a_type != 'Running':
             rankings = {}
         elif t == 'NONE':
@@ -435,7 +432,6 @@ def assess_main(main_df,gpx_df,ac_details,main_df_name='activities.csv'):
     series.append(ac_details['notes'])
     series.append('')#admin notes - going to have to be modified by hand
     
-    
     try:
         a_row = pd.Series(series,index=main_df.columns)#this should be done with a replace if the activity exists, else append
     except:
@@ -469,8 +465,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     if ('gpx' not in gpx) and (gpx != 'NONE'):
         gpx = gpx + '.gpx'
         
-    if gpx != 'NONE':
-        
+    if gpx != 'NONE': # i.e. is a GPX
         ac_abbr = gen_unused_activity_id(activities)
     else:
         pos = FIT.find('.FIT')
@@ -514,29 +509,24 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     distances.append(record_data.value)
                 if record_data.name == 'cadence':
                     cadences.append(record_data.value)
-        
+        fitfile.close()
+        fitfile = None 
+
         df = pd.DataFrame(columns=['time','lat','lon','HR','distance','cadence'])
 
         lat_breaks = []
-        #lat_break_checks = []
         lon_breaks = []
-        #lon_break_checks = []
 
         for i in range(0,len(timestamps)):
     
             if activity != 'Cardio':
                 try:
-                    #print(i,latitudes[i])
                     lat = latitudes[i] * conversion
                     if len(lat_breaks) > 0:
                         lat_breaks = []
                 except:
                     if len(lat_breaks) == 0:
                         lat_breaks.append(latitudes[i-1] * conversion)
-                    #elif lat_break_checks[-1] == i - 1:
-                    #    here = 'junk'
-                    #else:
-                    #    lat_breaks.append(lat_break)
                         
                     lat = lat_breaks[-1]
 
@@ -546,12 +536,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                         lon_breaks = []
                 except:
                     if len(lon_breaks) == 0:
-                        lon_breaks.append(longitudes[i-1] * conversion)
-                    #elif lon_break_checks[-1] == i - 1:
-                    #    here = 'junk'
-                    #else:
-                    #    lon_breaks = [longitudes[i-1] * conversion]
-                    #    lon_break_checks.append(i)    
+                        lon_breaks.append(longitudes[i-1] * conversion)   
         
                     lon = lon_breaks[-1]
                 
@@ -586,13 +571,17 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                 if record_data.name == 'heart_rate':
                     fit_hr.append(record_data.value)
         
+        fitfile = None
+
         print('Loading gpx')
         
         try:
             gpx_file = open(gpx)
             gpx_unpacked = gpxpy.parse(gpx_file)
-
+            gpx_file.close()
             data = gpx_unpacked.tracks[0].segments[0].points
+            
+            gpx_unpacked = None
             
             print(data[0])
             
@@ -603,9 +592,6 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
             print('Early break')
 
         df = pd.DataFrame(columns=['lon','lat','alt','time','distance','HR'])
-        #df = pd.DataFrame(columns=['lon','lat','alt'])
-
-        #distances.append(0)
 
         hrs = []
         fit_s = convert_time(fit_ts[0])
@@ -667,7 +653,9 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
                     a_row = [lon,lat,alt,time_dt,distance,hr]
                     row = pd.Series(a_row,index=df.columns)
                     df = df.append(row,ignore_index = True)
-                
+        
+        data = None
+
         #df['time'] = df['time'].apply(convert_time)
         
         #df = df.loc[df['time'] >= fit_s]
@@ -680,7 +668,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         try:
             gpx_file = open(gpx)
             gpx_unpacked = gpxpy.parse(gpx_file)
-
+            gpx_file.close()
             data = gpx_unpacked.tracks[0].segments[0].points
         
             stop = 0
@@ -740,6 +728,7 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
     
     #end of activity imports
     print('alt_option', alt_option)
+    alt_option = False # I think this is what's ruining my memory
     if alt_option == True and activity != 'Cardio':
         
         print('Loading altitudes')
@@ -822,11 +811,13 @@ def activity_import(FIT='NONE',gpx='NONE',activity='auto',shoes='default',email_
         if activity == 'Cycling':
             shoes = 'NONE'
         if activity == 'Running':
-            shoes = 'Altra Torin 5 Red'
+            shoes = 'Altra Torin 6'
             #'Hoka One One Clifton 8'#'Vivobarefoot Primus Lite II'#
         if activity == 'Walking':
-            shoes = 'Altra Torin 5 Red'
+            shoes = 'Merrell MTL Skyfire'
             #'Merrell Vego 2019'
+        if activity in ('Alpine Skiing', 'Ski Blading'):
+            shoes = 'Salomon Energyzer 100'
     
     if activity == 'Running':
         for i in range(0,len(dr.dist_list)):
@@ -1009,6 +1000,3 @@ def import_from_args():
     
 #alas, I now have to actually run the script...
 #import_from_args()
-    
-   
-
