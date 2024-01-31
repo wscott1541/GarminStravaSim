@@ -188,7 +188,8 @@ def merge_activities(user_df: pd.DataFrame, this_activity: str, activity_to_merg
     #shift(1).fillna(0)#.cumsum() # from 0->X, 0-Y to 0->X+Y
     # there is no elapsed time equivalent
 
-    df['alt'] = df['alt'].fillna(0) 
+    if 'alt' in df.columns:
+        df['alt'] = df['alt'].fillna(0) 
     # a hack, admittedly, but when I wrote this it was a coastal route that kept returning na
 
     final_distance = df['distance'].tolist()[-1]
@@ -250,10 +251,15 @@ def download_as_csv(activity_number, suffix):
 def gen_trkpt(route_data: pd.Series)->str:
     
     time = str(route_data['time']).replace(' ', 'T') + '.000Z'
+
+    if 'alt' in route_data.index:
+        elevation = f"<ele>{route_data['alt']}</ele>"
+    else:
+        elevation = ""
     
     return f'''
 <trkpt lat="{route_data['lat']}" lon="{route_data['lon']}">
-    <ele>{route_data['alt']}</ele>
+    {elevation}
     <time>{time}</time>
     <extensions>
         <ns3:TrackPointExtension>
